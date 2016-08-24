@@ -1,0 +1,9 @@
+{% if latest_board_list %}
+    <ul>
+        {% for board in latest_board_list %}
+            <li><a href="{% url 'openach:detail' board.id %}">{{ board.board_title }}</a></li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No boards are available.</p>
+{% endif %}

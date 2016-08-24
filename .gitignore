@@ -2,6 +2,7 @@ venv
 *.pyc
 db.sqlite3
 .env
+staticfiles
 
 # User-specific stuff:
 .idea/workspace.xml

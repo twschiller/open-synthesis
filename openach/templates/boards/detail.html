@@ -1,0 +1,17 @@
+
+<h1>Board: {{ board.board_title }}</h1>
+<p>{{ board.board_desc }}</p>
+
+<h2>Hypotheses</h2>
+<ul>
+    {% for hypothesis in board.hypothesis_set.all %}
+        <li>{{ hypothesis.hypothesis_text }}</li>
+    {% endfor %}
+</ul>
+
+<h2>Evidence</h2>
+<ul>
+    {% for evidence in board.evidence_set.all %}
+        <li>{{ evidence.evidence_url }}</li>
+    {% endfor %}
+</ul>
