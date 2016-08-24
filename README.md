@@ -1,5 +1,7 @@
 # OPEN-INTEL
 
+[![Build Status](https://travis-ci.org/twschiller/open-intel.svg?branch=master)](https://travis-ci.org/twschiller/open-intel)
+
 The purpose of the OPEN-INTEL project is to empower the public to synthesize vast amounts of information into actionable conclusions.
 
 To this end, the platform and its governance aims to be:
