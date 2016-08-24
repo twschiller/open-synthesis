@@ -3,6 +3,5 @@ language: python
 python:
   - "3.5"
 
-script:
-  - python manage.py test openach
+script: python manage.py test
 
