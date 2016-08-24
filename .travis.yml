@@ -8,6 +8,7 @@ install:
   - pip install coveralls coverage
 
 script:
+  - python manage.py collectstatic --no-input
   - python manage.py test
   - coverage run --source='.' manage.py test
 
