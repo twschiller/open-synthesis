@@ -4,6 +4,9 @@ db.sqlite3
 .env
 staticfiles
 
+# Django artifacts
+runserver
+
 # User-specific stuff:
 .idea/workspace.xml
 .idea/tasks.xml

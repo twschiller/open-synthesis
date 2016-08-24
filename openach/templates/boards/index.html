@@ -1,9 +1,14 @@
-{% if latest_board_list %}
-    <ul>
-        {% for board in latest_board_list %}
-            <li><a href="{% url 'openach:detail' board.id %}">{{ board.board_title }}</a></li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No boards are available.</p>
-{% endif %}
+{% extends 'boards/base.html' %}
+
+{% block content %}
+    <h1>Latest Boards</h1>
+    {% if latest_board_list %}
+        <ul>
+            {% for board in latest_board_list %}
+                <li><a href="{% url 'openach:detail' board.id %}">{{ board.board_title }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No boards are available.</p>
+    {% endif %}
+{% endblock content %}

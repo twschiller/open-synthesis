@@ -10,6 +10,10 @@ def index(request):
     return render(request, 'boards/index.html', context)
 
 
+def about(request):
+    return render(request, 'boards/about.html')
+
+
 def detail(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
     return render(request, 'boards/detail.html', {'board': board})

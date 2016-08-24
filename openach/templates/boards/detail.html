@@ -1,4 +1,6 @@
+{% extends 'boards/base.html' %}
 
+{% block content %}
 <h1>Board: {{ board.board_title }}</h1>
 <p>{{ board.board_desc }}</p>
 
@@ -15,3 +17,4 @@
         <li>{{ evidence.evidence_url }}</li>
     {% endfor %}
 </ul>
+{% endblock content %}
