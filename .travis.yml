@@ -3,5 +3,14 @@ language: python
 python:
   - "3.5"
 
-script: python manage.py test
+install:
+  - pip install -r requirements.txt --use-mirrors
+  - pip install coveralls coverage
+
+script:
+  - python manage.py test
+  - coverage run --source='.' manage.py test
+
+after_success:
+  - coveralls
 

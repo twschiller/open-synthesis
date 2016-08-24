@@ -1,6 +1,7 @@
 # OPEN-INTEL
 
 [![Build Status](https://travis-ci.org/twschiller/open-intel.svg?branch=master)](https://travis-ci.org/twschiller/open-intel)
+[![Coverage Status](https://coveralls.io/repos/github/twschiller/open-intel/badge.svg?branch=master)](https://coveralls.io/github/twschiller/open-intel?branch=master)
 
 The purpose of the OPEN-INTEL project is to empower the public to synthesize vast amounts of information into actionable conclusions.
 
