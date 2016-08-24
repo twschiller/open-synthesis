@@ -1,0 +1,14 @@
+{
+  "name": "Open Intel",
+  "description": "Crowd Intelligence platform",
+  "image": "heroku/python",
+  "repository": "https://github.com/heroku/python-getting-started",
+  "keywords": ["python", "django", "analysis of competing hypotheses", "ACH" ],
+  "addons": [ "heroku-postgresql" ],
+  "env": {
+    "SECRET_TOKEN": {
+      "description": "A secret key for verifying the integrity of signed cookies.",
+      "generator": "secret"
+    },
+  }
+}
