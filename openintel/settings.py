@@ -21,7 +21,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # Set defaults and read .env file from root directory
-env = environ.Env(DEBUG=(bool, False),)
+env = environ.Env(
+    DEBUG=(bool, False),
+    DJANGO_LOG_LEVEL=(str, "ERROR"),
+    APP_LOG_LEVEL=(str, "ERROR")
+)
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Quick-start development settings - unsuitable for production
