@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from .models import Board, Hypothesis, Evidence, Evaluation, Eval
 from collections import defaultdict
 from django.db import transaction
@@ -57,6 +58,7 @@ def detail(request, board_id):
 
     board = get_object_or_404(Board, pk=board_id)
     votes = Evaluation.objects.filter(board=board)
+    participants = set(map(lambda x: x.user, votes))
 
     keyed = defaultdict(list)
     for vote in votes:
@@ -65,7 +67,8 @@ def detail(request, board_id):
 
     context = {
         'board': board,
-        'votes': consensus
+        'votes': consensus,
+        'participants': participants,
     }
     return render(request, 'boards/detail.html', context)
 
@@ -146,10 +149,33 @@ def add_hypothesis(request, board_id):
     return render(request, 'boards/add_hypothesis.html', {'form': form, 'board': board})
 
 
-@login_required
-def profile(request):
-    return render(request, 'boards/profile.html')
+def profile(request, account_id=None):
+    """
+    Show the private/public profile for account_id. If account_id is None, shows the private profile for the logged in
+    user. If account is specified and the user is not logged in, raise a 404.
+    """
+    if request.user and not account_id:
+        account_id = request.user.id
 
+    with transaction.atomic():
+        user = get_object_or_404(User, pk=account_id)
+        boards = Board.objects.filter(creator=user)
+        evidence = Evidence.objects.filter(creator=user)
+        hypotheses = Hypothesis.objects.filter(creator=user)
+        votes = Evaluation.objects.filter(user=user)
+        contributed = set(map(lambda x: x.board, evidence)).union(set(map(lambda x: x.board, hypotheses)))
+        voted = set(map(lambda x: x.board, votes))
+        context = {
+            'user': user,
+            'boards_created': boards,
+            'boards_contributed': contributed,
+            'board_voted': voted
+        }
+
+    if request.user and request.user.id == account_id:
+        return render(request, 'boards/profile.html', context)
+    else:
+        return render(request, 'boards/public_profile.html', context)
 
 @login_required
 def evaluate(request, board_id, evidence_id):

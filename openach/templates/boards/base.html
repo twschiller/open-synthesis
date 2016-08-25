@@ -30,6 +30,7 @@
                     <li><a href="{% url 'openach:index' %}">Home</a></li>
                     <li><a href="{% url 'openach:about' %}">About</a></li>
                     {% if request.user.is_authenticated %}
+                        <li><a href="/accounts/profile">Profile</a></li>
                         <li><a href="/accounts/logout">Logout</a></li>
                     {% else %}
                         <li><a href="/accounts/login">Login</a></li>

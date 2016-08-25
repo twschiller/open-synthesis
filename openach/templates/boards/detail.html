@@ -3,8 +3,16 @@
 {% load board_extras %}
 
 {% block content %}
-    <h1>Analyzing "{{ board.board_title }}"</h1>
+    <h1>Analyzing <i>{{ board.board_title }}</i></h1>
     <p>{{ board.board_desc }}</p>
+
+    {% if board.creator %}
+        <p>Created by <a href="{% url 'profile' board.creator_id %}">{{ board.creator }}</a> on {{ board.pub_date }}</p>
+    {% else %}
+        <p>Created on {{ board.pub_date }}</p>
+    {% endif %}
+
+    <p>Results based on assessments from {{ participants|length }} participants.</p>
 
     <table class="table table-bordered">
         <thead>

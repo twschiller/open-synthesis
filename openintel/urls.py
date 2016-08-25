@@ -20,6 +20,7 @@ from openach import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/profile', views.profile),
+    url(r'^accounts/(?P<account_id>[0-9]+)/profile$', views.profile, name='profile'),
     url(r'^accounts/', include('allauth.urls')),
     url(r'', include('openach.urls')),
 ]
