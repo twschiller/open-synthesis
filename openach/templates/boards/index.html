@@ -1,6 +1,10 @@
 {% extends 'boards/base.html' %}
 
+{% load i18n %}
+
 {% block content %}
+    <a href="{% url 'openach:create_board' %}"><button class="btn btn-primary">{% trans "Create Board"%}</button></a>
+
     <h1>Latest Boards</h1>
     {% if latest_board_list %}
         <ul>

@@ -9,7 +9,10 @@
     <table class="table table-bordered">
         <thead>
         <tr>
-            <th></th>
+            <th>
+                <a href="{% url 'openach:add_evidence' board.id %}"><button class="btn btn-primary">Add Evidence</button></a>
+                <a href="{% url 'openach:add_hypothesis' board.id %}"><button class="btn btn-primary">Add Hypothesis</button></a>
+            </th>
             {% for hypothesis in board.hypothesis_set.all %}
                 <th>{{ hypothesis.hypothesis_text }}</th>
             {% endfor %}
@@ -27,6 +30,13 @@
                         {% get_detail votes evidence.id hypothesis.id %}
                     </td>
                 {% endfor %}
+            </tr>
+        {% empty %}
+            <tr>
+                <td></td>
+                <td colspan={{ board.hypothesis_set.all|length }}>
+                    No evidence has been provided yet. <a href="{% url 'openach:add_evidence' board.id %}">Add evidence.</a>
+                </td>
             </tr>
         {% endfor %}
         </tbody>

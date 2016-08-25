@@ -5,6 +5,7 @@ from django.urls import reverse
 from .models import Board, Eval
 from .views import consensus_vote
 
+# TODO: test rendering of evidence with no votes
 
 class BoardMethodTests(TestCase):
 

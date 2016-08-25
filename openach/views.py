@@ -7,6 +7,8 @@ from django.db import transaction
 import logging, itertools
 from django.urls import reverse
 import statistics
+from django import forms
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +68,82 @@ def detail(request, board_id):
         'votes': consensus
     }
     return render(request, 'boards/detail.html', context)
+
+
+class BoardForm(forms.Form):
+    board_title = forms.CharField(label='Board Title', max_length=200)
+    board_desc = forms.CharField(label='Board Description', max_length=200, widget=forms.Textarea)
+    hypothesis1 = forms.CharField(label='Hypothesis #1', max_length=200)
+    hypothesis2 = forms.CharField(label='Hypothesis #2', max_length=200)
+
+
+@login_required
+def create_board(request):
+    if request.method == 'POST':
+        form = BoardForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                board = Board.objects.create(
+                    board_title=form.cleaned_data['board_title'],
+                    board_desc=form.cleaned_data['board_desc'],
+                    creator=request.user,
+                    pub_date=timezone.now()
+                )
+                for hypothesis_key in ['hypothesis1', 'hypothesis2']:
+                    Hypothesis.objects.create(
+                        board=board,
+                        hypothesis_text=form.cleaned_data[hypothesis_key]
+                    )
+
+            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+    else:
+        form = BoardForm()
+    return render(request, 'boards/create_board.html', {'form': form})
+
+
+class EvidenceForm(forms.Form):
+    evidence_desc = forms.CharField(label='Evidence', max_length=200)
+    evidence_url = forms.URLField()
+
+
+@login_required
+def add_evidence(request, board_id):
+    board = get_object_or_404(Board, pk=board_id)
+
+    if request.method == 'POST':
+        form = EvidenceForm(request.POST)
+        if form.is_valid():
+            Evidence.objects.create(
+                evidence_desc=form.cleaned_data['evidence_desc'],
+                evidence_url=form.cleaned_data['evidence_url'],
+                board=board,
+                creator=request.user
+            )
+            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+    else:
+        form = EvidenceForm()
+    return render(request, 'boards/add_evidence.html', {'form': form, 'board': board})
+
+
+class HypothesisForm(forms.Form):
+    hypothesis_text = forms.CharField(label='Hypothesis', max_length=200)
+
+
+@login_required
+def add_hypothesis(request, board_id):
+    board = get_object_or_404(Board, pk=board_id)
+    if request.method == 'POST':
+        form = HypothesisForm(request.POST)
+        if form.is_valid():
+            Hypothesis.objects.create(
+                hypothesis_text=form.cleaned_data['hypothesis_text'],
+                board=board,
+                creator=request.user
+            )
+            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+    else:
+        form = HypothesisForm()
+    return render(request, 'boards/add_hypothesis.html', {'form': form, 'board': board})
 
 
 @login_required
