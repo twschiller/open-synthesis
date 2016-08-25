@@ -2,7 +2,8 @@ import datetime
 from django.utils import timezone
 from django.test import TestCase
 from django.urls import reverse
-from .models import Board
+from .models import Board, Eval
+from .views import consensus_vote
 
 
 class BoardMethodTests(TestCase):
@@ -58,3 +59,39 @@ class BoardViewTests(TestCase):
             response.context['latest_board_list'],
             ['<Board: Past board.>']
         )
+
+
+class ConsensusTests(TestCase):
+
+    def test_no_votes_has_no_consensus(self):
+        """
+        consensus_vote() should return None if no votes have been cast
+        """
+        self.assertIsNone(consensus_vote([]))
+
+    def test_na_consensus_for_single_vote(self):
+        """
+        consensus_vote() should return N/A if only a single N/A vote is cast
+        """
+        self.assertEqual(consensus_vote([Eval.not_applicable]), Eval.not_applicable)
+
+    def test_none_na_consensus_for_single_vote(self):
+        """
+        consensus_vote() should return the evaluation if only a single vote is cast
+        """
+        self.assertEqual(consensus_vote([Eval.consistent]), Eval.consistent)
+
+    def test_equal_na_vs_non_na(self):
+        """
+        consensus_vote() should return an evaluation when an equal number of N/A and non-N/A votes have been cast
+        """
+        for vote in [Eval.very_inconsistent, Eval.neutral, Eval.very_consistent]:
+            self.assertEqual(consensus_vote([vote, Eval.not_applicable]), vote)
+            self.assertEqual(consensus_vote([Eval.not_applicable, vote]), vote)
+
+    def test_round_toward_neutral(self):
+        """
+        consensus_vote() should round the vote toward a neutral assessment
+        """
+        self.assertEqual(consensus_vote([Eval.consistent, Eval.very_consistent]), Eval.consistent)
+        self.assertEqual(consensus_vote([Eval.inconsistent, Eval.very_inconsistent]), Eval.inconsistent)

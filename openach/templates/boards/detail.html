@@ -1,20 +1,34 @@
 {% extends 'boards/base.html' %}
 
+{% load board_extras %}
+
 {% block content %}
-<h1>Board: {{ board.board_title }}</h1>
-<p>{{ board.board_desc }}</p>
+    <h1>Analyzing "{{ board.board_title }}"</h1>
+    <p>{{ board.board_desc }}</p>
 
-<h2>Hypotheses</h2>
-<ul>
-    {% for hypothesis in board.hypothesis_set.all %}
-        <li>{{ hypothesis.hypothesis_text }}</li>
-    {% endfor %}
-</ul>
-
-<h2>Evidence</h2>
-<ul>
-    {% for evidence in board.evidence_set.all %}
-        <li>{{ evidence.evidence_url }}</li>
-    {% endfor %}
-</ul>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th></th>
+            {% for hypothesis in board.hypothesis_set.all %}
+                <th>{{ hypothesis.hypothesis_text }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for evidence in board.evidence_set.all %}
+            <tr>
+                <td>
+                    {{ evidence.evidence_desc }}
+                    <a href="{% url 'openach:evaluate' board.id evidence.id %}">Evaluate</a>
+                </td>
+                {% for hypothesis in board.hypothesis_set.all %}
+                    <td>
+                        {% get_detail votes evidence.id hypothesis.id %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 {% endblock content %}

@@ -1,0 +1,30 @@
+{% extends 'boards/base.html' %}
+
+
+{% block content %}
+    <h1>Evaluate Hypotheses Against Evidence</h1>
+
+    Evidence {{ evidence.evidence_desc }}
+
+    <form action="{% url 'openach:evaluate' board.id evidence.id %}" method="post" class="form-horizontal">
+        {% csrf_token %}
+        {% for hypothesis in board.hypothesis_set.all %}
+            <div class="form-group">
+                <label for="hypothesis-{{ hypothesis.id }}" class="col-sm-2 control-label">{{ hypothesis.hypothesis_text }}</label>
+                <div class="col-sm-10">
+                    <select id="hypothesis-{{ hypothesis.id }}" name="hypothesis-{{ hypothesis.id }}" class="form-control">
+                        {% for option in options %}
+                            <option value="{{ option.0 }}">{{ option.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        {% endfor %}
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button class="btn btn-primary" type="submit">Submit</button>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}
