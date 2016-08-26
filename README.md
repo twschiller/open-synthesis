@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/twschiller/open-synthesis.svg?branch=master)](https://travis-ci.org/twschiller/open-synthesis)
 [![Coverage Status](https://coveralls.io/repos/github/twschiller/open-synthesis/badge.svg?branch=master)](https://coveralls.io/github/twschiller/open-synthesis?branch=master)
+[![Quality Status](https://codeclimate.com/github/twschiller/open-synthesis/badges/gpa.svg)](https://codeclimate.com/github/twschiller/open-synthesis)
 [![Requirements Status](https://requires.io/github/twschiller/open-synthesis/requirements.svg?branch=master)](https://requires.io/github/twschiller/open-synthesis/requirements/?branch=master)
 [![License Status](https://img.shields.io/badge/license-GPLv3-brightgreen.svg)](LICENSE.md)
 
