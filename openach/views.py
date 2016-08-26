@@ -158,10 +158,14 @@ class EvidenceForm(forms.Form):
     additional sources later.
     """
     evidence_desc = forms.CharField(label='Evidence', max_length=200)
+    event_date = forms.DateField(
+        label='Event Date',
+        help_text='The date the event occurred or started',
+    )
     evidence_url = forms.URLField(label='Source Website')
     evidence_date = forms.DateField(
         label='Source Date',
-        help_text='The date the source released or last updated the information.'
+        help_text='The date the source released or last updated the information.',
     )
 
 
@@ -187,6 +191,7 @@ def add_evidence(request, board_id):
                 submit_date = timezone.now()
                 evidence = Evidence.objects.create(
                     evidence_desc=form.cleaned_data['evidence_desc'],
+                    event_date=form.cleaned_data['event_date'],
                     board=board,
                     creator=request.user,
                     submit_date=submit_date

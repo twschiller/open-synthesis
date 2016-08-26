@@ -35,6 +35,7 @@ class Evidence(models.Model):
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
     creator = models.ForeignKey(User, null=True)
     evidence_desc = models.CharField(max_length=200)
+    event_date = models.DateField('event date', null=True)
     submit_date = models.DateTimeField('date added')
 
 

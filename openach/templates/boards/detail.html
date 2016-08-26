@@ -30,6 +30,9 @@
         {% for evidence in board.evidence_set.all %}
             <tr>
                 <td>
+                    {% if evidence.event_date %}
+                        <span class="event-date">{{ evidence.event_date }}</span>
+                    {% endif %}
                     {{ evidence.evidence_desc }}
                     <div class="btn-group btn-group-xs" role="group" aria-label="Evidence Actions">
                         <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">Details</a>
