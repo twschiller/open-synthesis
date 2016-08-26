@@ -55,9 +55,3 @@ or
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
-Further Reading
-----------
-
-* [Psychology of Intelligence Analysis](https://www.cia.gov/library/center-for-the-study-of-intelligence/csi-publications/books-and-monographs/psychology-of-intelligence-analysis/PsychofIntelNew.pdf), Richards J. Heuer, Jr.
-* [Quantitative Intelligence Analysis: Applied Analytic Models, Simulations, and Games](https://www.amazon.com/Quantitative-Intelligence-Analysis-Simulations-Professional/dp/1442235861), Edward Waltz
-
