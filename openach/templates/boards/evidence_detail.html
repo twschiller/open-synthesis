@@ -1,0 +1,43 @@
+{% extends 'boards/base.html' %}
+
+{% block content %}
+
+    <h1>Evidence Detail</h1>
+
+    <p>Go to board <a href="{% url 'openach:detail' evidence.board_id %}">{{ evidence.board.board_title }}</a></p>
+
+    <p>
+        Added by <a href="{% url 'profile' evidence.creator.id %}">{{ evidence.creator.username }}</a>
+        on {{ evidence.submit_date }}
+    </p>
+
+    {{ evidence.evidence_desc }}
+
+    <h2>Sources</h2>
+
+    <a href="{% url 'openach:add_source' evidence.id %}">
+        <button class="btn btn-primary">Add Source</button>
+    </a>
+
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Source Date</th>
+            <th>URL</th>
+            <th>Submitted At</th>
+            <th>Submitted By</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for source in sources %}
+            <tr>
+                <td>{{ source.source_date }}</td>
+                <td><a href="{{ source.source_url }}" target="_blank">{{ source.source_url }}</a></td>
+                <td>{{ source.submit_date }}</td>
+                <td>{{ source.uploader.username }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

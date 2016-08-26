@@ -35,7 +35,17 @@ class Evidence(models.Model):
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
     creator = models.ForeignKey(User, null=True)
     evidence_desc = models.CharField(max_length=200)
-    evidence_url = models.URLField()
+    submit_date = models.DateTimeField('date added')
+
+
+class EvidenceSource(models.Model):
+    """A source for a piece of evidence in the ACH matrix."""
+    evidence = models.ForeignKey(Evidence, on_delete=models.CASCADE)
+    source_url = models.URLField()
+    # the date the source was last updated/released
+    source_date = models.DateField('source date')
+    uploader = models.ForeignKey(User)
+    submit_date = models.DateTimeField('date added')
 
 
 @unique

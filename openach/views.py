@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Board, Hypothesis, Evidence, Evaluation, Eval
+from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval
 from collections import defaultdict
 from django.db import transaction
 import logging
@@ -151,27 +151,85 @@ def create_board(request):
 
 
 class EvidenceForm(forms.Form):
+    """
+    Form to add a new piece of evidence. The evidence provided must have at least one source. The analyst can provide
+    additional sources later.
+    """
     evidence_desc = forms.CharField(label='Evidence', max_length=200)
-    evidence_url = forms.URLField()
+    evidence_url = forms.URLField(label='Source Website')
+    evidence_date = forms.DateField(
+        label='Source Date',
+        help_text='The date the source released or last updated the information.'
+    )
+
+
+class EvidenceSourceForm(forms.Form):
+    evidence_url = forms.URLField(label='Source Website')
+    evidence_date = forms.DateField(
+        label='Source Date',
+        help_text='The date the source released/reported the evidence.'
+    )
 
 
 @login_required
 def add_evidence(request, board_id):
+    """
+    View to add a new piece of evidence (with a source) to the specified board.
+    """
     board = get_object_or_404(Board, pk=board_id)
 
     if request.method == 'POST':
         form = EvidenceForm(request.POST)
         if form.is_valid():
-            Evidence.objects.create(
-                evidence_desc=form.cleaned_data['evidence_desc'],
-                evidence_url=form.cleaned_data['evidence_url'],
-                board=board,
-                creator=request.user
-            )
+            with transaction.atomic():
+                submit_date = timezone.now()
+                evidence = Evidence.objects.create(
+                    evidence_desc=form.cleaned_data['evidence_desc'],
+                    board=board,
+                    creator=request.user,
+                    submit_date=submit_date
+                )
+                EvidenceSource.objects.create(
+                    evidence=evidence,
+                    source_url=form.cleaned_data['evidence_url'],
+                    source_date=form.cleaned_data['evidence_date'],
+                    uploader=request.user,
+                    submit_date=submit_date
+                )
+
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = EvidenceForm()
     return render(request, 'boards/add_evidence.html', {'form': form, 'board': board})
+
+
+@login_required
+def add_source(request, evidence_id):
+    evidence = get_object_or_404(Evidence, pk=evidence_id)
+    if request.method == 'POST':
+        form = EvidenceSourceForm(request.POST)
+        if form.is_valid():
+            EvidenceSource.objects.create(
+                evidence=evidence,
+                source_url=form.cleaned_data['evidence_url'],
+                source_date=form.cleaned_data['evidence_date'],
+                uploader=request.user,
+                submit_date=timezone.now()
+            )
+            return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
+    else:
+        form = EvidenceSourceForm()
+    return render(request, 'boards/add_source.html', {'form': form, 'evidence': evidence})
+
+
+def evidence_detail(request, evidence_id):
+    evidence = get_object_or_404(Evidence, pk=evidence_id)
+    sources = EvidenceSource.objects.filter(evidence=evidence)
+    context = {
+        'evidence': evidence,
+        'sources': sources
+    }
+    return render(request, 'boards/evidence_detail.html', context)
 
 
 class HypothesisForm(forms.Form):

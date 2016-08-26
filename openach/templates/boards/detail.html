@@ -31,7 +31,10 @@
             <tr>
                 <td>
                     {{ evidence.evidence_desc }}
-                    <a href="{% url 'openach:evaluate' board.id evidence.id %}">Evaluate</a>
+                    <div class="btn-group btn-group-xs" role="group" aria-label="Evidence Actions">
+                        <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">Details</a>
+                        <a class="btn btn-default" href="{% url 'openach:evaluate' board.id evidence.id %}">Evaluate</a>
+                    </div>
                 </td>
                 {% for hypothesis in board.hypothesis_set.all %}
                     <td>
