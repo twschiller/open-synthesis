@@ -17,5 +17,3 @@ class BoardAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Board, BoardAdmin)
-
-

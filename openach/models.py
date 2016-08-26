@@ -72,4 +72,3 @@ class Evaluation(models.Model):
 
     def __str__(self):
         return self.get_value_display()
-

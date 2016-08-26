@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 from .models import Board, Hypothesis, Evidence, Evaluation, Eval
 from collections import defaultdict
 from django.db import transaction
-import logging, itertools
+import logging
+import itertools
 from django.urls import reverse
 import statistics
 from django import forms
@@ -65,8 +66,8 @@ def consensus_vote(evaluations):
 
 def inconsistency(evaluations):
     """
-    Calculate a metric for the inconsistency of a hypothesis with respect to a set of evidence. Does not account for the
-    reliability of the evidence (e.g., due to deception). Metric is monotonic in the number of pieces of evidence
+    Calculate a metric for the inconsistency of a hypothesis with respect to a set of evidence. Does not account for
+    the reliability of the evidence (e.g., due to deception). Metric is monotonic in the number of pieces of evidence
     that have been evaluated. That is, for a given hypothesis, further evidence can only serve to refute it (though
     it may make the hypothesis more likely relative to the other hypotheses).
     :param evaluations: an iterable of sets of Eval for the hypothesis

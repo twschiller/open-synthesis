@@ -10,5 +10,3 @@ def get_detail(dictionary, evidence_id, hypothesis_id):
         return next(e[1] for e in Evaluation.EVALUATION_OPTIONS if e[0] == value.value)
     else:
         return None
-
-
