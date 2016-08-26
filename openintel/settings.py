@@ -29,6 +29,10 @@ env = environ.Env(
     CERTBOT_PUBLIC_KEY=(str, None),
     CERTBOT_SECRET_KEY=(str, None),
     SECURE_SSL_REDIRECT=(bool, True),
+    SECURE_BROWSER_XSS_FILTER=(bool, True),
+    SECURE_CONTENT_TYPE_NOSNIFF=(bool, True),
+    SECURE_HSTS_INCLUDE_SUBDOMAINS=(bool, True),
+    SECURE_HSTS_SECONDS=(int, 31536000),  # default to maximum age in seconds
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -130,6 +134,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = env('SECURE_SSL_REDIRECT')
+SECURE_BROWSER_XSS_FILTER = env('SECURE_BROWSER_XSS_FILTER')
+SECURE_CONTENT_TYPE_NOSNIFF = env('SECURE_CONTENT_TYPE_NOSNIFF')
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env('SECURE_HSTS_INCLUDE_SUBDOMAINS')
+SECURE_HSTS_SECONDS = env('SECURE_HSTS_SECONDS')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
