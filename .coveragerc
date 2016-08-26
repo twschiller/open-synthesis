@@ -1,2 +1,2 @@
 [report]
-omit = */migrations/*,conf.py,openintel/wsgi.py
+omit = */migrations/*,conf.py,openach/apps.py,openintel/wsgi.py
