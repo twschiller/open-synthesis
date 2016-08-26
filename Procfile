@@ -1,1 +1,1 @@
-web: gunicorn openintel.wsgi --log-file -
+web: gunicorn -c conf.py openintel.wsgi --log-file -
