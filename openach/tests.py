@@ -3,9 +3,8 @@ from django.utils import timezone
 from django.test import TestCase
 from django.urls import reverse
 from .models import Board, Eval
-from .views import consensus_vote
+from .views import consensus_vote, diagnosticity, inconsistency
 
-# TODO: test rendering of evidence with no votes
 
 class BoardMethodTests(TestCase):
 
@@ -96,3 +95,49 @@ class ConsensusTests(TestCase):
         """
         self.assertEqual(consensus_vote([Eval.consistent, Eval.very_consistent]), Eval.consistent)
         self.assertEqual(consensus_vote([Eval.inconsistent, Eval.very_inconsistent]), Eval.inconsistent)
+
+
+class DiagnosticityTests(TestCase):
+
+    def test_no_hypotheses_has_zero_diagnosticity(self):
+        """
+        diagnosticity() should return 0.0 when there are no votes
+        """
+        self.assertEqual(diagnosticity([]), 0.0)
+
+    def test_no_votes_has_zero_diagnosticity(self):
+        """
+        diagnosticity() should return 0.0 when there are no votes
+        """
+        self.assertEqual(diagnosticity([{}, {}]), 0.0)
+
+    def test_different_more_diagnostic_than_neutral(self):
+        """
+        diagnosticity() should be higher for hypothesis with difference consensus than hypotheses with same consensus
+        """
+        different = diagnosticity([{Eval.consistent}, {Eval.inconsistent}])
+        same = diagnosticity([{Eval.neutral}, {Eval.neutral}])
+        self.assertGreater(different, same)
+
+
+class InconsistencyTests(TestCase):
+
+    def test_no_evidence_has_zero_inconsistency(self):
+        """
+        inconsistency() should return 0.0 when there is no evidence
+        """
+        self.assertEqual(inconsistency([]), 0.0)
+
+    def test_consistent_evidence_has_zero_inconsistency(self):
+        """
+        inconsistency() should return 0.0 when a evaluation is neutral or more consistent
+        """
+        for vote in [Eval.neutral, Eval.consistent, Eval.very_consistent]:
+            self.assertEqual(inconsistency([{vote}]), 0.0)
+
+    def test_inconsistent_evidence_has_nonzero_inconsistency(self):
+        """
+        inconsistency() should return more than 0.0 when a evaluation is neutral or more consistent
+        """
+        for vote in [Eval.very_inconsistent, Eval.inconsistent]:
+            self.assertGreater(inconsistency([{vote}]), 0.0)
