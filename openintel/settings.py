@@ -24,7 +24,9 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 env = environ.Env(
     DEBUG=(bool, False),
     DJANGO_LOG_LEVEL=(str, "ERROR"),
-    APP_LOG_LEVEL=(str, "ERROR")
+    APP_LOG_LEVEL=(str, "ERROR"),
+    CERTBOT_PUBLIC_KEY=(str, None),
+    CERTBOT_SECRET_KEY=(str, None),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -201,3 +203,7 @@ LOGGING = {
         }
     },
 }
+
+# Challenge/Response for Let's Encrypt. In the future, we may want to support challenge/response for multiple domains.
+CERTBOT_PUBLIC_KEY = env('CERTBOT_PUBLIC_KEY')
+CERTBOT_SECRET_KEY = env('CERTBOT_SECRET_KEY')

@@ -23,4 +23,5 @@ urlpatterns = [
     url(r'^accounts/(?P<account_id>[0-9]+)/profile$', views.profile, name='profile'),
     url(r'^accounts/', include('allauth.urls')),
     url(r'', include('openach.urls')),
+    url(r'\.well-known/acme-challenge/(?P<challenge_key>[a-zA-Z0-9\-]+)$', views.certbot)
 ]

@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Board, Hypothesis, Evidence, Evaluation, Eval
@@ -10,6 +10,7 @@ from django.urls import reverse
 import statistics
 from django import forms
 from django.utils import timezone
+from openintel.settings import CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -260,3 +261,10 @@ def evaluate(request, board_id, evidence_id):
     else:
         raise Http404()
 
+
+def certbot(request, challenge_key):
+    """Respond to the Let's Encrypt certbot challenge"""
+    if CERTBOT_PUBLIC_KEY and CERTBOT_PUBLIC_KEY == challenge_key:
+        return HttpResponse(CERTBOT_SECRET_KEY)
+    else:
+        raise Http404()
