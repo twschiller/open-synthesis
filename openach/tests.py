@@ -46,12 +46,19 @@ def create_board(board_title, days):
     return Board.objects.create(board_title=board_title, pub_date=time)
 
 
-class BoardViewTests(TestCase):
+class IndexViewTests(TestCase):
+
+    def test_can_access_request_context(self):
+        """
+        Smoke test to make sure the test environment is set up properly.
+        """
+        response = self.client.get(reverse('openach:index'))
+        self.assertIsNotNone(response, msg="No response was generated for index view")
+        self.assertIsNotNone(response.context, "Context was not returned with index view response")
 
     def test_index_view_with_a_past_board(self):
         """
-        Board with a pub_date in the past should be displayed on the
-        index page.
+         Board with a pub_date in the past should be displayed on the index page.
         """
         create_board(board_title="Past board.", days=-30)
         response = self.client.get(reverse('openach:index'))
@@ -59,6 +66,16 @@ class BoardViewTests(TestCase):
             response.context['latest_board_list'],
             ['<Board: Past board.>']
         )
+
+
+class AboutViewTests(TestCase):
+
+    def test_can_render_about_page(self):
+        """
+        smoke test to make sure about route is working
+        """
+        response = self.client.get(reverse('openach:about'))
+        self.assertIsNotNone(response)
 
 
 class ConsensusTests(TestCase):
