@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Board, Evidence, Hypothesis
+from .models import Board, Evidence, Hypothesis, EvidenceSourceTag
 
 
 class HypothesisInline(admin.StackedInline):
@@ -17,3 +17,4 @@ class BoardAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Board, BoardAdmin)
+admin.site.register(EvidenceSourceTag)

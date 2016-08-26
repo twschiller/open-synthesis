@@ -48,6 +48,23 @@ class EvidenceSource(models.Model):
     submit_date = models.DateTimeField('date added')
 
 
+class EvidenceSourceTag(models.Model):
+    """A tag that an analyst can apply to an evidence source."""
+    tag_name = models.CharField(max_length=64, unique=True)
+    tag_desc = models.CharField(max_length=200)
+
+    def __str__(self):
+        return "{}: {}".format(self.tag_name, self.tag_desc)
+
+
+class AnalystSourceTag(models.Model):
+    """An instance of an analyst tagging an evidence source with a tag"""
+    source = models.ForeignKey(EvidenceSource, on_delete=models.CASCADE)
+    tagger = models.ForeignKey(User, on_delete=models.CASCADE)
+    tag = models.ForeignKey(EvidenceSourceTag, on_delete=models.CASCADE)
+    tag_date = models.DateTimeField('date tagged')
+
+
 @unique
 class Eval(Enum):
     """Possible choices for evaluating a hypothesis w.r.t. a piece of evidence"""

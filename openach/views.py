@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval
+from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from collections import defaultdict
 from django.db import transaction
 import logging
@@ -12,6 +12,8 @@ import statistics
 from django import forms
 from django.utils import timezone
 from openintel.settings import CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY
+from django.contrib import messages
+
 
 logger = logging.getLogger(__name__)
 
@@ -222,12 +224,45 @@ def add_source(request, evidence_id):
     return render(request, 'boards/add_source.html', {'form': form, 'evidence': evidence})
 
 
+@login_required
+def add_source_tag(request, evidence_id, source_id):
+    """Add a source tag for the given source and redirect to the evidence detail page for the associated evidence."""
+    # May want to put in a sanity check here that source_id actually corresponds to evidence_id
+    if request.method == 'POST':
+        with transaction.atomic():
+            source = get_object_or_404(EvidenceSource, pk=source_id)
+            tag = EvidenceSourceTag.objects.get(tag_name=request.POST['tag'])
+            # This assumes that each user can only add a tag once to a source
+            AnalystSourceTag.objects.update_or_create(
+                source=source,
+                tagger=request.user,
+                tag=tag,
+                defaults={
+                    'tag_date': timezone.now()
+                }
+            )
+            messages.success(request, 'Added {} tag to source.'.format(tag.tag_name))
+            return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
+    else:
+        raise Http404()
+
+
 def evidence_detail(request, evidence_id):
+    """Show detailed information about a piece of information and its sources"""
     evidence = get_object_or_404(Evidence, pk=evidence_id)
+    available_tags = EvidenceSourceTag.objects.all()
     sources = EvidenceSource.objects.filter(evidence=evidence)
+    all_tags = AnalystSourceTag.objects.filter(source__in=sources)
+
+    source_tags = defaultdict(list)
+    for tag in all_tags:
+        source_tags[(tag.source.id, tag.tag.id)].append(tag)
+
     context = {
         'evidence': evidence,
-        'sources': sources
+        'sources': sources,
+        'source_tags': source_tags,
+        'available_tags': available_tags,
     }
     return render(request, 'boards/evidence_detail.html', context)
 

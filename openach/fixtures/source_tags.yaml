@@ -1,0 +1,18 @@
+- model: openach.evidencesourcetag
+  pk: 1
+  fields: {tag_name: Irrelevant, tag_desc: The claim in the source does not corroborate the evidence}
+- model: openach.evidencesourcetag
+  pk: 2
+  fields: {tag_name: Retracted, tag_desc: The source retracted the claim}
+- model: openach.evidencesourcetag
+  pk: 3
+  fields: {tag_name: Secondhand, tag_desc: The source is refering to a claim by another source}
+- model: openach.evidencesourcetag
+  pk: 4
+  fields: {tag_name: Preliminary, tag_desc: The claim is part of a preliminary and/or unconfirmed report}
+- model: openach.evidencesourcetag
+  pk: 5
+  fields: {tag_name: Inaccurate, tag_desc: The claim in the source is inaccurate}
+- model: openach.evidencesourcetag
+  pk: 6
+  fields: {tag_name: Reviewed, tag_desc: The claim in the source has been reviewed by an analyst}

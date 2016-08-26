@@ -1,5 +1,7 @@
 {% extends 'boards/base.html' %}
 
+{% load board_extras %}
+
 {% block content %}
 
     <h1>Evidence Detail</h1>
@@ -15,6 +17,14 @@
 
     <h2>Sources</h2>
 
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-dismissible" role="alert">
+                <b>Success!</b> {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <a href="{% url 'openach:add_source' evidence.id %}">
         <button class="btn btn-primary">Add Source</button>
     </a>
@@ -23,18 +33,36 @@
         <thead>
         <tr>
             <th>Source Date</th>
+            <th>Quality Tags</th>
             <th>URL</th>
             <th>Submitted At</th>
             <th>Submitted By</th>
+            <th>Add Quality Tag</th>
         </tr>
         </thead>
         <tbody>
         {% for source in sources %}
             <tr>
                 <td>{{ source.source_date }}</td>
+                <td>
+                    {% for tag in available_tags %}
+                        {% get_source_tags source_tags source.id tag.id as tag_count %}
+                        {% if tag_count %}
+                            <span class="source-tag">{{ tag.tag_name }} x {{ tag_count|length }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </td>
                 <td><a href="{{ source.source_url }}" target="_blank">{{ source.source_url }}</a></td>
                 <td>{{ source.submit_date }}</td>
-                <td>{{ source.uploader.username }}</td>
+                <td><a href="{% url 'profile' source.uploader.id %}">{{ source.uploader.username }}</a></td>
+                <td>
+                    <form action="{% url 'openach:tag_source' evidence.id source.id %}" method="post">
+                        {% csrf_token %}
+                        {% for tag in available_tags %}
+                            <input type="submit" class="btn btn-default btn-xs" name="tag" value="{{ tag.tag_name }}"/>
+                        {% endfor %}
+                    </form>
+                </td>
             </tr>
         {% endfor %}
         </tbody>

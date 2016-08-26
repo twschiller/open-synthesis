@@ -6,3 +6,14 @@ body {
 .navbar {
     margin-bottom: 20px;
 }
+
+.source-tag {
+    background-color: #5bc0de;
+    color: white;
+    padding-top: 1px;
+    padding-left: 3px;
+    padding-right: 3px;
+    margin: 1px;
+    font-size: 75%;
+    display: inline-block;
+}
