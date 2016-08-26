@@ -21,12 +21,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # Set defaults and read .env file from root directory
+# Defaults should be "safe" from a security perspective
 env = environ.Env(
     DEBUG=(bool, False),
     DJANGO_LOG_LEVEL=(str, "ERROR"),
     APP_LOG_LEVEL=(str, "ERROR"),
     CERTBOT_PUBLIC_KEY=(str, None),
     CERTBOT_SECRET_KEY=(str, None),
+    SECURE_SSL_REDIRECT=(bool, True),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -127,6 +129,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = env('SECURE_SSL_REDIRECT')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
