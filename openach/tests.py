@@ -3,8 +3,12 @@ from django.utils import timezone
 from django.test import TestCase, Client
 from django.urls import reverse
 from .models import Board, Eval
-from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement
+from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
 from django.contrib.auth.models import User
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class BoardMethodTests(TestCase):
@@ -169,6 +173,21 @@ class ConsensusTests(TestCase):
 
 class DiagnosticityTests(TestCase):
 
+    def test_mean_na_neutral_vote_maps_na_votes(self):
+        """
+        mean_na_neutral_vote() maps N/A votes to neutral
+        """
+        self.assertEqual(mean_na_neutral_vote([Eval.not_applicable]), Eval.neutral.value)
+        self.assertEqual(mean_na_neutral_vote([Eval.not_applicable, Eval.very_inconsistent]), Eval.inconsistent.value)
+
+    def test_mean_na_neutral_vote_only_maps_na_votes(self):
+        """
+        mean_na_neutral_vote() does not map values other than N/A
+        """
+        for x in Eval:
+            if x is not Eval.not_applicable:
+                self.assertEqual(mean_na_neutral_vote([x]), x.value)
+
     def test_no_hypotheses_has_zero_diagnosticity(self):
         """
         diagnosticity() should return 0.0 when there are no votes
@@ -179,14 +198,14 @@ class DiagnosticityTests(TestCase):
         """
         diagnosticity() should return 0.0 when there are no votes
         """
-        self.assertEqual(diagnosticity([{}, {}]), 0.0)
+        self.assertEqual(diagnosticity([[], []]), 0.0)
 
     def test_different_more_diagnostic_than_neutral(self):
         """
         diagnosticity() should be higher for hypothesis with difference consensus than hypotheses with same consensus
         """
-        different = diagnosticity([{Eval.consistent}, {Eval.inconsistent}])
-        same = diagnosticity([{Eval.neutral}, {Eval.neutral}])
+        different = diagnosticity([[Eval.consistent], [Eval.inconsistent]])
+        same = diagnosticity([[Eval.neutral], [Eval.neutral]])
         self.assertGreater(different, same)
 
 
@@ -203,15 +222,34 @@ class InconsistencyTests(TestCase):
         inconsistency() should return 0.0 when a evaluation is neutral or more consistent
         """
         for vote in [Eval.neutral, Eval.consistent, Eval.very_consistent]:
-            self.assertEqual(inconsistency([{vote}]), 0.0)
+            self.assertEqual(inconsistency([[vote]]), 0.0)
 
     def test_inconsistent_evidence_has_nonzero_inconsistency(self):
         """
         inconsistency() should return more than 0.0 when a evaluation is neutral or more consistent
         """
         for vote in [Eval.very_inconsistent, Eval.inconsistent]:
-            self.assertGreater(inconsistency([{vote}]), 0.0)
+            self.assertGreater(inconsistency([[vote]]), 0.0)
 
+    def test_very_inconsistent_implies_more_inconsistent(self):
+        """
+        inconsistency() should return higher value for hypothesis that has an inconsistent rating
+        """
+        h1 = inconsistency([[Eval.consistent], [Eval.inconsistent]])
+        h2 = inconsistency([[Eval.very_inconsistent], [Eval.inconsistent]])
+        self.assertLess(h1, h2)
+
+    def test_inconsistency_assumptions(self):
+        """
+        Test a couple things: (1) a hypothesis with 3 inconsistent ratings is less consistent than a hypothesis with
+        2 inconsistent ratings, regardless of whether N/A or Neutral is one of the other ratings. (2) a hypothesis with
+        a very inconsistent rating is more inconsistent than a hypothesis with not just inconsistent ratings
+        """
+        h1 = inconsistency([[Eval.very_consistent], [Eval.not_applicable], [Eval.inconsistent], [Eval.inconsistent]])
+        h2 = inconsistency([[Eval.inconsistent], [Eval.inconsistent], [Eval.neutral], [Eval.inconsistent]])
+        h3 = inconsistency([[Eval.neutral], [Eval.not_applicable], [Eval.very_consistent], [Eval.very_inconsistent]])
+        self.assertLess(h1, h2)
+        self.assertLess(h2, h3)
 
 class DisagreementTests(TestCase):
 
@@ -236,6 +274,9 @@ class DisagreementTests(TestCase):
             self.assertEqual(calc_disagreement([vote, vote]), 0.0)
 
     def test_extreme_votes_have_greater_disagreement(self):
+        """
+        Test that votes that are further from neutral result in a larger disagreement score
+        """
         small = [Eval.consistent, Eval.inconsistent]
         large = [Eval.very_inconsistent, Eval.very_consistent]
         self.assertGreater(calc_disagreement(large), calc_disagreement(small))

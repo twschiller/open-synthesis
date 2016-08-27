@@ -11,7 +11,7 @@ from django.urls import reverse
 import statistics
 from django import forms
 from django.utils import timezone
-from openintel.settings import CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY, DEBUG
+from openintel.settings import CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY
 from django.contrib import messages
 
 
@@ -43,7 +43,7 @@ def mean_na_neutral_vote(evaluations):
     Returns the mean rating on a 1-5 scale for the given evaluations, or None if there are no evaluations. Treats N/As
     as a neutral vote.
     """
-    def replace_na(x): return x.value if (x and x is not Eval.not_applicable) else Eval.not_applicable.value
+    def replace_na(x): return x.value if (x and x is not Eval.not_applicable) else Eval.neutral.value
     return statistics.mean(map(replace_na, evaluations)) if evaluations else None
 
 
@@ -99,8 +99,8 @@ def inconsistency(evaluations):
     # computes a metric similar to "sum squared error" for evidence where the consensus is that the hypotheses is
     # inconsistent. Currently we're treating N/A's a neutral. It may make sense to exclude them entirely because a
     # hypotheses can be considered more consistent just because there's less evidence that applies to it.
-    na_neutral_consensuses = map(mean_na_neutral_vote, evaluations)
-    inconsistent = filter(lambda x: x is not None and x < Eval.neutral.value,  na_neutral_consensuses)
+    na_neutral_consensuses = list(map(mean_na_neutral_vote, evaluations))
+    inconsistent = list(filter(lambda x: x is not None and x < Eval.neutral.value, na_neutral_consensuses))
     return sum(map(lambda x: (Eval.neutral.value - x)**2, inconsistent))
 
 
@@ -127,7 +127,6 @@ def detail(request, board_id):
     View the board details. Evidence is sorted in order of diagnosticity. Hypotheses are sorted in order of
     consistency.
     """
-
     def extract(x): return x.evidence.id, x.hypothesis.id
 
     view_type = 'disagreement' if request.GET.get('view_type') == 'disagreement' else 'average'
