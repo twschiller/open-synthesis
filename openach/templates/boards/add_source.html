@@ -6,13 +6,14 @@
 {% block content %}
     <h1>{% trans "Add Source for Evidence" %}</h1>
 
-    {{ evidence.evidence_desc }}
+    <div class="well">{{ evidence.evidence_desc }}</div>
 
     <form action="{% url 'openach:add_source' evidence.id %}" method="post">
         {% csrf_token %}
-        {{ form|bootstrap_horizontal }}
+        {{ form|bootstrap }}
         <div class="form-group">
-            <div class="col-sm-10 col-sm-offset-2">
+            <div>
+                <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">Return to Evidence</a>
                 <button type="submit" class="btn btn-primary">{% trans "Add Source" %}</button>
             </div>
         </div>

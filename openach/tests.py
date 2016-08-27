@@ -2,8 +2,8 @@ import datetime
 from django.utils import timezone
 from django.test import TestCase, Client
 from django.urls import reverse
-from .models import Board, Eval, Evidence, Hypothesis
-from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote, Evaluation
+from .models import Board, Eval, Evidence, Hypothesis, Evaluation, EvidenceSource
+from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
 from django.contrib.auth.models import User
 import logging
 
@@ -189,6 +189,105 @@ class AddHypothesisTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Hypothesis.objects.filter(hypothesis_text=text)), 0)
+
+
+class AddEvidenceTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.board = create_board('Test Board', days=5)
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+
+    def test_require_login_for_add_evidence(self):
+        """
+        Make sure that the user must be logged in to access the add evidence form
+        """
+        response = self.client.get(reverse('openach:add_evidence', args=(self.board.id,)))
+        self.assertEqual(response.status_code, 302)
+
+    def test_add_evidence_show_form(self):
+        """
+        Make sure the add evidence form renders in a reasonable way
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:add_evidence', args=(self.board.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'boards/add_evidence.html')
+
+        # the view should display the board name and description
+        self.assertContains(response, self.board.board_title)
+        self.assertContains(response, self.board.board_desc)
+        self.assertContains(response, "Return to Board")
+
+    def test_add_evidence_submit(self):
+        """
+        Make sure the evidence is actually added to the database when the user submits the form
+        """
+        self.client.login(username='john', password='johnpassword')
+        text = 'Test Hypothesis 3'
+        response = self.client.post(reverse('openach:add_evidence', args=(self.board.id,)), data={
+            'evidence_desc': text,
+            'event_date': "1/1/2016",
+            'evidence_url': "https://google.com",
+            'evidence_date': "1/1/2016",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertGreater(len(Evidence.objects.filter(evidence_desc=text)), 0)
+
+
+class AddSourceTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.board = create_board('Test Board', days=5)
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+
+    def test_require_login_for_add_source(self):
+        """
+        Make sure that the user must be logged in to access the add source form
+        """
+        response = self.client.get(reverse('openach:add_source', args=(self.evidence.id,)))
+        self.assertEqual(response.status_code, 302)
+
+    def test_add_source_show_form(self):
+        """
+        Make sure the add evidence form renders in a reasonable way
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:add_source', args=(self.evidence.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'boards/add_source.html')
+
+        # the view should display the evidence description
+        self.assertContains(response, self.evidence.evidence_desc)
+        self.assertContains(response, "Return to Evidence")
+
+    def test_add_evidence_submit(self):
+        """
+        Make sure the source is actually added to the database when the user submits the form
+        """
+        self.client.login(username='john', password='johnpassword')
+        url = "https://google.com"
+        response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
+            'evidence_url': url,
+            'evidence_date': "1/1/2016",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertGreater(len(EvidenceSource.objects.filter(source_url=url)), 0)
 
 
 class ProfileTests(TestCase):
