@@ -22,3 +22,5 @@ runserver
 .idea/dynamic.xml
 .idea/uiDesigner.xml
 
+# MacOS files
+.DS_Store
