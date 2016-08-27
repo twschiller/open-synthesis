@@ -4,13 +4,24 @@
 {% load i18n %}
 
 {% block content %}
-    <h1>{% trans "Add Hypothesis" %}</h1>
+    <h1>{% trans "Add Hypothesis for " %} <i>{{ board.board_title }}</i> </h1>
 
+    <div class="well">{{ board.board_desc }}</div>
+
+    <h2>Existing Hypothesis</h2>
+    <ul>
+        {% for hypothesis in hypotheses %}
+            <li>{{ hypothesis.hypothesis_text }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>New Hypothesis</h2>
     <form action="{% url 'openach:add_hypothesis' board.id %}" method="post">
         {% csrf_token %}
-        {{ form|bootstrap_horizontal }}
+        {{ form|bootstrap }}
         <div class="form-group">
-            <div class="col-sm-10 col-sm-offset-2">
+            <div class="">
+                <a class="btn btn-default" href="{% url 'openach:detail' board.id %}">Return to Board</a>
                 <button type="submit" class="btn btn-primary">{% trans "Add Hypothesis" %}</button>
             </div>
         </div>

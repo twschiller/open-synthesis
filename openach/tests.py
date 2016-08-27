@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.test import TestCase, Client
 from django.urls import reverse
 from .models import Board, Eval, Evidence, Hypothesis
-from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
+from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote, Evaluation
 from django.contrib.auth.models import User
 import logging
 
@@ -113,7 +113,7 @@ class EvidenceAssessmentTests(TestCase):
 
     def test_evidence_assessment_form_renders(self):
         """
-        MAke sure the evidence assessment form renders in a reasonable way
+        Make sure the evidence assessment form renders in a reasonable way
         """
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:evaluate', args=(self.board.id, self.evidence.id,)))
@@ -121,6 +121,74 @@ class EvidenceAssessmentTests(TestCase):
         self.assertTemplateUsed(response, 'boards/evaluate.html')
         for hypothesis in self.hypotheses:
             self.assertContains(response, hypothesis.hypothesis_text)
+
+    def test_evidence_assessment_form_submit(self):
+        """
+        Make sure the evidence assessment form can handle a submit
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:evaluate', args=(self.board.id, self.evidence.id)), data={
+            'hypothesis-{}'.format(self.hypotheses[0].id): '0',
+            'hypothesis-{}'.format(self.hypotheses[1].id): '1'
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Evaluation.objects.count(), 2, msg="Expecting 2 evaluation objects")
+
+
+class AddHypothesisTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.board = create_board('Test Board', days=5)
+        self.hypotheses = [
+            Hypothesis.objects.create(
+                board=self.board,
+                hypothesis_text="Hypothesis #1",
+                creator=self.user
+            ),
+            Hypothesis.objects.create(
+                board=self.board,
+                hypothesis_text="Hypothesis #2",
+                creator=self.user
+            )
+        ]
+
+    def test_require_login_for_add_hypothesis(self):
+        """
+        Make sure that the user must be logged in to access the add hypothesis form
+        """
+        response = self.client.get(reverse('openach:add_hypothesis', args=(self.board.id,)))
+        self.assertEqual(response.status_code, 302)
+
+    def test_add_hypothesis_show_form(self):
+        """
+        Make sure the add hypothesis form renders in a reasonable way
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:add_hypothesis', args=(self.board.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'boards/add_hypothesis.html')
+
+        # the view should display the existing hypotheses
+        for hypothesis in self.hypotheses:
+            self.assertContains(response, hypothesis.hypothesis_text)
+
+        # the view should display the board name and description
+        self.assertContains(response, self.board.board_title)
+        self.assertContains(response, self.board.board_desc)
+
+    def test_add_hypothesis_submit(self):
+        """
+        Make sure the hypothesis is actually added to the database when the user submits the form
+        """
+        self.client.login(username='john', password='johnpassword')
+        text = 'Test Hypothesis 3'
+        response = self.client.post(reverse('openach:add_hypothesis', args=(self.board.id,)), data={
+            'hypothesis_text': text,
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertGreater(len(Hypothesis.objects.filter(hypothesis_text=text)), 0)
 
 
 class ProfileTests(TestCase):

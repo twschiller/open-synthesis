@@ -340,6 +340,8 @@ class HypothesisForm(forms.Form):
 @login_required
 def add_hypothesis(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
+    existing = Hypothesis.objects.filter(board=board)
+
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
         if form.is_valid():
@@ -351,7 +353,13 @@ def add_hypothesis(request, board_id):
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = HypothesisForm()
-    return render(request, 'boards/add_hypothesis.html', {'form': form, 'board': board})
+
+    context = {
+        'form': form,
+        'board': board,
+        'hypotheses': existing,
+    }
+    return render(request, 'boards/add_hypothesis.html', context)
 
 
 def profile(request, account_id=None):
