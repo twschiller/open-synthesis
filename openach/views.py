@@ -11,7 +11,7 @@ from django.urls import reverse
 import statistics
 from django import forms
 from django.utils import timezone
-from openintel.settings import CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY
+from openintel.settings import CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY, DEBUG
 from django.contrib import messages
 import random
 
@@ -166,7 +166,7 @@ def detail(request, board_id):
         'votes': consensus,
         'disagreement': disagreement,
         'participants': participants,
-        'debug_stats': True
+        'debug_stats': DEBUG
     }
     return render(request, 'boards/detail.html', context)
 
