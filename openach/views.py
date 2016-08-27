@@ -11,7 +11,7 @@ from django.urls import reverse
 import statistics
 from django import forms
 from django.utils import timezone
-from openintel.settings import CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY
+from openintel.settings import CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY, DEBUG
 from django.contrib import messages
 
 
@@ -61,8 +61,8 @@ def calc_disagreement(evaluations):
         # Here we use the sample standard deviation because we consider the evaluations are a sample of all the
         # evaluations that could be given.
         # Not clear the best way to make the N/A disagreement comparable to the evaluation disagreement calculation
-        na_disagreement=statistics.stdev(([0] * len(na)) + ([1] * len(rated))) if len(na) + len(rated) > 1 else 0.0
-        non_na_disagreement=statistics.stdev(map(lambda x: x.value, rated)) if len(rated) > 1 else 0.0
+        na_disagreement = statistics.stdev(([0] * len(na)) + ([1] * len(rated))) if len(na) + len(rated) > 1 else 0.0
+        non_na_disagreement = statistics.stdev(map(lambda x: x.value, rated)) if len(rated) > 1 else 0.0
         return max(na_disagreement, non_na_disagreement)
     else:
         return None
@@ -123,6 +123,11 @@ def diagnosticity(evaluations):
 
 
 def detail(request, board_id):
+    """
+    View the board details. Evidence is sorted in order of diagnosticity. Hypotheses are sorted in order of
+    consistency.
+    """
+
     def extract(x): return x.evidence.id, x.hypothesis.id
 
     view_type = 'disagreement' if request.GET.get('view_type') == 'disagreement' else 'average'
@@ -135,14 +140,33 @@ def detail(request, board_id):
     for vote in votes:
         keyed[extract(vote)].append(Eval.for_value(vote.value))
     consensus = {k: consensus_vote(v) for k, v in keyed.items()}
-    disagreement = {k: calc_disagreement(v) for k, v in keyed.items() }
+    disagreement = {k: calc_disagreement(v) for k, v in keyed.items()}
+
+    # order evidence by diagnosticity and hypotheses by consistency
+    hypotheses = list(board.hypothesis_set.all())
+    evidence = list(board.evidence_set.all())
+
+    hypothesis_consistency = list(
+        map(lambda h: (h, inconsistency(
+            map(lambda e: keyed[(e.id, h.id)], evidence)
+        )), hypotheses))
+    evidence_diagnosticity = list(
+        map(lambda e: (e, diagnosticity(
+            map(lambda h: keyed[(e.id, h.id)], hypotheses)
+        )), evidence))
+
+    evidence_diagnosticity.sort(key=lambda e: e[1], reverse=True)
+    hypothesis_consistency.sort(key=lambda h: h[1])
 
     context = {
         'board': board,
+        'evidences': evidence_diagnosticity,
+        'hypotheses': hypothesis_consistency,
         'view_type': view_type,
         'votes': consensus,
         'disagreement': disagreement,
         'participants': participants,
+        'debug_stats': True
     }
     return render(request, 'boards/detail.html', context)
 
@@ -183,23 +207,34 @@ class EvidenceForm(forms.Form):
     Form to add a new piece of evidence. The evidence provided must have at least one source. The analyst can provide
     additional sources later.
     """
-    evidence_desc = forms.CharField(label='Evidence', max_length=200)
+    evidence_desc = forms.CharField(
+        label='Evidence', max_length=200,
+        help_text='A short summary of the evidence. Use the Event Date field for capturing the date'
+    )
     event_date = forms.DateField(
         label='Event Date',
         help_text='The date the event occurred or started',
     )
-    evidence_url = forms.URLField(label='Source Website')
+    evidence_url = forms.URLField(
+        label='Source Website',
+        help_text='A source (e.g., news article or press release) corroborating the evidence'
+    )
     evidence_date = forms.DateField(
         label='Source Date',
-        help_text='The date the source released or last updated the information.',
+        help_text='The date the source released or last updated the information supporting the evidence. ' +
+                  'Typically the date of the article or post',
     )
 
 
 class EvidenceSourceForm(forms.Form):
-    evidence_url = forms.URLField(label='Source Website')
+    evidence_url = forms.URLField(
+        label='Source Website',
+        help_text='A source (e.g., news article or press release) corroborating the evidence',
+    )
     evidence_date = forms.DateField(
         label='Source Date',
-        help_text='The date the source released/reported the evidence.'
+        help_text='The date the source released or last updated the information supporting the evidence. ' +
+                  'Typically the date of the article or post',
     )
 
 

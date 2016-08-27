@@ -3,8 +3,17 @@
 {% load board_extras %}
 
 {% block content %}
-    <h1>Analyzing <i>{{ board.board_title }}</i></h1>
-    <p>{{ board.board_desc }}</p>
+    <h1>Intelligence Board: <i>{{ board.board_title }}</i></h1>
+
+    <p><b>Description/Briefing:</b> {{ board.board_desc }}</p>
+
+    <p><b>Instructions:</b> The following table collects the possible hypotheses and relevant evidence. The evidence
+        that best distinguishes the hypotheses is shown first. Hypotheses that are most consistent are shown first.
+        To evaluate the hypotheses against a piece of evidence, click the "Evaluate" button in the evidence cell.
+        You can view the sources that corroborate a piece of evidence by clicking the "Detail" button for that piece
+        of evidence.
+    </p>
+
 
     <table class="table table-bordered ach-table">
         <thead>
@@ -23,15 +32,18 @@
                     </a>
                 {% endif %}
             </th>
-            {% for hypothesis in board.hypothesis_set.all %}
+            {% for hypothesis, inconsistency in hypotheses %}
                 <th class="hypothesis">
                     <div>{{ hypothesis.hypothesis_text }}</div>
+                    {% if debug_stats %}
+                        <span class="label label-info">{{ inconsistency|floatformat:2 }}</span>
+                    {% endif %}
                 </th>
             {% endfor %}
         </tr>
         </thead>
         <tbody>
-        {% for evidence in board.evidence_set.all %}
+        {% for evidence, diagnosticity in evidences %}
             <tr>
                 <td class="evidence">
                     {% if evidence.event_date %}
@@ -42,8 +54,11 @@
                         <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">Details</a>
                         <a class="btn btn-default" href="{% url 'openach:evaluate' board.id evidence.id %}">Evaluate</a>
                     </div>
+                    {% if debug_stats %}
+                        <span class="label label-info">{{ diagnosticity|floatformat:2 }}</span>
+                    {% endif %}
                 </td>
-                {% for hypothesis in board.hypothesis_set.all %}
+                {% for hypothesis, inconsistency in hypotheses %}
                     {% get_detail votes evidence.id hypothesis.id as detail %}
 
                     {% if view_type == 'disagreement' %}
