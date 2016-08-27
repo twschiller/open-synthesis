@@ -191,6 +191,91 @@ class AddHypothesisTests(TestCase):
         self.assertGreater(len(Hypothesis.objects.filter(hypothesis_text=text)), 0)
 
 
+class BoardDetailTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.board = create_board('Test Board', days=5)
+        self.hypotheses = [
+            Hypothesis.objects.create(
+                board=self.board,
+                hypothesis_text="Hypothesis #1",
+                creator=self.user
+            ),
+            Hypothesis.objects.create(
+                board=self.board,
+                hypothesis_text="Hypothesis #2",
+                creator=self.user
+            )
+        ]
+
+    def test_can_display_board_with_no_evidence(self):
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+        self.assertEqual(response.status_code, 200)
+
+        for hypothesis in self.hypotheses:
+            self.assertContains(response, hypothesis.hypothesis_text)
+
+    def test_can_display_board_with_no_assessments(self):
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.evidence.evidence_desc)
+
+    def test_can_display_disagreement_with_no_assessments(self):
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)) + "?view_type=disagreement")
+        self.assertEqual(response.status_code, 200)
+
+
+class EvidenceDetailTests(TestCase):
+
+    def setUp(self):
+        time = timezone.now()
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.board = create_board('Test Board', days=5)
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=time
+        )
+        self.sources = EvidenceSource.objects.create(
+            evidence=self.evidence,
+            source_url="https://google.com",
+            source_date="2016-01-06",
+            uploader=self.user,
+            submit_date=time
+        )
+
+    def test_evidence_detail_view(self):
+        """
+        Make sure that reasonable information is shown on the evidence detail form
+        """
+        response = self.client.get(reverse('openach:evidence_detail', args=(self.evidence.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'boards/evidence_detail.html')
+        self.assertContains(response, self.evidence.evidence_desc)
+        self.assertContains(response, self.sources.source_url)
+        self.assertContains(response, self.board.board_title)
+        self.assertContains(response, "Add Source")
+
+
 class AddEvidenceTests(TestCase):
 
     def setUp(self):

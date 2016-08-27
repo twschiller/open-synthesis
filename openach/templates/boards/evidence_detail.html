@@ -4,22 +4,25 @@
 
 {% block content %}
 
-    <h1>Evidence Detail</h1>
+    <h1>
+        Evidence for {{ evidence.board.board_title }}
+    </h1>
 
-    <p>Go to board <a href="{% url 'openach:detail' evidence.board_id %}">{{ evidence.board.board_title }}</a></p>
-
-    <p>
+    <div>
         Added by <a href="{% url 'profile' evidence.creator.id %}">{{ evidence.creator.username }}</a>
         on {{ evidence.submit_date }}
-    </p>
+        {% if evidence.event_date %}
+            Event occurred on {{ evidence.event_date }}.
+        {%  endif %}
+    </div>
+    <div class="well">{{ evidence.evidence_desc }}</div>
 
-    {% if evidence.event_date %}
-        Event Date: {{ evidence.event_date }}
-    {%  endif %}
 
-    <p>{{ evidence.evidence_desc }}</p>
 
-    <h2>Sources</h2>
+    <div>
+        <a href="{% url 'openach:add_source' evidence.id %}"><button class="btn btn-primary">Add Source</button></a>
+        <a class="btn btn-default" href="{% url 'openach:detail' evidence.board_id %}">Return to Board</a>
+    </div>
 
     {% if messages %}
         {% for message in messages %}
@@ -28,10 +31,6 @@
             </div>
         {% endfor %}
     {% endif %}
-
-    <a href="{% url 'openach:add_source' evidence.id %}">
-        <button class="btn btn-primary">Add Source</button>
-    </a>
 
     <table class="table table-hover">
         <thead>
