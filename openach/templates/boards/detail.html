@@ -6,42 +6,39 @@
     <h1>Analyzing <i>{{ board.board_title }}</i></h1>
     <p>{{ board.board_desc }}</p>
 
-    {% if board.creator %}
-        <p>Created by <a href="{% url 'profile' board.creator_id %}">{{ board.creator }}</a> on {{ board.pub_date }}</p>
-    {% else %}
-        <p>Created on {{ board.pub_date }}</p>
-    {% endif %}
-
-    <p>Results based on assessments from {{ participants|length }} participants.</p>
-
-    <table class="table table-bordered">
+    <table class="table table-bordered ach-table">
         <thead>
         <tr>
-            <th>
-                <a href="{% url 'openach:add_evidence' board.id %}"><button class="btn btn-primary">Add Evidence</button></a>
-                <a href="{% url 'openach:add_hypothesis' board.id %}"><button class="btn btn-primary">Add Hypothesis</button></a>
+            <th class="ach-actions">
+                <div class="btn-group" role="group" aria-label="Board Actions">
+                    <a class="btn btn-default" href="{% url 'openach:add_evidence' board.id %}">Add Evidence</a>
+                    <a class="btn btn-default" href="{% url 'openach:add_hypothesis' board.id %}">Add Hypothesis</a>
+                </div>
             </th>
             {% for hypothesis in board.hypothesis_set.all %}
-                <th>{{ hypothesis.hypothesis_text }}</th>
+                <th class="hypothesis">
+                    <div>{{ hypothesis.hypothesis_text }}</div>
+                </th>
             {% endfor %}
         </tr>
         </thead>
         <tbody>
         {% for evidence in board.evidence_set.all %}
             <tr>
-                <td>
+                <td class="evidence">
                     {% if evidence.event_date %}
                         <span class="event-date">{{ evidence.event_date }}</span>
                     {% endif %}
-                    {{ evidence.evidence_desc }}
+                    <span>{{ evidence.evidence_desc }}</span>
                     <div class="btn-group btn-group-xs" role="group" aria-label="Evidence Actions">
                         <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">Details</a>
                         <a class="btn btn-default" href="{% url 'openach:evaluate' board.id evidence.id %}">Evaluate</a>
                     </div>
                 </td>
                 {% for hypothesis in board.hypothesis_set.all %}
-                    <td>
-                        {% get_detail votes evidence.id hypothesis.id %}
+                    {% get_detail votes evidence.id hypothesis.id as detail %}
+                    <td class="assessment {{ detail|detail_classname }}">
+                       {{ detail|detail_name }}
                     </td>
                 {% endfor %}
             </tr>
@@ -55,4 +52,15 @@
         {% endfor %}
         </tbody>
     </table>
+
+    <p>
+    {% if board.creator %}
+        Board created by <a href="{% url 'profile' board.creator_id %}">{{ board.creator }}</a>
+        on {{ board.pub_date|date }}.
+    {% else %}
+        Board created on {{ board.pub_date|date }}.
+    {% endif %}
+    Consistency analysis based on assessments from {{ participants|length }} participants.
+    </p>
+
 {% endblock content %}

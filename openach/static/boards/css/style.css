@@ -27,3 +27,45 @@ body {
     font-size: 85%;
     color:white;
 }
+
+.ach-table {
+    border-top: 0;
+    border-left: 0;
+}
+.ach-table>thead>tr>th.ach-actions {
+    border-left: 0;
+}
+.ach-table>tbody>tr>td.evidence {
+    font-size: 85%;
+    border-left: 0;
+}
+.ach-table>thead>tr>th.hypothesis {
+    font-size: 85%;
+    text-align: center;
+}
+.ach-table>thead>tr>th.hypothesis>div{
+    display: inline-block;
+    text-align: left;
+}
+.ach-table>tbody>tr>td.assessment {
+    font-size: 85%;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.eval-consistent {
+    background-color: #D6EAF8;
+}
+.eval-very-consistent {
+    background-color: #5DADE2;
+}
+.eval-inconsistent {
+    background-color: #FCF3CF;
+}
+.eval-very-inconsistent {
+    background-color: #F7DC6F;
+}
+.eval-not-applicable {
+    background-color: #F4F6F6;
+    color: #BDC3C7;
+}
