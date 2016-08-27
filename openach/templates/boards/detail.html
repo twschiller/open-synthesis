@@ -5,15 +5,22 @@
 {% block content %}
     <h1>Intelligence Board: <i>{{ board.board_title }}</i></h1>
 
-    <p><b>Description/Briefing:</b> {{ board.board_desc }}</p>
+    <div>
+        {% if board.creator %}
+            Board created by <a href="{% url 'profile' board.creator_id %}">{{ board.creator }}</a>
+            on {{ board.pub_date|date }}.
+        {% else %}
+            Board created on {{ board.pub_date|date }}.
+        {% endif %}
+    </div>
+    <div class="well">{{ board.board_desc }}</div>
 
     <p><b>Instructions:</b> The following table collects the possible hypotheses and relevant evidence. The evidence
-        that best distinguishes the hypotheses is shown first. Hypotheses that are most consistent are shown first.
+        that best distinguishes the hypotheses are shown first. Hypotheses that are most consistent are shown first.
         To evaluate the hypotheses against a piece of evidence, click the "Evaluate" button in the evidence cell.
         You can view the sources that corroborate a piece of evidence by clicking the "Detail" button for that piece
         of evidence.
     </p>
-
 
     <table class="table table-bordered ach-table">
         <thead>
@@ -88,15 +95,5 @@
         {% endfor %}
         </tbody>
     </table>
-
-    <p>
-    {% if board.creator %}
-        Board created by <a href="{% url 'profile' board.creator_id %}">{{ board.creator }}</a>
-        on {{ board.pub_date|date }}.
-    {% else %}
-        Board created on {{ board.pub_date|date }}.
-    {% endif %}
-    Consistency analysis based on assessments from {{ participants|length }} participants.
-    </p>
 
 {% endblock content %}
