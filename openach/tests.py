@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.test import TestCase
 from django.urls import reverse
 from .models import Board, Eval
-from .views import consensus_vote, diagnosticity, inconsistency
+from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement
 
 
 class BoardMethodTests(TestCase):
@@ -158,3 +158,31 @@ class InconsistencyTests(TestCase):
         """
         for vote in [Eval.very_inconsistent, Eval.inconsistent]:
             self.assertGreater(inconsistency([{vote}]), 0.0)
+
+
+class DisagreementTests(TestCase):
+
+    def test_no_votes_returns_none(self):
+        """
+        calc_disagreement() should return None when there is no votes
+        """
+        self.assertEqual(calc_disagreement([]), None)
+
+    def test_single_vote_has_zero_disagreement(self):
+        """
+        calc_disagreement() should return 0.0 when there is a single vote
+        """
+        for vote in Eval:
+            self.assertEqual(calc_disagreement([vote]), 0.0)
+
+    def test_same_vote_has_zero_disagreement(self):
+        """
+        calc_disagreement() should return 0.0 when there are only votes of a single type
+        """
+        for vote in Eval:
+            self.assertEqual(calc_disagreement([vote, vote]), 0.0)
+
+    def test_extreme_votes_have_greater_disagreement(self):
+        small = [Eval.consistent, Eval.inconsistent]
+        large = [Eval.very_inconsistent, Eval.very_consistent]
+        self.assertGreater(calc_disagreement(large), calc_disagreement(small))

@@ -69,3 +69,20 @@ body {
     background-color: #F4F6F6;
     color: #BDC3C7;
 }
+
+
+.disagree-consensus {
+    background-color: #fff;
+    font-weight: 500;
+}
+.disagree-mild-dispute {
+    background-color: #FADBD8;
+}
+.disagree-large-dispute {
+    background-color: #F1948A;
+}
+.disagree-extreme-dispute {
+    background-color: #B03A2E;
+    color: #FDFEFE;
+    font-weight: 500;
+}

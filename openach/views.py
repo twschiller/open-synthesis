@@ -47,6 +47,27 @@ def mean_na_neutral_vote(evaluations):
     return statistics.mean(map(replace_na, evaluations)) if evaluations else None
 
 
+def calc_disagreement(evaluations):
+    """
+    Determine the disagreement for a set of evaluations. Determined as the max disagreement of (1) N/A and non-N/A
+    responses and (2) non-N/A evaluations
+    :param evaluations: an iterable of Eval
+    """
+    if evaluations:
+        na_it, rated_it = partition(lambda x: x is not Eval.not_applicable, evaluations)
+        na = list(na_it)
+        rated = list(rated_it)
+
+        # Here we use the sample standard deviation because we consider the evaluations are a sample of all the
+        # evaluations that could be given.
+        # Not clear the best way to make the N/A disagreement comparable to the evaluation disagreement calculation
+        na_disagreement=statistics.stdev(([0] * len(na)) + ([1] * len(rated))) if len(na) + len(rated) > 1 else 0.0
+        non_na_disagreement=statistics.stdev(map(lambda x: x.value, rated)) if len(rated) > 1 else 0.0
+        return max(na_disagreement, non_na_disagreement)
+    else:
+        return None
+
+
 def consensus_vote(evaluations):
     """
     Determine the consensus Eval given an iterable of Eval. (1) whether or not the evidence is applicable, and
@@ -104,6 +125,8 @@ def diagnosticity(evaluations):
 def detail(request, board_id):
     def extract(x): return x.evidence.id, x.hypothesis.id
 
+    view_type = 'disagreement' if request.GET.get('view_type') == 'disagreement' else 'average'
+
     board = get_object_or_404(Board, pk=board_id)
     votes = Evaluation.objects.filter(board=board)
     participants = set(map(lambda x: x.user, votes))
@@ -112,10 +135,13 @@ def detail(request, board_id):
     for vote in votes:
         keyed[extract(vote)].append(Eval.for_value(vote.value))
     consensus = {k: consensus_vote(v) for k, v in keyed.items()}
+    disagreement = {k: calc_disagreement(v) for k, v in keyed.items() }
 
     context = {
         'board': board,
+        'view_type': view_type,
         'votes': consensus,
+        'disagreement': disagreement,
         'participants': participants,
     }
     return render(request, 'boards/detail.html', context)

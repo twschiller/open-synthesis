@@ -39,5 +39,29 @@ def get_source_tags(dictionary, source_id, tag_id):
     return dictionary.get((source_id, tag_id))
 
 
+@register.filter
+def disagreement_category(value):
+    if value is None:
+        return None
+    elif value < 0.5:
+        return 'Consensus'
+    elif value < 1.5:
+        return 'Mild Dispute'
+    elif value < 2.0:
+        return 'Large Dispute'
+    else:
+        return 'Extreme Dispute'
 
 
+@register.filter
+def disagreement_style(value):
+    if value is None:
+        return None
+    elif value < 0.5:
+        return 'disagree-consensus'
+    elif value < 1.5:
+        return 'disagree-mild-dispute'
+    elif value < 2.0:
+        return 'disagree-large-dispute'
+    else:
+        return 'disagree-extreme-dispute'

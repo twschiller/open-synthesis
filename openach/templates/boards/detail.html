@@ -14,6 +14,14 @@
                     <a class="btn btn-default" href="{% url 'openach:add_evidence' board.id %}">Add Evidence</a>
                     <a class="btn btn-default" href="{% url 'openach:add_hypothesis' board.id %}">Add Hypothesis</a>
                 </div>
+
+                {% if view_type == 'disagreement' %}
+                    <a class="btn btn-default active" href="{% url 'openach:detail' board.id %}">View Disagreement</a>
+                {%  else %}
+                    <a class="btn btn-default" href="{% url 'openach:detail' board.id %}?view_type=disagreement">
+                        View Disagreement
+                    </a>
+                {% endif %}
             </th>
             {% for hypothesis in board.hypothesis_set.all %}
                 <th class="hypothesis">
@@ -37,9 +45,22 @@
                 </td>
                 {% for hypothesis in board.hypothesis_set.all %}
                     {% get_detail votes evidence.id hypothesis.id as detail %}
-                    <td class="assessment {{ detail|detail_classname }}">
-                       {{ detail|detail_name }}
-                    </td>
+
+                    {% if view_type == 'disagreement' %}
+                        {% get_detail disagreement evidence.id hypothesis.id as detail_disagreement %}
+                        <td class="assessment {{ detail_disagreement|disagreement_style }}">
+                            {% if detail_disagreement < 0.5 %}
+                                {{ detail_disagreement|disagreement_category }}:
+                                <span class="{{ detail|detail_classname }}">{{ detail|detail_name }}</span>
+                            {% else %}
+                                {{ detail_disagreement|disagreement_category }}
+                            {% endif %}
+                        </td>
+                    {% else %}
+                        <td class="assessment {{ detail|detail_classname }}">
+                            {{ detail|detail_name }}
+                        </td>
+                    {% endif %}
                 {% endfor %}
             </tr>
         {% empty %}
