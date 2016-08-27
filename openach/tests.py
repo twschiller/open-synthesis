@@ -2,7 +2,7 @@ import datetime
 from django.utils import timezone
 from django.test import TestCase, Client
 from django.urls import reverse
-from .models import Board, Eval
+from .models import Board, Eval, Evidence, Hypothesis
 from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
 from django.contrib.auth.models import User
 import logging
@@ -76,6 +76,51 @@ class BoardFormTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Board.objects.filter(board_title='Test Board Title')), 0)
+
+
+class EvidenceAssessmentTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.board = create_board('Test Board', days=5)
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+        self.hypotheses = [
+            Hypothesis.objects.create(
+                board=self.board,
+                hypothesis_text="Hypothesis #1",
+                creator=self.user
+            ),
+            Hypothesis.objects.create(
+                board=self.board,
+                hypothesis_text="Hypothesis #2",
+                creator=self.user
+            )
+        ]
+
+    def test_require_login_for_assessment(self):
+        """
+        Make sure that a user must be logged in to access the evidence evaluation screen
+        """
+        response = self.client.get(reverse('openach:evaluate', args=(self.board.id, self.evidence.id,)))
+        self.assertEqual(response.status_code, 302)
+
+    def test_evidence_assessment_form_renders(self):
+        """
+        MAke sure the evidence assessment form renders in a reasonable way
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:evaluate', args=(self.board.id, self.evidence.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'boards/evaluate.html')
+        for hypothesis in self.hypotheses:
+            self.assertContains(response, hypothesis.hypothesis_text)
 
 
 class ProfileTests(TestCase):
@@ -250,6 +295,7 @@ class InconsistencyTests(TestCase):
         h3 = inconsistency([[Eval.neutral], [Eval.not_applicable], [Eval.very_consistent], [Eval.very_inconsistent]])
         self.assertLess(h1, h2)
         self.assertLess(h2, h3)
+
 
 class DisagreementTests(TestCase):
 

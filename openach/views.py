@@ -13,6 +13,7 @@ from django import forms
 from django.utils import timezone
 from openintel.settings import CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY
 from django.contrib import messages
+import random
 
 
 logger = logging.getLogger(__name__)
@@ -384,19 +385,25 @@ def profile(request, account_id=None):
 
 @login_required
 def evaluate(request, board_id, evidence_id):
-
+    """
+    View for assessing a piece of evidence against all of the hypotheses. A couple measures are taken to attempt to
+    reduce bias: (1) the analyst is not shown their previous assessment, and (2) the hypotheses are shown in a random
+    order.
+    """
     # TODO: fix the db transaction structure in this method
-
+    default_eval = '------'
     board = get_object_or_404(Board, pk=board_id)
     evidence = get_object_or_404(Evidence, pk=evidence_id)
-    hypotheses = Hypothesis.objects.filter(board=board_id)
+    hypotheses = list(Hypothesis.objects.filter(board=board_id))
+    random.shuffle(hypotheses)
 
     if request.method == 'GET':
         context = {
             'board': board,
             'evidence': evidence,
             'hypotheses': hypotheses,
-            'options': Evaluation.EVALUATION_OPTIONS
+            'options': Evaluation.EVALUATION_OPTIONS,
+            'default_eval': default_eval
         }
         return render(request, 'boards/evaluate.html', context)
 
@@ -408,13 +415,14 @@ def evaluate(request, board_id, evidence_id):
             # Add new votes for the hypotheses
             for hypothesis in hypotheses:
                 select = request.POST['hypothesis-{}'.format(hypothesis.id)]
-                Evaluation.objects.create(
-                    board=board,
-                    evidence=evidence,
-                    hypothesis=hypothesis,
-                    user=request.user,
-                    value=select
-                )
+                if select != default_eval:
+                    Evaluation.objects.create(
+                        board=board,
+                        evidence=evidence,
+                        hypothesis=hypothesis,
+                        user=request.user,
+                        value=select
+                    )
 
         return HttpResponseRedirect(reverse('openach:detail', args=(board_id,)))
     else:

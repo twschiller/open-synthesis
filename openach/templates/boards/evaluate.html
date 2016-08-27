@@ -1,18 +1,25 @@
 {% extends 'boards/base.html' %}
 
-
 {% block content %}
-    <h1>Evaluate Hypotheses Against Evidence</h1>
 
-    Evidence {{ evidence.evidence_desc }}
+    <h1>Assess Evidence</h1>
 
-    <form action="{% url 'openach:evaluate' board.id evidence.id %}" method="post" class="form-horizontal">
+    <p><b>Instructions:</b> Assess the consistency of each hypothesis with respect to the following evidence. Assume
+    that the evidence is valid. You can assess the validity of the evidence (and its sources) on the
+        <a href="{% url 'openach:evidence_detail' evidence.id %}">evidence detail page</a>. If the evidence does not
+    apply to a hypothesis, select N/A.
+    </p>
+
+    <div class="well">{{ evidence.evidence_desc }}</div>
+
+    <form action="{% url 'openach:evaluate' board.id evidence.id %}" method="post">
         {% csrf_token %}
-        {% for hypothesis in board.hypothesis_set.all %}
+        {% for hypothesis in hypotheses %}
             <div class="form-group">
-                <label for="hypothesis-{{ hypothesis.id }}" class="col-sm-2 control-label">{{ hypothesis.hypothesis_text }}</label>
-                <div class="col-sm-10">
+                <label for="hypothesis-{{ hypothesis.id }}" class="control-label">Hypothesis: {{ hypothesis.hypothesis_text }}</label>
+                <div>
                     <select id="hypothesis-{{ hypothesis.id }}" name="hypothesis-{{ hypothesis.id }}" class="form-control">
+                        <option value="{{ default_eval }}">{{ default_eval }}</option>
                         {% for option in options %}
                             <option value="{{ option.0 }}">{{ option.1 }}</option>
                         {% endfor %}
@@ -21,7 +28,8 @@
             </div>
         {% endfor %}
         <div class="form-group">
-            <div class="col-sm-offset-2 col-sm-10">
+            <div>
+                <a class="btn btn-default" href="{% url 'openach:detail' board.id %}">Return to Board</a>
                 <button class="btn btn-primary" type="submit">Submit</button>
             </div>
         </div>
