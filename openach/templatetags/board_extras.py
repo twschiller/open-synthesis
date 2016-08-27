@@ -17,12 +17,13 @@ def detail_name(value):
     if value:
         return next(e[1] for e in Evaluation.EVALUATION_OPTIONS if e[0] == value.value)
     else:
-        return None
+        return 'No Assessments'
 
 
 @register.filter
 def detail_classname(value):
     mapping = {
+        None: "eval-no-assessments",
         Eval.consistent: "eval-consistent",
         Eval.inconsistent: "eval-inconsistent",
         Eval.very_inconsistent: "eval-very-inconsistent",
@@ -42,7 +43,7 @@ def get_source_tags(dictionary, source_id, tag_id):
 @register.filter
 def disagreement_category(value):
     if value is None:
-        return None
+        return 'No Assessments'
     elif value < 0.5:
         return 'Consensus'
     elif value < 1.5:
@@ -56,7 +57,7 @@ def disagreement_category(value):
 @register.filter
 def disagreement_style(value):
     if value is None:
-        return None
+        return 'disagree-no-assessments'
     elif value < 0.5:
         return 'disagree-consensus'
     elif value < 1.5:

@@ -52,7 +52,24 @@ body {
     text-align: center;
     vertical-align: middle;
 }
+.ach-table>thead>tr>th:first-child {
+    width: 300px;
+}
+.ach-table>thead>tr>th:not(first-child) {
+    width: 150px;
+}
+.ach-table>tbody>tr>td:first-child {
+    width: 425px;
+}
+.ach-table>tbody>tr>td:not(first-child) {
+    width: 150px;
+}
 
+
+.eval-no-assessments {
+    background-color: #fff;
+    color: #909497;
+}
 .eval-consistent {
     background-color: #D6EAF8;
 }
@@ -71,6 +88,10 @@ body {
 }
 
 
+.disagree-no-assessments {
+    background-color: #fff;
+    color: #909497;
+}
 .disagree-consensus {
     background-color: #fff;
     font-weight: 500;
