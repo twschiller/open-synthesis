@@ -1,9 +1,10 @@
 import datetime
 from django.utils import timezone
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 from .models import Board, Eval
 from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement
+from django.contrib.auth.models import User
 
 
 class BoardMethodTests(TestCase):
@@ -34,6 +35,58 @@ class BoardMethodTests(TestCase):
         time = timezone.now() - datetime.timedelta(hours=1)
         recent_board = Board(pub_date=time)
         self.assertIs(recent_board.was_published_recently(), True)
+
+
+class BoardFormTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+
+    def test_create_board_requires_login(self):
+        """
+        Test that the board creation form requires the user to be logged in
+        """
+        response = self.client.get(reverse('openach:create_board'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_show_create_board_form(self):
+        """
+        Test that a logged in user can view the board creation form
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:create_board'))
+        self.assertTemplateUsed(response, 'boards/create_board.html')
+        self.assertEqual(response.status_code, 200)
+
+    def test_submit_valid_create_board(self):
+        """
+        Test that a logged in user can create a board via the form creation
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:create_board'), data={
+            'board_title': 'Test Board Title',
+            'board_desc': 'Test Board Description',
+            'hypothesis1': 'Test Hypotheses #1',
+            'hypothesis2': 'Test Hypotheses #2',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertGreater(len(Board.objects.filter(board_title='Test Board Title')), 0)
+
+
+class ProfileTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+
+    def test_view_public_activity(self):
+        """
+        Any user should be able to view a public profile
+        """
+        response = self.client.get(reverse('profile', args=(self.user.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Activity for <i>{}</i>".format(self.user.username))
 
 
 def create_board(board_title, days):
