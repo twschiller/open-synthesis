@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 def index(request):
-    latest_board_list = Board.objects.order_by('-pub_date')[:5]
+    """ Returns a basic homepage showing all of the board """
+    # Show all of the boards until we can implement tagging, search, etc.
+    latest_board_list = Board.objects.order_by('-pub_date')
     context = {
         'latest_board_list': latest_board_list,
     }

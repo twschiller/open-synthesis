@@ -18,27 +18,26 @@
 
                     <p>
                         Every day, the world's population creates 2.5 quintillion bytes of data. Our goal is to empower
-                        the public distill this information into actionable analysis.
+                        the public distill this flood of information into actionable analysis.
                     </p>
 
                     <p>
-                        Want to help? <a href="{% url 'signup' %}">Become an analyst today!</a>
+                        Want to contribute? <a href="accounts/signup">Become an analyst today!</a>
                     </p>
                 </div>
             </div>
 
             <div class="panel panel-info">
                 <div class="panel-heading">
-                    <h3 class="panel-title">What is the Analysis of Competing Hypotheses (ACH)?</h3>
+                    <h3 class="panel-title">New to the Analysis of Competing Hypotheses (ACH)?</h3>
                 </div>
                 <div class="panel-body">
                     Created at the <a href="https://www.cia.gov/library/center-for-the-study-of-intelligence/csi-publications/books-and-monographs/psychology-of-intelligence-analysis/art11.html">CIA</a>,
                     ACH is a simple tool for analyzing complex situations. To perform ACH for an analysis question,
-                    analysts first brainstorm a set of hypotheses that could answer the question. Analysts then
-                    compile a list of all of relevant evidence (information). For each piece of evidence, each
-                    analyst determines which hypotheses are consistent with that evidence. Once all the evidence
-                    and hypotheses have been evaluated, that analysts determine which hypotheses are most likely
-                    given the evidence.
+                    you first brainstorm a set of hypotheses that could answer the question. Next, you compile a list
+                    of relevant evidence (information). For each piece of evidence, you assess which of the hypotheses
+                    are consistent with that evidence. Once you've assessed all the evidence and hypotheses, you can
+                    determine which hypotheses are most likely given the evidence.
                 </div>
             </div>
         </div>
@@ -46,25 +45,23 @@
         <div class="col-md-5">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Latest Intelligence Boards</h3>
+                    <h3 class="panel-title">Most Recent Boards</h3>
                 </div>
                 <div class="panel-body">
-                    {% if latest_board_list %}
-                        <ul>
-                            {% for board in latest_board_list %}
-                                <li><a href="{% url 'openach:detail' board.id %}">{{ board.board_title }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p>No boards available.
-                            <a href="{% url 'openach:create_board' %}">Create a board.</a>
-                        </p>
-                    {% endif %}
-
-                    <a href="{% url 'openach:create_board' %}">
-                        <button class="btn btn-primary">{% trans "Create Board" %}</button>
-                    </a>
+                    Want help analyzing a question?
+                    <a href="{% url 'openach:create_board' %}">{% trans "Create a board." %}</a>
                 </div>
+                <ul class="list-group">
+                    {% if latest_board_list %}
+                        {% for board in latest_board_list %}
+                            <li class="list-group-item"><a href="{% url 'openach:detail' board.id %}">
+                                {{ board.board_title }}</a>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item">No boards available.</li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
     </div> <!-- .row -->
