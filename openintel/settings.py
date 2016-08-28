@@ -33,6 +33,8 @@ env = environ.Env(
     SECURE_CONTENT_TYPE_NOSNIFF=(bool, True),
     SECURE_HSTS_INCLUDE_SUBDOMAINS=(bool, True),
     SECURE_HSTS_SECONDS=(int, 31536000),  # default to maximum age in seconds
+    ROLLBAR_ACCESS_TOKEN=(str, None),
+    ROLLBAR_ENDPOINT=(str, "https://api.rollbar.com/api/1/item/"),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -73,6 +75,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Rollbar middleware needs to be last
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 ]
 
 ROOT_URLCONF = 'openintel.urls'
@@ -218,3 +222,14 @@ LOGGING = {
 # Challenge/Response for Let's Encrypt. In the future, we may want to support challenge/response for multiple domains.
 CERTBOT_PUBLIC_KEY = env('CERTBOT_PUBLIC_KEY')
 CERTBOT_SECRET_KEY = env('CERTBOT_SECRET_KEY')
+
+# Rollbar Error tracking: https://rollbar.com/docs/notifier/pyrollbar/#django
+ROLLBAR = {
+    'access_token': env('ROLLBAR_ACCESS_TOKEN'),
+    'endpoint': env('ROLLBAR_ENDPOINT'),
+    'environment': 'development' if DEBUG else 'production',
+    'root': PROJECT_ROOT,
+    # TODO: read branch and version information from git, potentially using gitpython
+    'branch': 'master',
+    # 'code_version': git sha
+}

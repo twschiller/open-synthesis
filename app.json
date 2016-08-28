@@ -4,7 +4,7 @@
   "image": "heroku/python",
   "repository": "https://github.com/heroku/python-getting-started",
   "keywords": ["python", "django", "analysis of competing hypotheses", "ACH" ],
-  "addons": [ "heroku-postgresql" ],
+  "addons": [ "heroku-postgresql", "rollbar:free" ],
   "env": {
     "SECRET_TOKEN": {
       "description": "A secret key for verifying the integrity of signed cookies.",
