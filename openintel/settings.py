@@ -67,7 +67,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
 ]
 
-MIDDLEWARE = [
+# This is using the pre-Django 1.10 middleware API. We'll need to update once the 3rd-party libraries are updated
+# to use the new API: https://docs.djangoproject.com/en/1.10/topics/http/middleware
+
+MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
