@@ -47,6 +47,23 @@
         <div class="col-md-5">
             <div class="panel panel-default">
                 <div class="panel-heading">
+                    <h3 class="panel-title">Project News</h3>
+                </div>
+                <ul class="list-group">
+                    {% if latest_project_news %}
+                        {% for headline in latest_project_news %}
+                            <li class="list-group-item">
+                                {{ headline.pub_date|date }}: {{ headline.content }}
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item">No project news.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
                     <h3 class="panel-title">Most Recent Boards</h3>
                 </div>
                 <div class="panel-body">

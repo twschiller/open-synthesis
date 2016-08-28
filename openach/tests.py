@@ -2,7 +2,7 @@ import datetime
 from django.utils import timezone
 from django.test import TestCase, Client
 from django.urls import reverse
-from .models import Board, Eval, Evidence, Hypothesis, Evaluation, EvidenceSource
+from .models import Board, Eval, Evidence, Hypothesis, Evaluation, EvidenceSource, ProjectNews
 from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
 from django.contrib.auth.models import User
 import logging
@@ -409,6 +409,35 @@ class IndexViewTests(TestCase):
         response = self.client.get(reverse('openach:index'))
         self.assertIsNotNone(response, msg="No response was generated for index view")
         self.assertIsNotNone(response.context, "Context was not returned with index view response")
+
+    def test_can_show_index_no_news(self):
+        """
+        Show a reasonable message if there is no project news
+        """
+        response = self.client.get(reverse('openach:index'))
+        self.assertContains(response, 'No project news.')
+
+    def test_do_not_show_future_news(self):
+        """
+        Don't show project news that's scheduled to be released in the future
+        """
+        ProjectNews.objects.create(
+            content='Test news',
+            pub_date=timezone.now() + datetime.timedelta(days=5)
+        )
+        response = self.client.get(reverse('openach:index'))
+        self.assertContains(response, 'No project news.')
+
+    def test_show_published_news(self):
+        """
+        Show project news that has been published
+        """
+        ProjectNews.objects.create(
+            content='Test news',
+            pub_date=timezone.now() + datetime.timedelta(days=-1)
+        )
+        response = self.client.get(reverse('openach:index'))
+        self.assertContains(response, 'Test news')
 
     def test_index_view_with_a_past_board(self):
         """

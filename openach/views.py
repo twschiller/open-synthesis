@@ -3,6 +3,7 @@ from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
+from .models import ProjectNews
 from collections import defaultdict
 from django.db import transaction
 import logging
@@ -23,8 +24,10 @@ def index(request):
     """ Returns a basic homepage showing all of the board """
     # Show all of the boards until we can implement tagging, search, etc.
     latest_board_list = Board.objects.order_by('-pub_date')
+    latest_project_news = ProjectNews.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
     context = {
         'latest_board_list': latest_board_list,
+        'latest_project_news': latest_project_news,
     }
     return render(request, 'boards/index.html', context)
 

@@ -100,3 +100,10 @@ class Evaluation(models.Model):
 
     def __str__(self):
         return self.get_value_display()
+
+
+class ProjectNews(models.Model):
+    """A news alert for the front page"""
+    content = models.CharField(max_length=1024)
+    pub_date = models.DateTimeField('date published')
+    author = models.ForeignKey(User, null=True)
