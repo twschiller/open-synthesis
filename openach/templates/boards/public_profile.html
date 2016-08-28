@@ -1,5 +1,7 @@
 {% extends 'boards/base.html' %}
 
+{% block title %}{{ user.username }} | Open Synthesis{% endblock %}
+
 {% block content %}
     <h1>Activity for <i>{{ user.username }}</i></h1>
 
