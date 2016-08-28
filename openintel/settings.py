@@ -16,6 +16,7 @@ import os
 import dj_database_url
 import environ
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -34,7 +35,6 @@ env = environ.Env(
     SECURE_HSTS_INCLUDE_SUBDOMAINS=(bool, True),
     SECURE_HSTS_SECONDS=(int, 31536000),  # default to maximum age in seconds
     ROLLBAR_ACCESS_TOKEN=(str, None),
-    ROLLBAR_ENDPOINT=(str, "https://api.rollbar.com/api/1/item/"),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -228,9 +228,9 @@ CERTBOT_PUBLIC_KEY = env('CERTBOT_PUBLIC_KEY')
 CERTBOT_SECRET_KEY = env('CERTBOT_SECRET_KEY')
 
 # Rollbar Error tracking: https://rollbar.com/docs/notifier/pyrollbar/#django
+# Rollbar endpoint via 'endpoint' configuration is not working. For now just use the default.
 ROLLBAR = {
     'access_token': env('ROLLBAR_ACCESS_TOKEN'),
-    'endpoint': env('ROLLBAR_ENDPOINT'),
     'environment': 'development' if DEBUG else 'production',
     'root': PROJECT_ROOT,
     # TODO: read branch and version information from git, potentially using gitpython

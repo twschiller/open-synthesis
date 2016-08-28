@@ -3,16 +3,70 @@
 {% load i18n %}
 
 {% block content %}
-    <a href="{% url 'openach:create_board' %}"><button class="btn btn-primary">{% trans "Create Board"%}</button></a>
 
-    <h1>Latest Boards</h1>
-    {% if latest_board_list %}
-        <ul>
-            {% for board in latest_board_list %}
-                <li><a href="{% url 'openach:detail' board.id %}">{{ board.board_title }}</a></li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No boards are available.</p>
-    {% endif %}
+    <div class="row">
+        <div class="col-md-7">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Welcome to the Open Synthesis Project!</h3>
+                </div>
+                <div class="panel-body">
+                    <p>
+                        Open Synthesis is an open platform for intelligence analysis. We're taking the best practices
+                        from the intelligence and business communities and adapting them to work at internet-scale.
+                    </p>
+
+                    <p>
+                        Every day, the world's population creates 2.5 quintillion bytes of data. Our goal is to empower
+                        the public distill this information into actionable analysis.
+                    </p>
+
+                    <p>
+                        Want to help? <a href="{% url 'signup' %}">Become an analyst today!</a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">What is the Analysis of Competing Hypotheses (ACH)?</h3>
+                </div>
+                <div class="panel-body">
+                    Created at the <a href="https://www.cia.gov/library/center-for-the-study-of-intelligence/csi-publications/books-and-monographs/psychology-of-intelligence-analysis/art11.html">CIA</a>,
+                    ACH is a simple tool for analyzing complex situations. To perform ACH for an analysis question,
+                    analysts first brainstorm a set of hypotheses that could answer the question. Analysts then
+                    compile a list of all of relevant evidence (information). For each piece of evidence, each
+                    analyst determines which hypotheses are consistent with that evidence. Once all the evidence
+                    and hypotheses have been evaluated, that analysts determine which hypotheses are most likely
+                    given the evidence.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Latest Intelligence Boards</h3>
+                </div>
+                <div class="panel-body">
+                    {% if latest_board_list %}
+                        <ul>
+                            {% for board in latest_board_list %}
+                                <li><a href="{% url 'openach:detail' board.id %}">{{ board.board_title }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No boards available.
+                            <a href="{% url 'openach:create_board' %}">Create a board.</a>
+                        </p>
+                    {% endif %}
+
+                    <a href="{% url 'openach:create_board' %}">
+                        <button class="btn btn-primary">{% trans "Create Board" %}</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div> <!-- .row -->
+
 {% endblock content %}
