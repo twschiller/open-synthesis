@@ -6,10 +6,11 @@ already a discussion on the [Issue Tracker](https://github.com/twschiller/open-s
 
 ## Local Development
 
-To perform local development, you'll need Python 3.5 and [pip](https://pip.pypa.io/en/stable/installing/).
-For deployment, you'll also want the [Heroku Toolbelt](https://devcenter.heroku.com/articles/getting-started-with-python#introduction).
+To perform local development, you'll need Python 3.5, [pip](https://pip.pypa.io/en/stable/installing/),
+and [virtualenv](https://virtualenv.pypa.io/en/stable/). To create your own deployment, you may also want
+the [Heroku Toolbelt](https://devcenter.heroku.com/articles/getting-started-with-python#introduction).
 
-Create a virtual environment for the application, creating a project-specific Python package environment:
+Create a project-specific package environment using virtualenv:
 
     virtualenv venv
 
@@ -33,7 +34,7 @@ Package the static files for the project:
     
     python manage.py collectstatic
  
-Run the test suite the ensure your environment is properly configured:
+Run the test suite to ensure your environment is properly configured:
 
     python manage.py test
 
