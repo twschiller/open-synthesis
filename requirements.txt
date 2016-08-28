@@ -3,6 +3,7 @@ dj-database-url==0.4.1
 Django==1.10
 django-allauth==0.27.0
 django-bootstrap-form==3.2.1
+django-csp==3.0
 django-environ==0.4.0
 gunicorn==19.6.0
 oauthlib==1.1.2

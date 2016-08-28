@@ -78,6 +78,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
     # Rollbar middleware needs to be last
     'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 ]
@@ -236,3 +237,11 @@ ROLLBAR = {
     'branch': 'master',
     # 'code_version': git sha
 }
+
+# Content Security Policy (CSP) Header configuration
+# https://django-csp.readthedocs.io/en/latest/configuration.html
+# http://www.html5rocks.com/en/tutorials/security/content-security-policy/
+
+CSP_DEFAULT_SRC = ["'self'"]
+CSP_SCRIPT_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com', 'https://code.jquery.com']
+CSP_STYLE_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com']
