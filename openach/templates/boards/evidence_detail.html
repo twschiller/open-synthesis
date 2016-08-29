@@ -19,14 +19,6 @@
     </div>
     <div class="well">{{ evidence.evidence_desc }}</div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-success alert-dismissible" role="alert">
-                <b>Success!</b> {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-
     <div>
         <a class="btn btn-primary" href="{% url 'openach:add_source' evidence.id %}?kind=corroborate">Add Corroborating Source</a>
         <a class="btn btn-warning" href="{% url 'openach:add_source' evidence.id %}?kind=conflicting">Add Conflicting Source</a>

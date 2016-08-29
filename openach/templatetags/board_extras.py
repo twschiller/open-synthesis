@@ -66,3 +66,19 @@ def disagreement_style(value):
         return 'disagree-large-dispute'
     else:
         return 'disagree-extreme-dispute'
+
+
+@register.filter
+def bootstrap_alert(tags):
+    """
+    If value is a Django message level, returns the corresponding bootstrap alert css class. Assumes a single tag
+    for the message. See https://docs.djangoproject.com/en/1.10/ref/contrib/messages/#message-tags
+    """
+    mapping = {
+        'debug': 'alert-info',
+        'info': 'alert-info',
+        'success': 'alert-success',
+        'warning': 'alert-warning',
+        'error': 'alert-error',
+    }
+    return mapping[tags] if tags in mapping else tags
