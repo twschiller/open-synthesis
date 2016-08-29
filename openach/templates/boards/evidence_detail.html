@@ -20,8 +20,8 @@
     <div class="well">{{ evidence.evidence_desc }}</div>
 
     <div>
-        <a class="btn btn-primary" href="{% url 'openach:add_source' evidence.id %}?kind=corroborate">Add Corroborating Source</a>
-        <a class="btn btn-warning" href="{% url 'openach:add_source' evidence.id %}?kind=conflicting">Add Conflicting Source</a>
+        <a class="btn btn-primary" href="{% url 'openach:add_source' evidence.id %}?kind=corroborate">Add Corroborating Source</a>&nbsp;
+        <a class="btn btn-warning" href="{% url 'openach:add_source' evidence.id %}?kind=conflicting">Add Conflicting Source</a>&nbsp;
         <a class="btn btn-default" href="{{ evidence.board|board_url }}">Return to Board</a>
     </div>
 

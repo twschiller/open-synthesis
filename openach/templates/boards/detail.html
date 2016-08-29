@@ -31,7 +31,7 @@
                 <div class="btn-group" role="group" aria-label="Board Actions">
                     <a class="btn btn-default" href="{% url 'openach:add_evidence' board.id %}">Add Evidence</a>
                     <a class="btn btn-default" href="{% url 'openach:add_hypothesis' board.id %}">Add Hypothesis</a>
-                </div>
+                </div>&nbsp;
 
                 {% if view_type == 'disagreement' %}
                     <a class="btn btn-default active" href="{{ board|board_url }}">View Disagreement</a>
