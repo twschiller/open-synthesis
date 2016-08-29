@@ -234,7 +234,7 @@ LOGGING = {
 }
 
 # Email Options using sendgrid-django
-if env('SENDGRID_USERNAME') and env('SENDGRID_PASSWORD'):
+if env('SENDGRID_USERNAME') and env('SENDGRID_PASSWORD'):  # pragma: no cover
     EMAIL_BACKEND = "sgbackend.SendGridBackend"
     # NOTE: django library uses _USER while Heroku uses _USERNAME
     SENDGRID_USER = env('SENDGRID_USERNAME')

@@ -2,9 +2,9 @@ import datetime
 from django.utils import timezone
 from django.test import TestCase, Client
 from django.urls import reverse
-from .models import Board, Eval, Evidence, Hypothesis, Evaluation, EvidenceSource, ProjectNews
+from .models import Board, Eval, Evidence, Hypothesis, Evaluation, ProjectNews
 from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
-from .views import EvidenceSourceForm
+from .views import EvidenceSource, EvidenceSourceForm, EvidenceSourceTag, AnalystSourceTag
 from django.contrib.auth.models import User
 import logging
 from django.core import mail
@@ -259,7 +259,7 @@ class EvidenceDetailTests(TestCase):
             event_date=None,
             submit_date=time
         )
-        self.sources = EvidenceSource.objects.create(
+        self.source = EvidenceSource.objects.create(
             evidence=self.evidence,
             source_url="https://google.com",
             source_date="2016-01-06",
@@ -276,10 +276,52 @@ class EvidenceDetailTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'boards/evidence_detail.html')
         self.assertContains(response, self.evidence.evidence_desc)
-        self.assertContains(response, self.sources.source_url)
+        self.assertContains(response, self.source.source_url)
         self.assertContains(response, self.board.board_title)
         self.assertContains(response, "Add Corroborating Source")
         self.assertContains(response, "Add Conflicting Source")
+
+    def test_add_source_tag(self):
+        """
+        Make sure that the user can tag a piece of evidence
+        """
+        self.client.login(username='john', password='johnpassword')
+        tag = EvidenceSourceTag.objects.create(
+            tag_name="Test Tag",
+            tag_desc="Test Tag Description"
+        )
+        response = self.client.post(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)), data={
+            'tag': tag.tag_name
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertGreater(len(AnalystSourceTag.objects.all()), 0)
+
+    def test_do_not_duplicate_source_tag(self):
+        """
+        Make sure that the user can tag a piece of evidence
+        """
+        self.client.login(username='john', password='johnpassword')
+        tag = EvidenceSourceTag.objects.create(
+            tag_name="Test Tag",
+            tag_desc="Test Tag Description"
+        )
+        response = self.client.post(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)), data={
+            'tag': tag.tag_name
+        })
+        self.assertEqual(response.status_code, 302)
+        response = self.client.post(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)), data={
+            'tag': tag.tag_name
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(AnalystSourceTag.objects.all()), 1)
+
+    def test_cannot_get_add_source_tag_page(self):
+        """
+        Make sure that a rouge client can't 'GET' the add source tag page
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)))
+        logger.info(response)
 
 
 class AddEvidenceTests(TestCase):
@@ -711,3 +753,4 @@ class AccountManagementTests(TestCase):
         self.assertEqual(mail.outbox[0].subject, '[example.com] Please Confirm Your E-mail Address')
         self.assertListEqual(mail.outbox[0].to, ['testemail@google.com'])
         self.assertEqual(mail.outbox[0].from_email, DEFAULT_FROM_EMAIL)
+

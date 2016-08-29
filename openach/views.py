@@ -427,17 +427,7 @@ def evaluate(request, board_id, evidence_id):
     hypotheses = list(Hypothesis.objects.filter(board=board_id))
     random.shuffle(hypotheses)
 
-    if request.method == 'GET':
-        context = {
-            'board': board,
-            'evidence': evidence,
-            'hypotheses': hypotheses,
-            'options': Evaluation.EVALUATION_OPTIONS,
-            'default_eval': default_eval
-        }
-        return render(request, 'boards/evaluate.html', context)
-
-    elif request.method == 'POST':
+    if request.method == 'POST':
         with transaction.atomic():
             # Remove user's previous votes for the the piece of evidence
             Evaluation.objects.filter(board=board_id, evidence=evidence_id, user=request.user).delete()
@@ -456,11 +446,19 @@ def evaluate(request, board_id, evidence_id):
 
         return HttpResponseRedirect(reverse('openach:detail', args=(board_id,)))
     else:
-        raise Http404()
+        context = {
+            'board': board,
+            'evidence': evidence,
+            'hypotheses': hypotheses,
+            'options': Evaluation.EVALUATION_OPTIONS,
+            'default_eval': default_eval
+        }
+        return render(request, 'boards/evaluate.html', context)
 
-
-def certbot(request, challenge_key):
+def certbot(request, challenge_key):  # pragma: no cover
     """Respond to the Let's Encrypt certbot challenge"""
+    # ignore coverage since keys aren't available in environment configurations
+    # in the fu
     if CERTBOT_PUBLIC_KEY and CERTBOT_PUBLIC_KEY == challenge_key:
         return HttpResponse(CERTBOT_SECRET_KEY)
     else:
