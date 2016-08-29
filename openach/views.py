@@ -221,6 +221,7 @@ class EvidenceForm(forms.Form):
     event_date = forms.DateField(
         label='Event Date',
         help_text='The date the event occurred or started',
+        widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
     )
     evidence_url = forms.URLField(
         label='Source Website',
@@ -230,6 +231,7 @@ class EvidenceForm(forms.Form):
         label='Source Date',
         help_text='The date the source released or last updated the information corroborating the evidence. ' +
                   'Typically the date of the article or post',
+        widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
     )
 
 
@@ -242,6 +244,7 @@ class EvidenceSourceForm(forms.Form):
         label='Source Date',
         help_text='The date the source released or last updated the information. ' +
                   'Typically the date of the article or post',
+        widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
     )
     corroborating = forms.BooleanField(
         required=False,
