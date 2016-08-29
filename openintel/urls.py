@@ -21,6 +21,7 @@ from django.views.generic import TemplateView
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'robots\.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
+    url(r'contribute\.json', TemplateView.as_view(template_name='contribute.json', content_type='application/json')),
     url(r'^accounts/profile', views.profile),
     url(r'^accounts/(?P<account_id>[0-9]+)/profile$', views.profile, name='profile'),
     url(r'^accounts/', include('allauth.urls')),

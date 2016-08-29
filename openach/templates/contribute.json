@@ -1,0 +1,27 @@
+{
+  "name": "Open Synthesis",
+  "description": "Open platform for intelligence analysis",
+  "repository": {
+    "url": "https://github.com/twschiller/open-synthesis",
+    "license": "GPL3",
+    "tests": "https://travis-ci.org/twschiller/open-synthesis"
+  },
+  "keywords": [
+    "python",
+    "django",
+    "bootstrap",
+    "postgresql",
+    "html5"
+  ],
+  "participate": {
+    "home": "https://github.com/twschiller/open-synthesis/blob/master/CONTRIBUTING.md",
+    "docs": "https://github.com/twschiller/open-synthesis/wiki"
+  },
+  "bugs": {
+    "list": "https://github.com/twschiller/open-synthesis/issues",
+    "report": "https://github.com/twschiller/open-synthesis/issues"
+  },
+  "urls": {
+    "prod": "https://www.opensynthesis.org"
+  }
+}
