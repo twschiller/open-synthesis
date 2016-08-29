@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 import logging
 from django.core import mail
 from unittest import skipUnless
-from openintel.settings import ACCOUNT_EMAIL_REQUIRED
+from openintel.settings import ACCOUNT_EMAIL_REQUIRED, DEFAULT_FROM_EMAIL
 
 
 logger = logging.getLogger(__name__)
@@ -653,3 +653,4 @@ class AccountManagementTests(TestCase):
         # The example.com domain comes from django.contrib.sites plugin
         self.assertEqual(mail.outbox[0].subject, '[example.com] Please Confirm Your E-mail Address')
         self.assertListEqual(mail.outbox[0].to, ['testemail@google.com'])
+        self.assertEqual(mail.outbox[0].from_email, DEFAULT_FROM_EMAIL)

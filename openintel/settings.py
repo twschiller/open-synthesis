@@ -242,9 +242,12 @@ if env('SENDGRID_USERNAME') and env('SENDGRID_PASSWORD'):
 else:
     logger.warning("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
 
-# Authentication Options: https://django-allauth.readthedocs.io/en/latest/configuration.html
+# Authentication Options:
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = env('ACCOUNT_EMAIL_REQUIRED')
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+# https://stackoverflow.com/questions/22700041/django-allauth-sends-verification-emails-from-webmasterservername
+DEFAULT_FROM_EMAIL = "info@opensynthesis.org"
 
 # Challenge/Response for Let's Encrypt. In the future, we may want to support challenge/response for multiple domains.
 CERTBOT_PUBLIC_KEY = env('CERTBOT_PUBLIC_KEY')
