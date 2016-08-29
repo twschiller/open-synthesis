@@ -47,6 +47,7 @@ class EvidenceSource(models.Model):
     source_date = models.DateField('source date')
     uploader = models.ForeignKey(User)
     submit_date = models.DateTimeField('date added')
+    corroborating = models.BooleanField()
 
 
 class EvidenceSourceTag(models.Model):

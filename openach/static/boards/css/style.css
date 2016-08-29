@@ -107,3 +107,7 @@ body {
     color: #FDFEFE;
     font-weight: 500;
 }
+
+.src-conflicting {
+    background-color: #FCF3CF;
+}

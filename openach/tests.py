@@ -4,6 +4,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from .models import Board, Eval, Evidence, Hypothesis, Evaluation, EvidenceSource, ProjectNews
 from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
+from .views import EvidenceSourceForm
 from django.contrib.auth.models import User
 import logging
 from django.core import mail
@@ -263,7 +264,8 @@ class EvidenceDetailTests(TestCase):
             source_url="https://google.com",
             source_date="2016-01-06",
             uploader=self.user,
-            submit_date=time
+            submit_date=time,
+            corroborating=True,
         )
 
     def test_evidence_detail_view(self):
@@ -276,7 +278,8 @@ class EvidenceDetailTests(TestCase):
         self.assertContains(response, self.evidence.evidence_desc)
         self.assertContains(response, self.sources.source_url)
         self.assertContains(response, self.board.board_title)
-        self.assertContains(response, "Add Source")
+        self.assertContains(response, "Add Corroborating Source")
+        self.assertContains(response, "Add Conflicting Source")
 
 
 class AddEvidenceTests(TestCase):
@@ -362,9 +365,10 @@ class AddSourceTests(TestCase):
 
         # the view should display the evidence description
         self.assertContains(response, self.evidence.evidence_desc)
+        self.assertContains(response, "Add Corroborating Source")
         self.assertContains(response, "Return to Evidence")
 
-    def test_add_evidence_submit(self):
+    def test_add_evidence_source_submit(self):
         """
         Make sure the source is actually added to the database when the user submits the form
         """
@@ -373,9 +377,62 @@ class AddSourceTests(TestCase):
         response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
             'evidence_url': url,
             'evidence_date': "1/1/2016",
+            'corroborating': True,
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(EvidenceSource.objects.filter(source_url=url)), 0)
+        self.assertGreater(len(EvidenceSource.objects.filter(corroborating=True)), 0)
+
+    def test_add_conflicting_evidence_form(self):
+        """
+        Make sure form is for conflicting sources when ?kind=conflicting query parameter is supplied
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:add_source', args=(self.evidence.id,)) + "?kind=conflicting")
+        self.assertContains(response, "Add Conflicting Source")
+
+    def test_retain_source_type_on_form_error(self):
+        """
+        Make sure form is for conflict sources when user submits a malformed form without the query string
+        """
+        self.client.login(username='john', password='johnpassword')
+        url = "https://google.com"
+        response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
+            # intentionally leave off the evidence_date
+            'evidence_url': url,
+            'corroborating': False,
+        })
+        self.assertContains(response, "Add Conflicting Source", status_code=200)
+
+    def test_add_conflicting_evidence_source_form(self):
+        """
+        Sanity check for the EvidenceSourceForm
+        """
+        form = EvidenceSourceForm({
+            'evidence_url':  "https://google.com",
+            'evidence_date': "1/1/2016",
+        })
+        self.assertTrue(form.is_valid())
+        form = EvidenceSourceForm({
+            'evidence_url':  "https://google.com",
+            'evidence_date': "1/1/2016",
+            'corroborating': "True",
+        })
+        self.assertTrue(form.is_valid())
+
+    def test_add_conflicting_evidence_source(self):
+        """
+        Make sure we can add a conflicting source via the form
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
+            'evidence_url':  "https://google.com",
+            'evidence_date': "1/1/2016",
+            'corroborating': "False",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertGreater(len(EvidenceSource.objects.filter(corroborating=False)), 0)
+        self.assertEqual(len(EvidenceSource.objects.filter(corroborating=True)), 0)
 
 
 class ProfileTests(TestCase):

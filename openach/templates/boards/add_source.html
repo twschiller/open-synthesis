@@ -6,7 +6,12 @@
 {% load i18n %}
 
 {% block content %}
-    <h1>{% trans "Add Source for Evidence" %}</h1>
+
+    {% if corroborating %}
+        <h1>{% trans "Add Corroborating Source for Evidence" %}</h1>
+    {% else %}
+        <h1>{% trans "Add Conflicting Source for Evidence" %}</h1>
+    {% endif %}
 
     <div class="well">{{ evidence.evidence_desc }}</div>
 

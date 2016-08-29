@@ -28,7 +28,8 @@
     {% endif %}
 
     <div>
-        <a href="{% url 'openach:add_source' evidence.id %}"><button class="btn btn-primary">Add Source</button></a>
+        <a class="btn btn-primary" href="{% url 'openach:add_source' evidence.id %}?kind=corroborate">Add Corroborating Source</a>
+        <a class="btn btn-warning" href="{% url 'openach:add_source' evidence.id %}?kind=conflicting">Add Conflicting Source</a>
         <a class="btn btn-default" href="{% url 'openach:detail' evidence.board_id %}">Return to Board</a>
     </div>
 
@@ -44,7 +45,7 @@
         </thead>
         <tbody>
         {% for source in sources %}
-            <tr>
+            <tr class="{% if not source.corroborating %}src-conflicting{% endif %}">
                 <td>{{ source.source_date }}</td>
                 <td>
                     {% for tag in available_tags %}
@@ -54,7 +55,9 @@
                         {% endif %}
                     {% endfor %}
                 </td>
-                <td><a href="{{ source.source_url }}" target="_blank">{{ source.source_url }}</a></td>
+                <td>
+                    <a href="{{ source.source_url }}" target="_blank">{{ source.source_url }}</a>
+                </td>
                 <td>
                     Submitted on {{ source.submit_date }} by
                     <a href="{% url 'profile' source.uploader.id %}">{{ source.uploader.username }}</a>

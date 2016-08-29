@@ -222,11 +222,11 @@ class EvidenceForm(forms.Form):
     )
     evidence_url = forms.URLField(
         label='Source Website',
-        help_text='A source (e.g., news article or press release) corroborating the evidence'
+        help_text='A source (e.g., news article or press release)'
     )
     evidence_date = forms.DateField(
         label='Source Date',
-        help_text='The date the source released or last updated the information supporting the evidence. ' +
+        help_text='The date the source released or last updated the information. ' +
                   'Typically the date of the article or post',
     )
 
@@ -234,12 +234,16 @@ class EvidenceForm(forms.Form):
 class EvidenceSourceForm(forms.Form):
     evidence_url = forms.URLField(
         label='Source Website',
-        help_text='A source (e.g., news article or press release) corroborating the evidence',
+        help_text='A source (e.g., news article or press release)',
     )
     evidence_date = forms.DateField(
         label='Source Date',
-        help_text='The date the source released or last updated the information supporting the evidence. ' +
+        help_text='The date the source released or last updated the information. ' +
                   'Typically the date of the article or post',
+    )
+    corroborating = forms.BooleanField(
+        required=False,
+        widget=forms.HiddenInput()
     )
 
 
@@ -267,12 +271,14 @@ def add_evidence(request, board_id):
                     source_url=form.cleaned_data['evidence_url'],
                     source_date=form.cleaned_data['evidence_date'],
                     uploader=request.user,
+                    corroborating=True,
                     submit_date=submit_date
                 )
 
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = EvidenceForm()
+
     return render(request, 'boards/add_evidence.html', {'form': form, 'board': board})
 
 
@@ -287,12 +293,23 @@ def add_source(request, evidence_id):
                 source_url=form.cleaned_data['evidence_url'],
                 source_date=form.cleaned_data['evidence_date'],
                 uploader=request.user,
-                submit_date=timezone.now()
+                submit_date=timezone.now(),
+                corroborating=form.cleaned_data['corroborating'],
             )
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
+        else:
+            corroborating = form.data['corroborating'] == 'True'
     else:
-        form = EvidenceSourceForm()
-    return render(request, 'boards/add_source.html', {'form': form, 'evidence': evidence})
+        corroborating = request.GET.get('kind') is None or request.GET.get('kind') != 'conflicting'
+        form = EvidenceSourceForm(initial={'corroborating': corroborating})
+
+    context = {
+        'form': form,
+        'evidence': evidence,
+        'corroborating': corroborating
+    }
+
+    return render(request, 'boards/add_source.html', context)
 
 
 @login_required
@@ -322,7 +339,7 @@ def evidence_detail(request, evidence_id):
     """Show detailed information about a piece of information and its sources"""
     evidence = get_object_or_404(Evidence, pk=evidence_id)
     available_tags = EvidenceSourceTag.objects.all()
-    sources = EvidenceSource.objects.filter(evidence=evidence)
+    sources = EvidenceSource.objects.filter(evidence=evidence).order_by('-source_date')
     all_tags = AnalystSourceTag.objects.filter(source__in=sources)
 
     source_tags = defaultdict(list)
