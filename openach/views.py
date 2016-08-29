@@ -12,8 +12,9 @@ from django.urls import reverse
 import statistics
 from django import forms
 from django.utils import timezone
-from openintel.settings import CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY, DEBUG
+from openintel.settings import DEBUG, CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY, SLUG_MAX_LENGTH
 from django.contrib import messages
+from slugify import slugify
 import random
 
 
@@ -128,7 +129,7 @@ def diagnosticity(evaluations):
     return statistics.pstdev(na_neutral_consensuses) if na_neutral_consensuses else 0.0
 
 
-def detail(request, board_id):
+def detail(request, board_id, board_slug=None):
     """
     View the board details. Evidence is sorted in order of diagnosticity. Hypotheses are sorted in order of
     consistency.
@@ -191,6 +192,7 @@ def create_board(request):
             with transaction.atomic():
                 board = Board.objects.create(
                     board_title=form.cleaned_data['board_title'],
+                    board_slug=slugify(form.cleaned_data['board_title'], max_length=SLUG_MAX_LENGTH),
                     board_desc=form.cleaned_data['board_desc'],
                     creator=request.user,
                     pub_date=timezone.now()
@@ -454,6 +456,7 @@ def evaluate(request, board_id, evidence_id):
             'default_eval': default_eval
         }
         return render(request, 'boards/evaluate.html', context)
+
 
 def certbot(request, challenge_key):  # pragma: no cover
     """Respond to the Let's Encrypt certbot challenge"""

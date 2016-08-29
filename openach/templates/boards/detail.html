@@ -34,9 +34,9 @@
                 </div>
 
                 {% if view_type == 'disagreement' %}
-                    <a class="btn btn-default active" href="{% url 'openach:detail' board.id %}">View Disagreement</a>
+                    <a class="btn btn-default active" href="{{ board|board_url }}">View Disagreement</a>
                 {%  else %}
-                    <a class="btn btn-default" href="{% url 'openach:detail' board.id %}?view_type=disagreement">
+                    <a class="btn btn-default" href="{{ board|board_url }}?view_type=disagreement">
                         View Disagreement
                     </a>
                 {% endif %}

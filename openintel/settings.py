@@ -45,6 +45,7 @@ env = environ.Env(
     ACCOUNT_EMAIL_REQUIRED=(bool, True),
     SENDGRID_USERNAME=(str, None),
     SENDGRID_PASSWORD=(str, None),
+    SLUG_MAX_LENGTH=(int, 72),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -273,3 +274,7 @@ CSP_DEFAULT_SRC = ["'self'"]
 CSP_SCRIPT_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com', 'https://code.jquery.com']
 CSP_STYLE_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com']
 CSP_FONT_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com']
+
+# SEO Configuration
+SLUG_MAX_LENGTH = env('SLUG_MAX_LENGTH')
+

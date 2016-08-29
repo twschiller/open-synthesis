@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 import logging
 from django.core import mail
 from unittest import skipUnless
-from openintel.settings import ACCOUNT_EMAIL_REQUIRED, DEFAULT_FROM_EMAIL
+from openintel.settings import ACCOUNT_EMAIL_REQUIRED, DEFAULT_FROM_EMAIL, SLUG_MAX_LENGTH
 
 
 logger = logging.getLogger(__name__)
@@ -80,6 +80,21 @@ class BoardFormTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Board.objects.filter(board_title='Test Board Title')), 0)
+        self.assertGreater(len(Board.objects.filter(board_slug='test-board-title')), 0)
+
+    def test_submit_valid_create_board_long_title(self):
+        """
+        Test that a user can create a board with a long name and that the slug will be truncated
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:create_board'), data={
+            'board_title': 'x' * (SLUG_MAX_LENGTH + 5),
+            'board_desc': 'Test Board Description',
+            'hypothesis1': 'Test Hypotheses #1',
+            'hypothesis2': 'Test Hypotheses #2',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertGreater(len(Board.objects.filter(board_slug='x' * SLUG_MAX_LENGTH)), 0)
 
 
 class EvidenceAssessmentTests(TestCase):
@@ -321,7 +336,6 @@ class EvidenceDetailTests(TestCase):
         """
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)))
-        logger.info(response)
 
 
 class AddEvidenceTests(TestCase):

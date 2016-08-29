@@ -2,6 +2,7 @@
 
 {% block title %}Add Hypothesis | Open Synthesis{% endblock %}
 
+{% load board_extras %}
 {% load bootstrap %}
 {% load i18n %}
 
@@ -23,7 +24,7 @@
         {{ form|bootstrap }}
         <div class="form-group">
             <div class="">
-                <a class="btn btn-default" href="{% url 'openach:detail' board.id %}">Return to Board</a>
+                <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>
                 <button type="submit" class="btn btn-primary">{% trans "Add Hypothesis" %}</button>
             </div>
         </div>

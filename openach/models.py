@@ -2,12 +2,14 @@ from django.db import models
 import datetime
 from django.utils import timezone
 from django.contrib.auth.models import User
+from openintel.settings import SLUG_MAX_LENGTH
 from enum import Enum, unique
 
 
 class Board(models.Model):
     """An ACH matrix with hypotheses, evidence, and evaluations."""
     board_title = models.CharField(max_length=200)
+    board_slug = models.SlugField(null=True, allow_unicode=False, max_length=SLUG_MAX_LENGTH)
     board_desc = models.CharField(max_length=200)
     creator = models.ForeignKey(User, null=True)
     pub_date = models.DateTimeField('date published')

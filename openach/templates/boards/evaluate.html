@@ -1,5 +1,7 @@
 {% extends 'boards/base.html' %}
 
+{% load board_extras %}
+
 {% block title %}Assess Evidence | Open Synthesis{% endblock %}
 
 {% block content %}
@@ -31,7 +33,7 @@
         {% endfor %}
         <div class="form-group">
             <div>
-                <a class="btn btn-default" href="{% url 'openach:detail' board.id %}">Return to Board</a>
+                <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>
                 <button class="btn btn-primary" type="submit">Submit</button>
             </div>
         </div>

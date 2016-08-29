@@ -1,6 +1,7 @@
 from django.template.defaulttags import register
 from openach.models import Evaluation, Eval
 import logging
+from django.urls import reverse
 
 
 logger = logging.getLogger(__name__)
@@ -82,3 +83,12 @@ def bootstrap_alert(tags):
         'error': 'alert-error',
     }
     return mapping[tags] if tags in mapping else tags
+
+
+@register.filter
+def board_url(board):
+    """Return the URL for the board, including the slug if available."""
+    if board.board_slug:
+        return reverse('openach:detail_slug', args=(board.id, board.board_slug,))
+    else:
+        return reverse('openach:detail', args=(board.id,))

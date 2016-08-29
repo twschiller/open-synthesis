@@ -1,5 +1,7 @@
 {% extends 'boards/base.html' %}
 
+{% load board_extras %}
+
 {% block title %}{{ user.username }} | Open Synthesis{% endblock %}
 
 {% block content %}
@@ -8,7 +10,7 @@
     <h2>Boards Created</h2>
     <ul>
         {% for board in boards_created %}
-            <li><a href="{% url 'openach:detail' board.id %}">{{ board.board_title }}</a> on {{ board.pub_date }}</li>
+            <li><a href="{{ board|board_url }}">{{ board.board_title }}</a> on {{ board.pub_date }}</li>
         {% endfor %}
     </ul>
 
@@ -16,7 +18,7 @@
     <p>Boards to which the user has added at least one hypothesis or piece of evidence.</p>
     <ul>
         {% for board in boards_contributed %}
-            <li><a href="{% url 'openach:detail' board.id %}">{{ board.board_title }}</a></li>
+            <li><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
         {% endfor %}
     </ul>
 
@@ -24,7 +26,7 @@
     <p>Boards for which the user has assessed at least one piece of evidence against they hypotheses.</p>
     <ul>
         {% for board in board_voted %}
-            <li><a href="{% url 'openach:detail' board.id %}">{{ board.board_title }}</a></li>
+            <li><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
         {% endfor %}
     </ul>
 

@@ -3,6 +3,7 @@
 {% block title %}Open Synthesis{% endblock %}
 
 {% load i18n %}
+{% load board_extras %}
 
 {% block content %}
 
@@ -73,8 +74,8 @@
                 <ul class="list-group">
                     {% if latest_board_list %}
                         {% for board in latest_board_list %}
-                            <li class="list-group-item"><a href="{% url 'openach:detail' board.id %}">
-                                {{ board.board_title }}</a>
+                            <li class="list-group-item">
+                                <a href="{{ board|board_url }}">{{ board.board_title }}</a>
                             </li>
                         {% endfor %}
                     {% else %}
