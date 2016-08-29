@@ -272,3 +272,4 @@ ROLLBAR = {
 CSP_DEFAULT_SRC = ["'self'"]
 CSP_SCRIPT_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com', 'https://code.jquery.com']
 CSP_STYLE_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com']
+CSP_FONT_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com']
