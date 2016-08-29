@@ -43,7 +43,7 @@ env = environ.Env(
     SECURE_HSTS_SECONDS=(int, 31536000),  # default to maximum age in seconds
     ROLLBAR_ACCESS_TOKEN=(str, None),
     ACCOUNT_EMAIL_REQUIRED=(bool, True),
-    SENDGRID_USER=(str, None),
+    SENDGRID_USERNAME=(str, None),
     SENDGRID_PASSWORD=(str, None),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
@@ -234,9 +234,10 @@ LOGGING = {
 }
 
 # Email Options using sendgrid-django
-if env('SENDGRID_USER') and env('SENDGRID_PASSWORD'):
+if env('SENDGRID_USERNAME') and env('SENDGRID_PASSWORD'):
     EMAIL_BACKEND = "sgbackend.SendGridBackend"
-    SENDGRID_USER = env('SENDGRID_USER')
+    # NOTE: django library uses _USER while Heroku uses _USERNAME
+    SENDGRID_USER = env('SENDGRID_USERNAME')
     SENDGRID_PASSWORD = env('SENDGRID_PASSWORD')
 else:
     logger.warning("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
