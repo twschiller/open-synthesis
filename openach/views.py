@@ -222,11 +222,11 @@ class EvidenceForm(forms.Form):
     )
     evidence_url = forms.URLField(
         label='Source Website',
-        help_text='A source (e.g., news article or press release)'
+        help_text='A source (e.g., news article or press release) corroborating the evidence'
     )
     evidence_date = forms.DateField(
         label='Source Date',
-        help_text='The date the source released or last updated the information. ' +
+        help_text='The date the source released or last updated the information corroborating the evidence. ' +
                   'Typically the date of the article or post',
     )
 
