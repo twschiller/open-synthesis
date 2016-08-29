@@ -457,8 +457,7 @@ def evaluate(request, board_id, evidence_id):
 
 def certbot(request, challenge_key):  # pragma: no cover
     """Respond to the Let's Encrypt certbot challenge"""
-    # ignore coverage since keys aren't available in environment configurations
-    # in the fu
+    # ignore coverage since keys aren't available in the testing environment
     if CERTBOT_PUBLIC_KEY and CERTBOT_PUBLIC_KEY == challenge_key:
         return HttpResponse(CERTBOT_SECRET_KEY)
     else:
