@@ -16,10 +16,13 @@ import os
 import dj_database_url
 import environ
 import logging
-
+import sys
 
 logger = logging.getLogger(__name__)
 
+
+# https://stackoverflow.com/questions/4088253/django-how-to-detect-test-environment
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -249,6 +252,7 @@ CERTBOT_SECRET_KEY = env('CERTBOT_SECRET_KEY')
 # Rollbar Error tracking: https://rollbar.com/docs/notifier/pyrollbar/#django
 # Rollbar endpoint via 'endpoint' configuration is not working. For now just use the default.
 ROLLBAR = {
+    'enabled': not TESTING,
     'access_token': env('ROLLBAR_ACCESS_TOKEN'),
     'environment': 'development' if DEBUG else 'production',
     'root': PROJECT_ROOT,
