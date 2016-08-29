@@ -6,6 +6,9 @@ from .models import Board, Eval, Evidence, Hypothesis, Evaluation, EvidenceSourc
 from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
 from django.contrib.auth.models import User
 import logging
+from django.core import mail
+from unittest import skipUnless
+from openintel.settings import ACCOUNT_EMAIL_REQUIRED
 
 
 logger = logging.getLogger(__name__)
@@ -607,3 +610,46 @@ class DisagreementTests(TestCase):
         small = [Eval.consistent, Eval.inconsistent]
         large = [Eval.very_inconsistent, Eval.very_consistent]
         self.assertGreater(calc_disagreement(large), calc_disagreement(small))
+
+
+class AccountManagementTests(TestCase):
+    """
+    Project-specific account management tests. General tests should be in the django-allauth library
+    """
+
+    def test_can_show_signup_form(self):
+        """
+        Make sure we can render the basic signup form
+        """
+        response = self.client.get('/accounts/signup/')
+        self.assertTemplateUsed('/account/email/signup.html')
+        self.assertEqual(response.status_code, 200)
+
+    @skipUnless(ACCOUNT_EMAIL_REQUIRED, reason="account email is not required.")
+    def test_email_address_required(self):
+        """
+        Test that signup without email is rejected
+        """
+        response = self.client.post('/accounts/signup/', data={
+            'username': 'testuser',
+            'email': None,
+            'password1': 'testpassword1!',
+            'password2': 'testpassword1!',
+        })
+        self.assertContains(response, "Enter a valid email address.", status_code=200)
+
+    def test_account_signup_flow(self):
+        """
+        Test that the user receives a confirmation email when they signup for an account with an email address
+        """
+        response = self.client.post('/accounts/signup/', data={
+            'username': 'testuser',
+            'email': 'testemail@google.com',
+            'password1': 'testpassword1!',
+            'password2': 'testpassword1!',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1, "No confirmation email sent")
+        # The example.com domain comes from django.contrib.sites plugin
+        self.assertEqual(mail.outbox[0].subject, '[example.com] Please Confirm Your E-mail Address')
+        self.assertListEqual(mail.outbox[0].to, ['testemail@google.com'])

@@ -15,6 +15,10 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 import dj_database_url
 import environ
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -35,6 +39,9 @@ env = environ.Env(
     SECURE_HSTS_INCLUDE_SUBDOMAINS=(bool, True),
     SECURE_HSTS_SECONDS=(int, 31536000),  # default to maximum age in seconds
     ROLLBAR_ACCESS_TOKEN=(str, None),
+    ACCOUNT_EMAIL_REQUIRED=(bool, True),
+    SENDGRID_USER=(str, None),
+    SENDGRID_PASSWORD=(str, None),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -222,6 +229,18 @@ LOGGING = {
         }
     },
 }
+
+# Email Options using sendgrid-django
+if env('SENDGRID_USER') and env('SENDGRID_PASSWORD'):
+    EMAIL_BACKEND = "sgbackend.SendGridBackend"
+    SENDGRID_USER = env('SENDGRID_USER')
+    SENDGRID_PASSWORD = env('SENDGRID_PASSWORD')
+else:
+    logger.warning("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
+
+# Authentication Options: https://django-allauth.readthedocs.io/en/latest/configuration.html
+ACCOUNT_EMAIL_REQUIRED = env('ACCOUNT_EMAIL_REQUIRED')
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 
 # Challenge/Response for Let's Encrypt. In the future, we may want to support challenge/response for multiple domains.
 CERTBOT_PUBLIC_KEY = env('CERTBOT_PUBLIC_KEY')
