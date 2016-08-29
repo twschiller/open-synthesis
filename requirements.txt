@@ -21,3 +21,4 @@ six==1.10.0
 smtpapi==0.3.1
 Unidecode==0.4.19
 whitenoise==3.2.1
+django-pipeline>=1.6.8,<1.7.0

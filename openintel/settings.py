@@ -89,7 +89,10 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'csp.middleware.CSPMiddleware',
+    # MinifyHTMLMiddleware needs to be after all middleware that may modify the HTML
+    'pipeline.middleware.MinifyHTMLMiddleware',
     # Rollbar middleware needs to be last
     'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 ]
@@ -278,3 +281,9 @@ CSP_FONT_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com']
 # SEO Configuration
 SLUG_MAX_LENGTH = env('SLUG_MAX_LENGTH')
 
+# django-pipeline configuration for static files
+# https://django-pipeline.readthedocs.io/en/latest/configuration.html
+# We're currently just using it for its HTML minification middleware
+PIPELINE = {
+    'PIPELINE_ENABLED': not DEBUG,
+}
