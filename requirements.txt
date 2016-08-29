@@ -9,7 +9,7 @@ gunicorn==19.6.0
 oauthlib==1.1.2
 psycopg2==2.6.2
 python3-openid==3.0.10
-PyYAML==3.11
+PyYAML==3.12
 requests==2.11.1
 requests-oauthlib==0.6.2
 rollbar==0.13.3
