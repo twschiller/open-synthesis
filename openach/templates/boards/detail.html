@@ -3,6 +3,8 @@
 {% block title %}{{ board.board_title }} | Open Synthesis{% endblock %}
 
 {% load board_extras %}
+{% load comments %}
+{% load bootstrap %}
 
 {% block content %}
     <h1>Intelligence Board: <i>{{ board.board_title }}</i></h1>
@@ -97,5 +99,26 @@
         {% endfor %}
         </tbody>
     </table>
+
+    <h2>Comments</h2>
+
+    {% render_comment_list for board %}
+
+    {% if user.is_authenticated %}
+        {% get_comment_form for board as form %}
+        <form action="{% comment_form_target %}" method="POST">
+            {% csrf_token %}
+            {{ form.comment|bootstrap }}
+            {{ form.honeypot }}
+            {{ form.content_type }}
+            {{ form.object_pk }}
+            {{ form.timestamp }}
+            {{ form.security_hash }}
+            <input type="hidden" name="next" value="{{ board|board_url }}" />
+            <input class="btn btn-primary" type="submit" value="Add comment" id="id_submit" />
+        </form>
+    {% else %}
+        <p>Please <a href="/accounts/login/?next={{ board|board_url }}">log in</a> to leave a comment.</p>
+    {% endif %}
 
 {% endblock content %}

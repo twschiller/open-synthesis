@@ -11,6 +11,9 @@ from django.core import mail
 from unittest import skipUnless
 from openintel.settings import ACCOUNT_EMAIL_REQUIRED, DEFAULT_FROM_EMAIL, SLUG_MAX_LENGTH
 from .sitemap import BoardSitemap
+from django_comments.models import Comment
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.sites.models import Site
 
 
 logger = logging.getLogger(__name__)
@@ -308,6 +311,24 @@ class BoardDetailTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.evidence.evidence_desc)
 
+    def test_can_display_comments(self):
+        comment = Comment.objects.create(
+            content_type=ContentType.objects.get_for_model(Board),
+            object_pk=self.board.id,
+            user=self.user,
+            user_url="http://example.com/~frank/",
+            comment="First post.",
+            site=Site.objects.get_current(),
+        )
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+        self.assertContains(response, "Comments")
+        self.assertContains(response, comment.comment)
+
+    def test_display_comment_form_when_logged_in(self):
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+        self.assertContains(response, "Add comment")
+
     def test_can_display_disagreement_with_no_assessments(self):
         self.evidence = Evidence.objects.create(
             board=self.board,
@@ -355,6 +376,24 @@ class EvidenceDetailTests(TestCase):
         self.assertContains(response, self.board.board_title)
         self.assertContains(response, "Add Corroborating Source")
         self.assertContains(response, "Add Conflicting Source")
+
+    def test_display_comment_form_when_logged_in(self):
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:evidence_detail', args=(self.evidence.id,)))
+        self.assertContains(response, "Add comment")
+
+    def test_can_display_comments(self):
+        comment = Comment.objects.create(
+            content_type=ContentType.objects.get_for_model(Evidence),
+            object_pk=self.evidence.id,
+            user=self.user,
+            user_url="http://example.com/~frank/",
+            comment="First post.",
+            site=Site.objects.get_current(),
+        )
+        response = self.client.get(reverse('openach:evidence_detail', args=(self.evidence.id,)))
+        self.assertContains(response, "Comments")
+        self.assertContains(response, comment.comment)
 
     def test_add_source_tag(self):
         """
