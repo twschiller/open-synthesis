@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from openintel.settings import SLUG_MAX_LENGTH
 from enum import Enum, unique
+from django.urls import reverse
 
 
 class Board(models.Model):
@@ -21,12 +22,19 @@ class Board(models.Model):
         now = timezone.now()
         return now - datetime.timedelta(days=1) <= self.pub_date <= now
 
+    def get_absolute_url(self):
+        if self.board_slug:
+            return reverse('openach:detail_slug', args=(self.id, self.board_slug,))
+        else:
+            return reverse('openach:detail', args=(self.id,))
+
 
 class Hypothesis(models.Model):
     """An ACH matrix hypothesis."""
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
     hypothesis_text = models.CharField(max_length=200)
     creator = models.ForeignKey(User, null=True)
+    submit_date = models.DateTimeField('date added')
 
     def __str__(self):
         return self.hypothesis_text

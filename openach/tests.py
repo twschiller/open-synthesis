@@ -44,6 +44,19 @@ class BoardMethodTests(TestCase):
         recent_board = Board(pub_date=time)
         self.assertIs(recent_board.was_published_recently(), True)
 
+    def test_board_url_without_slug(self):
+        """
+        Smoke test to make sure we can grab the URL of a board that has no slug
+        """
+        self.assertIsNotNone(Board(id=1).get_absolute_url())
+
+    def test_board_url_with_slug(self):
+        """
+        Smoke test to make sure we can grab the URL of a board that has a slug
+        """
+        slug = 'test-slug'
+        self.assertTrue(slug in Board(id=1, board_slug=slug).get_absolute_url())
+
 
 class BoardFormTests(TestCase):
 
@@ -114,12 +127,14 @@ class EvidenceAssessmentTests(TestCase):
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #1",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now(),
             ),
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #2",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now(),
             )
         ]
 
@@ -164,12 +179,14 @@ class AddHypothesisTests(TestCase):
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #1",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now(),
             ),
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #2",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now()
             )
         ]
 
@@ -220,12 +237,14 @@ class BoardDetailTests(TestCase):
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #1",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now(),
             ),
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #2",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now(),
             )
         ]
 
@@ -565,6 +584,16 @@ class IndexViewTests(TestCase):
             response.context['latest_board_list'],
             ['<Board: Past board.>']
         )
+
+
+class RobotsViewTests(TestCase):
+
+    def test_can_render_robots_page(self):
+        """Check that the robots.txt view returns a robots.txt that includes a sitemap."""
+        response = self.client.get(reverse('robots'))
+        self.assertTemplateUsed(response, 'robots.txt')
+        self.assertContains(response, 'sitemap.xml', status_code=200)
+        self.assertEqual(response['Content-Type'], 'text/plain')
 
 
 class AboutViewTests(TestCase):

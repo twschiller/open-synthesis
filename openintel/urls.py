@@ -17,11 +17,19 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from openach import views
 from django.views.generic import TemplateView
+from django.contrib.sitemaps.views import sitemap
+from openach.sitemap import BoardSitemap
+
+# https://docs.djangoproject.com/en/1.10/ref/contrib/sitemaps/#initialization
+sitemaps = {
+    'board': BoardSitemap,
+}
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'robots\.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
+    url(r'robots\.txt', views.robots, name='robots'),
     url(r'contribute\.json', TemplateView.as_view(template_name='contribute.json', content_type='application/json')),
+    url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     url(r'^accounts/profile', views.profile),
     url(r'^accounts/(?P<account_id>[0-9]+)/profile$', views.profile, name='profile'),
     url(r'^accounts/', include('allauth.urls')),
