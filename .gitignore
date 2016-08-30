@@ -24,3 +24,6 @@ runserver
 
 # MacOS files
 .DS_Store
+
+# Testing Artifacts
+.coverage

@@ -1,2 +1,5 @@
 [report]
 omit = */migrations/*,conf.py,openach/apps.py,openintel/wsgi.py,**/tests.py
+
+[run]
+plugins = django_coverage_plugin
