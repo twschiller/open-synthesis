@@ -276,7 +276,10 @@ ROLLBAR = {
 # http://www.html5rocks.com/en/tutorials/security/content-security-policy/
 
 CSP_DEFAULT_SRC = ["'self'"]
-CSP_SCRIPT_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com', 'https://code.jquery.com', 'https://cdnjs.cloudflare.com']
+CSP_SCRIPT_SRC = [
+    "'self'", 'https://maxcdn.bootstrapcdn.com',
+    'https://code.jquery.com', 'https://cdnjs.cloudflare.com'
+]
 CSP_STYLE_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com', 'https://cdnjs.cloudflare.com']
 CSP_FONT_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com']
 

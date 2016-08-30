@@ -1,7 +1,8 @@
 from django.template.defaulttags import register
 from openach.models import Evaluation, Eval
 import logging
-from django.urls import reverse
+import collections
+import math
 
 
 logger = logging.getLogger(__name__)
@@ -41,32 +42,27 @@ def get_source_tags(dictionary, source_id, tag_id):
     return dictionary.get((source_id, tag_id))
 
 
+DisputeLevel = collections.namedtuple('DisputeLevel', ['max_level', 'name', 'css_class'])
+_dispute_levels = [
+    DisputeLevel(max_level=0.5, name='Consensus', css_class='disagree-consensus'),
+    DisputeLevel(max_level=1.5, name='Mild Dispute', css_class='disagree-mild-dispute'),
+    DisputeLevel(max_level=2.0, name='Large Dispute', css_class='disagree-large-dispute'),
+    DisputeLevel(max_level=math.inf, name='Extreme Dispute', css_class='disagree-extreme-dispute'),
+]
+
+
+def _dispute_level(value):
+    return list(filter(lambda x: value < x.max_level, _dispute_levels))[0]
+
+
 @register.filter
 def disagreement_category(value):
-    if value is None:
-        return 'No Assessments'
-    elif value < 0.5:
-        return 'Consensus'
-    elif value < 1.5:
-        return 'Mild Dispute'
-    elif value < 2.0:
-        return 'Large Dispute'
-    else:
-        return 'Extreme Dispute'
+    return 'No Assessments' if value is None else _dispute_level(value).name
 
 
 @register.filter
 def disagreement_style(value):
-    if value is None:
-        return 'disagree-no-assessments'
-    elif value < 0.5:
-        return 'disagree-consensus'
-    elif value < 1.5:
-        return 'disagree-mild-dispute'
-    elif value < 2.0:
-        return 'disagree-large-dispute'
-    else:
-        return 'disagree-extreme-dispute'
+    return 'disagree-no-assessments' if value is None else _dispute_level(value).css_class
 
 
 @register.filter
@@ -88,7 +84,6 @@ def bootstrap_alert(tags):
 @register.filter
 def board_url(board):
     """Return the URL for the board, including the slug if available."""
-    if board.board_slug:
-        return reverse('openach:detail_slug', args=(board.id, board.board_slug,))
-    else:
-        return reverse('openach:detail', args=(board.id,))
+    # In the future, we might just want to directly use get_absolute_url in the template. However, this extra level
+    # of indirection gives us some additional flexibility
+    return board.get_absolute_url()

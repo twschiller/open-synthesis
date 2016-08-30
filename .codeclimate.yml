@@ -5,6 +5,9 @@ engines:
      enabled: true
    duplication:
      enabled: true
+     exclude_fingerprints:
+       # clone due to similar help text
+       - 750894054fd499d62428eea3e635397a
      config:
        languages:
        - python
