@@ -10,6 +10,7 @@ import logging
 from django.core import mail
 from unittest import skipUnless
 from openintel.settings import ACCOUNT_EMAIL_REQUIRED, DEFAULT_FROM_EMAIL, SLUG_MAX_LENGTH
+from .sitemap import BoardSitemap
 
 
 logger = logging.getLogger(__name__)
@@ -108,6 +109,46 @@ class BoardFormTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Board.objects.filter(board_slug='x' * SLUG_MAX_LENGTH)), 0)
+
+
+class SitemapTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.board = create_board('Test Board', days=5)
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+        self.hypotheses = [
+            Hypothesis.objects.create(
+                board=self.board,
+                hypothesis_text="Hypothesis #1",
+                creator=self.user,
+                submit_date=timezone.now(),
+            ),
+        ]
+
+    def test_can_get_items(self):
+        """ Test that we can get all the board """
+        sitemap = BoardSitemap()
+        self.assertEqual(len(sitemap.items()), 1)
+
+    def test_can_get_last_update(self):
+        """ Test that sitemap uses the latest change """
+        latest = Hypothesis.objects.create(
+            board=self.board,
+            hypothesis_text="Hypothesis #2",
+            creator=self.user,
+            submit_date=timezone.now() + datetime.timedelta(days=5),
+        )
+        sitemap = BoardSitemap()
+        board = sitemap.items()[0]
+        self.assertEqual(sitemap.lastmod(board), latest.submit_date)
 
 
 class EvidenceAssessmentTests(TestCase):
