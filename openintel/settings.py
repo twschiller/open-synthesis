@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.sitemaps',
+    'django_comments',
     'bootstrapform',
     'openach',
     'allauth',

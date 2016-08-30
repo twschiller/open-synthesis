@@ -111,3 +111,12 @@ body {
 .src-conflicting {
     background-color: #FCF3CF;
 }
+
+#id_honeypot {
+    display: none;
+}
+#id_comment {
+    height: 5em;
+    width: 40em;
+    resize: none;
+}
