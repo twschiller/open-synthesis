@@ -113,9 +113,10 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
             ],
+            # Template debugging is required for coverage testing
+            'debug': DEBUG,
         },
     },
-
 ]
 
 WSGI_APPLICATION = 'openintel.wsgi.application'
