@@ -1,3 +1,4 @@
 User-agent: *
+Sitemap: {{ sitemap }}
 Disallow: /accounts/
 Disallow: /admin/

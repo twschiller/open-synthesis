@@ -10,6 +10,7 @@ import logging
 from django.core import mail
 from unittest import skipUnless
 from openintel.settings import ACCOUNT_EMAIL_REQUIRED, DEFAULT_FROM_EMAIL, SLUG_MAX_LENGTH
+from .sitemap import BoardSitemap
 
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,19 @@ class BoardMethodTests(TestCase):
         time = timezone.now() - datetime.timedelta(hours=1)
         recent_board = Board(pub_date=time)
         self.assertIs(recent_board.was_published_recently(), True)
+
+    def test_board_url_without_slug(self):
+        """
+        Smoke test to make sure we can grab the URL of a board that has no slug
+        """
+        self.assertIsNotNone(Board(id=1).get_absolute_url())
+
+    def test_board_url_with_slug(self):
+        """
+        Smoke test to make sure we can grab the URL of a board that has a slug
+        """
+        slug = 'test-slug'
+        self.assertTrue(slug in Board(id=1, board_slug=slug).get_absolute_url())
 
 
 class BoardFormTests(TestCase):
@@ -97,6 +111,46 @@ class BoardFormTests(TestCase):
         self.assertGreater(len(Board.objects.filter(board_slug='x' * SLUG_MAX_LENGTH)), 0)
 
 
+class SitemapTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.board = create_board('Test Board', days=5)
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+        self.hypotheses = [
+            Hypothesis.objects.create(
+                board=self.board,
+                hypothesis_text="Hypothesis #1",
+                creator=self.user,
+                submit_date=timezone.now(),
+            ),
+        ]
+
+    def test_can_get_items(self):
+        """ Test that we can get all the board """
+        sitemap = BoardSitemap()
+        self.assertEqual(len(sitemap.items()), 1)
+
+    def test_can_get_last_update(self):
+        """ Test that sitemap uses the latest change """
+        latest = Hypothesis.objects.create(
+            board=self.board,
+            hypothesis_text="Hypothesis #2",
+            creator=self.user,
+            submit_date=timezone.now() + datetime.timedelta(days=5),
+        )
+        sitemap = BoardSitemap()
+        board = sitemap.items()[0]
+        self.assertEqual(sitemap.lastmod(board), latest.submit_date)
+
+
 class EvidenceAssessmentTests(TestCase):
 
     def setUp(self):
@@ -114,12 +168,14 @@ class EvidenceAssessmentTests(TestCase):
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #1",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now(),
             ),
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #2",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now(),
             )
         ]
 
@@ -164,12 +220,14 @@ class AddHypothesisTests(TestCase):
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #1",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now(),
             ),
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #2",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now()
             )
         ]
 
@@ -220,12 +278,14 @@ class BoardDetailTests(TestCase):
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #1",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now(),
             ),
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #2",
-                creator=self.user
+                creator=self.user,
+                submit_date=timezone.now(),
             )
         ]
 
@@ -565,6 +625,16 @@ class IndexViewTests(TestCase):
             response.context['latest_board_list'],
             ['<Board: Past board.>']
         )
+
+
+class RobotsViewTests(TestCase):
+
+    def test_can_render_robots_page(self):
+        """Check that the robots.txt view returns a robots.txt that includes a sitemap."""
+        response = self.client.get(reverse('robots'))
+        self.assertTemplateUsed(response, 'robots.txt')
+        self.assertContains(response, 'sitemap.xml', status_code=200)
+        self.assertEqual(response['Content-Type'], 'text/plain')
 
 
 class AboutViewTests(TestCase):

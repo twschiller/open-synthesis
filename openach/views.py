@@ -15,6 +15,7 @@ from django.utils import timezone
 from openintel.settings import DEBUG, CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY, SLUG_MAX_LENGTH
 from django.contrib import messages
 from slugify import slugify
+from django.contrib.sites.shortcuts import get_current_site
 import random
 
 
@@ -190,17 +191,19 @@ def create_board(request):
         form = BoardForm(request.POST)
         if form.is_valid():
             with transaction.atomic():
+                time = timezone.now()
                 board = Board.objects.create(
                     board_title=form.cleaned_data['board_title'],
                     board_slug=slugify(form.cleaned_data['board_title'], max_length=SLUG_MAX_LENGTH),
                     board_desc=form.cleaned_data['board_desc'],
                     creator=request.user,
-                    pub_date=timezone.now()
+                    pub_date=time
                 )
                 for hypothesis_key in ['hypothesis1', 'hypothesis2']:
                     Hypothesis.objects.create(
                         board=board,
-                        hypothesis_text=form.cleaned_data[hypothesis_key]
+                        hypothesis_text=form.cleaned_data[hypothesis_key],
+                        submit_date=time,
                     )
 
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
@@ -375,7 +378,8 @@ def add_hypothesis(request, board_id):
             Hypothesis.objects.create(
                 hypothesis_text=form.cleaned_data['hypothesis_text'],
                 board=board,
-                creator=request.user
+                creator=request.user,
+                submit_date=timezone.now(),
             )
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
@@ -459,6 +463,13 @@ def evaluate(request, board_id, evidence_id):
             'default_eval': default_eval
         }
         return render(request, 'boards/evaluate.html', context)
+
+
+def robots(request):
+    """Returns the robots.txt including the sitemap location (using the site domain)"""
+    # Not sure if we should build the
+    sitemap = ''.join(['https://', get_current_site(request).domain, reverse('django.contrib.sitemaps.views.sitemap')])
+    return render(request, 'robots.txt', {'sitemap': sitemap}, content_type='text/plain')
 
 
 def certbot(request, challenge_key):  # pragma: no cover
