@@ -42,6 +42,7 @@ env = environ.Env(
     SECURE_HSTS_INCLUDE_SUBDOMAINS=(bool, True),
     SECURE_HSTS_SECONDS=(int, 31536000),  # default to maximum age in seconds
     ROLLBAR_ACCESS_TOKEN=(str, None),
+    ROLLBAR_ENABLED=(bool, False),
     ACCOUNT_EMAIL_REQUIRED=(bool, True),
     SENDGRID_USERNAME=(str, None),
     SENDGRID_PASSWORD=(str, None),
@@ -262,7 +263,7 @@ CERTBOT_SECRET_KEY = env('CERTBOT_SECRET_KEY')
 # Rollbar Error tracking: https://rollbar.com/docs/notifier/pyrollbar/#django
 # Rollbar endpoint via 'endpoint' configuration is not working. For now just use the default.
 ROLLBAR = {
-    'enabled': not TESTING,
+    'enabled': env('ROLLBAR_ENABLED') and not TESTING,
     'access_token': env('ROLLBAR_ACCESS_TOKEN'),
     'environment': 'development' if DEBUG else 'production',
     'root': PROJECT_ROOT,
