@@ -602,7 +602,7 @@ class ProfileTests(TestCase):
         """
         response = self.client.get(reverse('profile', args=(self.user.id,)))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Activity for <i>{}</i>".format(self.user.username))
+        self.assertContains(response, "User {}".format(self.user.username))
 
 
 def create_board(board_title, days):
