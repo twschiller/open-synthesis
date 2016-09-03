@@ -1,36 +1,76 @@
 {% extends 'boards/base.html' %}
 
 {% load board_extras %}
+{% load i18n %}
 
 {% block title %}Profile | Open Synthesis{% endblock %}
 
 {% block content %}
-    <h1>Welcome, {{ request.user.username }}</h1>
-    <p>
-        In the future, your private profile will summarize relevant content, alerts, etc. that's relevant to you.
-    </p>
 
-    <h2>Boards You Created</h2>
-    <ul>
-        {% for board in boards_created %}
-            <li><a href="{{ board|board_url }}">{{ board.board_title }}</a> on {{ board.pub_date }}</li>
-        {% endfor %}
-    </ul>
+    <div class="row">
+        <div class="col-md-7">
 
-    <h2>Boards You've Contributed To</h2>
-    <p>Boards to which you've added at least one hypothesis or piece of evidence.</p>
-    <ul>
-        {% for board in boards_contributed %}
-            <li><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
-        {% endfor %}
-    </ul>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Welcome, {{ request.user.username }}</h3>
+                </div>
+                <div class="panel-body">
+                    Your private profile summarizes the content, alerts, etc. that's relevant to you.
+                </div>
+            </div>
 
-    <h2>Boards You've Analyzed</h2>
-    <p>Boards for which you've assessed at least one piece of evidence against they hypotheses.</p>
-    <ul>
-        {% for board in board_voted %}
-            <li><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
-        {% endfor %}
-    </ul>
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Settings</h3>
+                </div>
+                <div class="panel-body">
+                    In the future, you will be able to manage your account settings here.
+                </div>
+            </div>
+
+        </div> <!-- col -->
+
+        <div class="col-md-5">
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Boards You've Created</h3>
+                </div>
+                <div class="panel-body">
+                    Want help analyzing a question?
+                    <a href="{% url 'openach:create_board' %}">{% trans "Create a board." %}</a>
+                </div>
+                <ul class="list-group">
+                    {% for board in boards_created %}
+                        <li class="list-group-item">
+                            <a href="{{ board|board_url }}">{{ board.board_title }}</a> on {{ board.pub_date }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Boards You've Contributed To</h3>
+                </div>
+                <ul class="list-group">
+                    {% for board in boards_contributed %}
+                        <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Boards You've Analyzed</h3>
+                </div>
+                <ul class="list-group">
+                    {% for board in board_voted %}
+                        <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div> <!-- col -->
+    </div> <!-- row -->
 
 {% endblock content %}

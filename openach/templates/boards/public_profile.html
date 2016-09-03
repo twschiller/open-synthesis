@@ -1,33 +1,58 @@
 {% extends 'boards/base.html' %}
 
 {% load board_extras %}
+{% load i18n %}
 
-{% block title %}{{ user.username }} | Open Synthesis{% endblock %}
+{% block title %}User {{ user.username }} | Open Synthesis{% endblock %}
 
 {% block content %}
-    <h1>Activity for <i>{{ user.username }}</i></h1>
+    <div class="row">
+        <div class="col-md-7">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Vital Statistics for User <i>{{ user.username }}</i></h3>
+                </div>
+                <ul class="list-group">
+                    <li class="list-group-item">Member since {{ user.date_joined|date }}</li>
+                </ul>
+            </div>
+        </div> <!-- col -->
 
-    <h2>Boards Created</h2>
-    <ul>
-        {% for board in boards_created %}
-            <li><a href="{{ board|board_url }}">{{ board.board_title }}</a> on {{ board.pub_date }}</li>
-        {% endfor %}
-    </ul>
+        <div class="col-md-5">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Boards Created</h3>
+                </div>
+                <ul class="list-group">
+                    {% for board in boards_created %}
+                        <li class="list-group-item">
+                            <a href="{{ board|board_url }}">{{ board.board_title }}</a> on {{ board.pub_date|date }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
 
-    <h2>Boards Contributed To</h2>
-    <p>Boards to which the user has added at least one hypothesis or piece of evidence.</p>
-    <ul>
-        {% for board in boards_contributed %}
-            <li><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
-        {% endfor %}
-    </ul>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Boards Contributed To</h3>
+                </div>
+                <ul class="list-group">
+                    {% for board in boards_contributed %}
+                        <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
 
-    <h2>Boards Analyzed</h2>
-    <p>Boards for which the user has assessed at least one piece of evidence against they hypotheses.</p>
-    <ul>
-        {% for board in board_voted %}
-            <li><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
-        {% endfor %}
-    </ul>
-
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Boards Analyzed</h3>
+                </div>
+                <ul class="list-group">
+                    {% for board in board_voted %}
+                        <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div> <!-- col -->
+    </div> <!-- row -->
 {% endblock content %}
