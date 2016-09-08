@@ -81,5 +81,8 @@ we'd like to acknowledge the following:
 * Continuous Integration provided by [Travis CI](https://travis-ci.org/)
 * Code Coverage Reporting provided by [Coveralls](https://coveralls.io/)
 * Code Lint Reporting provided by [Code Climate](https://codeclimate.com/)
+* [Responsible Disclosure Policy](SECURITY.md) adapted from Bugcrowd's 
+[Open Source Responsible Disclosure Framework](https://github.com/bugcrowd/disclosure-policy) under a
+[Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/)
 * FavIcon designed by [Freepik](http://www.freepik.com) from [Flaticon](http://www.flaticon.com)
 and licensed by [Creative Commons BY 3.0](http://creativecommons.org/licenses/by/3.0/).
