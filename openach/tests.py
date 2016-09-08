@@ -14,6 +14,7 @@ from .sitemap import BoardSitemap
 from django_comments.models import Comment
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
+from .models import URL_MAX_LENGTH
 
 
 logger = logging.getLogger(__name__)
@@ -548,6 +549,22 @@ class AddEvidenceTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Evidence.objects.filter(evidence_desc=text)), 0)
 
+    def test_validate_url_length(self):
+        """
+        Test bug reported in issue #58, form should reject long URLs
+        """
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:add_evidence', args=(self.board.id,)), data={
+            'evidence_desc': "Evidence Description",
+            'event_date': "1/1/2016",
+            'evidence_url': "https://google.com/" + ("x" * URL_MAX_LENGTH),
+            'evidence_date': "1/1/2016",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'boards/add_evidence.html')
+
+
+
 
 class AddSourceTests(TestCase):
 
@@ -619,6 +636,16 @@ class AddSourceTests(TestCase):
             'corroborating': False,
         })
         self.assertContains(response, "Add Conflicting Source", status_code=200)
+
+    def test_reject_long_url(self):
+        """
+        Issue #58, make sure form rejects long URLs
+        """
+        form = EvidenceSourceForm({
+            'evidence_url':  "https://google.com" + ("x" * URL_MAX_LENGTH),
+            'evidence_date': "1/1/2016",
+        })
+        self.assertFalse(form.is_valid())
 
     def test_add_conflicting_evidence_source_form(self):
         """

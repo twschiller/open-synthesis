@@ -6,12 +6,19 @@ from openintel.settings import SLUG_MAX_LENGTH
 from enum import Enum, unique
 from django.urls import reverse
 
+# See database portability constraints here: https://docs.djangoproject.com/en/1.10/ref/databases/#character-fields
+URL_MAX_LENGTH = 255
+EVIDENCE_MAX_LENGTH = 200
+HYPOTHESIS_MAX_LENGTH = 200
+BOARD_TITLE_MAX_LENGTH = 200
+BOARD_DESC_MAX_LENGTH = 255
+
 
 class Board(models.Model):
     """An ACH matrix with hypotheses, evidence, and evaluations."""
-    board_title = models.CharField(max_length=200)
+    board_title = models.CharField(max_length=BOARD_TITLE_MAX_LENGTH)
     board_slug = models.SlugField(null=True, allow_unicode=False, max_length=SLUG_MAX_LENGTH)
-    board_desc = models.CharField(max_length=200)
+    board_desc = models.CharField(max_length=BOARD_DESC_MAX_LENGTH)
     creator = models.ForeignKey(User, null=True)
     pub_date = models.DateTimeField('date published')
 
@@ -32,7 +39,7 @@ class Board(models.Model):
 class Hypothesis(models.Model):
     """An ACH matrix hypothesis."""
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
-    hypothesis_text = models.CharField(max_length=200)
+    hypothesis_text = models.CharField(max_length=HYPOTHESIS_MAX_LENGTH)
     creator = models.ForeignKey(User, null=True)
     submit_date = models.DateTimeField('date added')
 
@@ -44,7 +51,7 @@ class Evidence(models.Model):
     """A piece of evidence for an ACH matrix."""
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
     creator = models.ForeignKey(User, null=True)
-    evidence_desc = models.CharField(max_length=200)
+    evidence_desc = models.CharField(max_length=EVIDENCE_MAX_LENGTH)
     event_date = models.DateField('event date', null=True)
     submit_date = models.DateTimeField('date added')
 
@@ -52,7 +59,7 @@ class Evidence(models.Model):
 class EvidenceSource(models.Model):
     """A source for a piece of evidence in the ACH matrix."""
     evidence = models.ForeignKey(Evidence, on_delete=models.CASCADE)
-    source_url = models.URLField()
+    source_url = models.URLField(max_length=URL_MAX_LENGTH)
     # the date the source was last updated/released
     source_date = models.DateField('source date')
     uploader = models.ForeignKey(User)

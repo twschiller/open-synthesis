@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from .models import ProjectNews
+from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH, BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 from collections import defaultdict
 from django.db import transaction
 import logging
@@ -184,10 +185,10 @@ def detail(request, board_id, board_slug=None):
 
 
 class BoardForm(forms.Form):
-    board_title = forms.CharField(label='Board Title', max_length=200)
-    board_desc = forms.CharField(label='Board Description', max_length=200, widget=forms.Textarea)
-    hypothesis1 = forms.CharField(label='Hypothesis #1', max_length=200)
-    hypothesis2 = forms.CharField(label='Hypothesis #2', max_length=200)
+    board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
+    board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
+    hypothesis1 = forms.CharField(label='Hypothesis #1', max_length=HYPOTHESIS_MAX_LENGTH)
+    hypothesis2 = forms.CharField(label='Hypothesis #2', max_length=HYPOTHESIS_MAX_LENGTH)
 
 
 @login_required
@@ -223,7 +224,7 @@ class EvidenceForm(forms.Form):
     additional sources later.
     """
     evidence_desc = forms.CharField(
-        label='Evidence', max_length=200,
+        label='Evidence', max_length=EVIDENCE_MAX_LENGTH,
         help_text='A short summary of the evidence. Use the Event Date field for capturing the date'
     )
     event_date = forms.DateField(
@@ -233,7 +234,8 @@ class EvidenceForm(forms.Form):
     )
     evidence_url = forms.URLField(
         label='Source Website',
-        help_text='A source (e.g., news article or press release) corroborating the evidence'
+        help_text='A source (e.g., news article or press release) corroborating the evidence',
+        max_length=URL_MAX_LENGTH
     )
     evidence_date = forms.DateField(
         label='Source Date',
@@ -247,6 +249,7 @@ class EvidenceSourceForm(forms.Form):
     evidence_url = forms.URLField(
         label='Source Website',
         help_text='A source (e.g., news article or press release)',
+        max_length=URL_MAX_LENGTH,
     )
     evidence_date = forms.DateField(
         label='Source Date',
