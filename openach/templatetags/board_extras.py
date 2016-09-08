@@ -24,6 +24,7 @@ def detail_name(value):
 
 @register.filter
 def detail_classname(value):
+    """Returns the CSS style associate with the given Evaluation"""
     mapping = {
         None: "eval-no-assessments",
         Eval.consistent: "eval-consistent",
@@ -33,7 +34,8 @@ def detail_classname(value):
         Eval.not_applicable: "eval-not-applicable",
         Eval.neutral: "eval-neutral"
     }
-    return mapping.get(value)
+    result = mapping.get(value)
+    return result
 
 
 @register.simple_tag
@@ -63,6 +65,33 @@ def disagreement_category(value):
 @register.filter
 def disagreement_style(value):
     return 'disagree-no-assessments' if value is None else _dispute_level(value).css_class
+
+
+@register.simple_tag
+def comparison_style(user, consensus):
+    """
+    Returns the CSS style for the analysis cell given a user evaluation and the consensus evaluation. Assumes that the
+    user disagrees with the consensus. If user roughly agrees, shows the weak consistent/inconsistent style. Otherwise,
+    returns the dispute style depending on distance between evaluations.
+    """
+    assert user != consensus
+    diff = abs(user.value - consensus.value)
+    non_na = user.value > 0 and consensus.value > 0
+
+    if non_na and user.value < 3 and consensus.value < 3:
+        return 'eval-inconsistent'
+    elif non_na and user.value > 3 and consensus.value > 3:
+        return 'eval-consistent'
+    elif user.value == 0 or consensus.value == 0:
+        return 'disagree-mild-dispute'
+    elif diff >= 3:
+        return 'disagree-extreme-dispute'
+    elif diff >= 2:
+        return 'disagree-large-dispute'
+    elif diff >= 1:
+        return 'disagree-mild-dispute'
+    else:
+        return 'disagree-consensus'
 
 
 @register.filter

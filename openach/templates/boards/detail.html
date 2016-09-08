@@ -19,7 +19,8 @@
     </div>
     <div class="well">{{ board.board_desc }}</div>
 
-    <p><b>Instructions:</b> The following table collects the possible hypotheses and relevant evidence. The evidence
+    <p>
+        <b>Instructions:</b> The following table collects the possible hypotheses and relevant evidence. The evidence
         that best distinguishes the hypotheses are shown first. Hypotheses that are most consistent are shown first.
         To evaluate the hypotheses against a piece of evidence, click the "Evaluate" button in the evidence cell.
         You can view the sources that corroborate a piece of evidence by clicking the "Detail" button for that piece
@@ -30,18 +31,30 @@
         <thead>
         <tr>
             <th class="ach-actions">
+                Actions:
                 <div class="btn-group" role="group" aria-label="Board Actions">
-                    <a class="btn btn-default" href="{% url 'openach:add_evidence' board.id %}">Add Evidence</a>
-                    <a class="btn btn-default" href="{% url 'openach:add_hypothesis' board.id %}">Add Hypothesis</a>
+                    <a class="btn btn-default btn-sm" href="{% url 'openach:add_evidence' board.id %}">Add Evidence</a>
+                    <a class="btn btn-default btn-sm" href="{% url 'openach:add_hypothesis' board.id %}">Add Hypothesis</a>
                 </div>&nbsp;
-
-                {% if view_type == 'disagreement' %}
-                    <a class="btn btn-default active" href="{{ board|board_url }}">View Disagreement</a>
-                {%  else %}
-                    <a class="btn btn-default" href="{{ board|board_url }}?view_type=disagreement">
-                        View Disagreement
-                    </a>
-                {% endif %}
+                View:
+                <div class="btn-group" role="group" aria-label="View Type">
+                    {% if view_type == 'disagreement' %}
+                        <a class="btn btn-default btn-sm active" href="{{ board|board_url }}">Disagreement</a>
+                    {%  else %}
+                        <a class="btn btn-default btn-sm" href="{{ board|board_url }}?view_type=disagreement">
+                            Disagreement
+                        </a>
+                    {% endif %}
+                    {% if request.user.is_authenticated %}
+                        {% if view_type == 'comparison' %}
+                            <a class="btn btn-default btn-sm active" href="{{ board|board_url }}">Comparison</a>
+                        {%  else %}
+                            <a class="btn btn-default btn-sm" href="{{ board|board_url }}?view_type=comparison">
+                                Comparison
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
             </th>
             {% for hypothesis, inconsistency in hypotheses %}
                 <th class="hypothesis">
@@ -82,6 +95,22 @@
                                 {{ detail_disagreement|disagreement_category }}
                             {% endif %}
                         </td>
+                    {% elif view_type == 'comparison' and request.user.is_authenticated %}
+                        {% get_detail user_votes evidence.id hypothesis.id as user_detail %}
+
+                        {% if user_detail == detail %}
+                            <td class="assessment {{ user_detail|detail_classname }}">
+                                {{ user_detail|detail_name }}
+                            </td>
+                        {% elif user_detail %}
+                            <td class="assessment {% comparison_style user_detail detail %}">
+                                {{ user_detail|detail_name }} vs. {{ detail|detail_name }}
+                            </td>
+                        {% else %}
+                            <td class="assessment {{ user_detail|detail_classname }}">
+                                Consensus: {{ detail|detail_name }}
+                            </td>
+                        {% endif %}
                     {% else %}
                         <td class="assessment {{ detail|detail_classname }}">
                             {{ detail|detail_name }}

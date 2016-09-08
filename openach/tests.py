@@ -292,6 +292,24 @@ class BoardDetailTests(TestCase):
             )
         ]
 
+    def _add_eval(self, hypothesis, user, eval):
+        Evaluation.objects.create(
+            board=self.board,
+            hypothesis=hypothesis,
+            evidence=self.evidence,
+            user=user,
+            value=eval.value
+        )
+
+    def _add_evidence(self):
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+
     def test_can_display_board_with_no_evidence(self):
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
         self.assertEqual(response.status_code, 200)
@@ -300,16 +318,28 @@ class BoardDetailTests(TestCase):
             self.assertContains(response, hypothesis.hypothesis_text)
 
     def test_can_display_board_with_no_assessments(self):
-        self.evidence = Evidence.objects.create(
-            board=self.board,
-            creator=self.user,
-            evidence_desc="Evidence #1",
-            event_date=None,
-            submit_date=timezone.now()
-        )
+        self._add_evidence()
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.evidence.evidence_desc)
+
+    def test_can_display_board_with_assessments_from_single_user(self):
+        self._add_evidence()
+        self._add_eval(self.hypotheses[0], self.user, Eval.consistent)
+        self._add_eval(self.hypotheses[1], self.user, Eval.inconsistent)
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+        self.assertContains(response, "Consistent", status_code=200)
+        self.assertContains(response, "Inconsistent", status_code=200)
+
+    def test_can_display_board_with_multiple_assessments(self):
+        self._add_evidence()
+        other = User.objects.create_user('paul', 'mccartney@thebeatles.com', 'paulpassword')
+        self._add_eval(self.hypotheses[0], self.user, Eval.inconsistent)
+        self._add_eval(self.hypotheses[1], self.user, Eval.inconsistent)
+        self._add_eval(self.hypotheses[0], other, Eval.inconsistent)
+        self._add_eval(self.hypotheses[1], other, Eval.consistent)
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+        self.assertEqual(response.status_code, 200)
 
     def test_can_display_comments(self):
         comment = Comment.objects.create(
@@ -329,15 +359,46 @@ class BoardDetailTests(TestCase):
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
         self.assertContains(response, "Add comment")
 
+    def test_do_not_display_comparison_button_when_logged_out(self):
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+        self.assertNotContains(response, "Comparison")
+
+    def test_display_comparison_button_when_logged_in(self):
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+        self.assertContains(response, "Comparison")
+
     def test_can_display_disagreement_with_no_assessments(self):
-        self.evidence = Evidence.objects.create(
-            board=self.board,
-            creator=self.user,
-            evidence_desc="Evidence #1",
-            event_date=None,
-            submit_date=timezone.now()
-        )
+        self._add_evidence()
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)) + "?view_type=disagreement")
+        self.assertEqual(response.status_code, 200)
+
+    def test_can_display_disagreement_with_multiple_assessments(self):
+        self._add_evidence()
+        other = User.objects.create_user('paul', 'mccartney@thebeatles.com', 'paulpassword')
+        self._add_eval(self.hypotheses[0], self.user, Eval.inconsistent)
+        self._add_eval(self.hypotheses[1], self.user, Eval.very_consistent)
+        self._add_eval(self.hypotheses[0], other, Eval.inconsistent)
+        self._add_eval(self.hypotheses[1], other, Eval.very_inconsistent)
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)) + "?view_type=disagreement")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Extreme Dispute")
+
+    def test_can_display_comparison_no_assessments(self):
+        self._add_evidence()
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)) + "?view_type=comparison")
+        self.assertEqual(response.status_code, 200)
+
+    def test_can_display_comparison(self):
+        self._add_evidence()
+        other = User.objects.create_user('paul', 'mccartney@thebeatles.com', 'paulpassword')
+        self._add_eval(self.hypotheses[0], self.user, Eval.inconsistent)
+        self._add_eval(self.hypotheses[1], self.user, Eval.inconsistent)
+        self._add_eval(self.hypotheses[0], other, Eval.inconsistent)
+        self._add_eval(self.hypotheses[1], other, Eval.consistent)
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)) + "?view_type=comparison")
         self.assertEqual(response.status_code, 200)
 
 

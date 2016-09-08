@@ -137,10 +137,12 @@ def detail(request, board_id, board_slug=None):
     """
     def extract(x): return x.evidence.id, x.hypothesis.id
 
-    view_type = 'disagreement' if request.GET.get('view_type') == 'disagreement' else 'average'
+    view_type = request.GET.get('view_type')
+    view_type = 'average' if view_type is None else view_type
 
     board = get_object_or_404(Board, pk=board_id)
     votes = Evaluation.objects.filter(board=board)
+
     participants = set(map(lambda x: x.user, votes))
 
     keyed = defaultdict(list)
@@ -148,6 +150,8 @@ def detail(request, board_id, board_slug=None):
         keyed[extract(vote)].append(Eval.for_value(vote.value))
     consensus = {k: consensus_vote(v) for k, v in keyed.items()}
     disagreement = {k: calc_disagreement(v) for k, v in keyed.items()}
+
+    user_votes = {extract(v): Eval.for_value(v.value) for v in votes.filter(user=request.user)} if request.user.is_authenticated else None
 
     # order evidence by diagnosticity and hypotheses by consistency
     hypotheses = list(board.hypothesis_set.all())
@@ -171,6 +175,7 @@ def detail(request, board_id, board_slug=None):
         'hypotheses': hypothesis_consistency,
         'view_type': view_type,
         'votes': consensus,
+        'user_votes': user_votes,
         'disagreement': disagreement,
         'participants': participants,
         'debug_stats': DEBUG
