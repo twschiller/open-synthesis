@@ -294,7 +294,7 @@ class BaseSourceForm(forms.Form):
     )
 
 
-class EvidenceForm(EvidenceEditForm, BaseSourceForm):
+class EvidenceForm(BaseSourceForm, EvidenceEditForm):
     """
     Form to add a new piece of evidence. The evidence provided must have at least one source. The analyst can provide
     additional sources later.
