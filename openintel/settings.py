@@ -36,6 +36,9 @@ env = environ.Env(
     APP_LOG_LEVEL=(str, "ERROR"),
     CERTBOT_PUBLIC_KEY=(str, None),
     CERTBOT_SECRET_KEY=(str, None),
+    SESSION_COOKIE_SECURE=(bool, True),
+    CSRF_COOKIE_SECURE=(bool, True),
+    ALLOWED_HOSTS=(str, "*"),
     SECURE_SSL_REDIRECT=(bool, True),
     SECURE_BROWSER_XSS_FILTER=(bool, True),
     SECURE_CONTENT_TYPE_NOSNIFF=(bool, True),
@@ -59,8 +62,8 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-# TODO: update to os.environ['ALLOWED_HOSTS'].split()
-ALLOWED_HOSTS = ['*']
+# https://docs.djangoproject.com/en/1.10/ref/settings/#std:setting-ALLOWED_HOSTS
+ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')
 
 # Application definition
 
@@ -158,6 +161,10 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# https://docs.djangoproject.com/en/1.10/topics/security/#ssl-https
+SESSION_COOKIE_SECURE = env('SESSION_COOKIE_SECURE')
+CSRF_COOKIE_SECURE = env('CSRF_COOKIE_SECURE')
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
