@@ -133,6 +133,14 @@ def diagnosticity(evaluations):
     return statistics.pstdev(na_neutral_consensuses) if na_neutral_consensuses else 0.0
 
 
+def check_owner_authorization(request, board, has_creator=None):
+    """Raises a PermissionDenied exception if the authenticated used does not have edits rights for the resource"""
+    if request.user.is_staff or request.user == board.creator or (has_creator and request.user == has_creator.creator):
+        pass
+    else:
+        raise PermissionDenied()
+
+
 def detail(request, board_id, board_slug=None):
     """
     View the board details. Evidence is sorted in order of diagnosticity. Hypotheses are sorted in order of
@@ -244,8 +252,7 @@ def create_board(request):
 @login_required
 def edit_board(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
-    if not (request.user.is_staff or request.user == board.creator):
-        raise PermissionDenied()
+    check_owner_authorization(request, board)
 
     if request.method == 'POST':
         form = BoardEditForm(request.POST)
@@ -261,11 +268,7 @@ def edit_board(request, board_id):
     return render(request, 'boards/edit_board.html', {'form': form, 'board': board})
 
 
-class EvidenceForm(forms.Form):
-    """
-    Form to add a new piece of evidence. The evidence provided must have at least one source. The analyst can provide
-    additional sources later.
-    """
+class EvidenceEditForm(forms.Form):
     evidence_desc = forms.CharField(
         label='Evidence', max_length=EVIDENCE_MAX_LENGTH,
         help_text='A short summary of the evidence. Use the Event Date field for capturing the date'
@@ -275,6 +278,9 @@ class EvidenceForm(forms.Form):
         help_text='The date the event occurred or started',
         widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
     )
+
+
+class BaseSourceForm(forms.Form):
     evidence_url = forms.URLField(
         label='Source Website',
         help_text='A source (e.g., news article or press release) corroborating the evidence',
@@ -288,30 +294,15 @@ class EvidenceForm(forms.Form):
     )
 
 
-class EvidenceEditForm(forms.Form):
-    evidence_desc = forms.CharField(
-        label='Evidence', max_length=EVIDENCE_MAX_LENGTH,
-        help_text='A short summary of the evidence. Use the Event Date field for capturing the date'
-    )
-    event_date = forms.DateField(
-        label='Event Date',
-        help_text='The date the event occurred or started',
-        widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
-    )
+class EvidenceForm(EvidenceEditForm, BaseSourceForm):
+    """
+    Form to add a new piece of evidence. The evidence provided must have at least one source. The analyst can provide
+    additional sources later.
+    """
+    pass
 
 
-class EvidenceSourceForm(forms.Form):
-    evidence_url = forms.URLField(
-        label='Source Website',
-        help_text='A source (e.g., news article or press release)',
-        max_length=URL_MAX_LENGTH,
-    )
-    evidence_date = forms.DateField(
-        label='Source Date',
-        help_text='The date the source released or last updated the information. ' +
-                  'Typically the date of the article or post',
-        widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
-    )
+class EvidenceSourceForm(BaseSourceForm):
     corroborating = forms.BooleanField(
         required=False,
         widget=forms.HiddenInput()
@@ -357,9 +348,7 @@ def add_evidence(request, board_id):
 def edit_evidence(request, evidence_id):
     evidence = get_object_or_404(Evidence, pk=evidence_id)
     board = evidence.board
-
-    if not (request.user.is_staff or request.user == board.creator or request.user == evidence.creator):
-        raise PermissionDenied()
+    check_owner_authorization(request, board=board, has_creator=evidence)
 
     if request.method == 'POST':
         form = EvidenceEditForm(request.POST)
@@ -481,9 +470,7 @@ def add_hypothesis(request, board_id):
 def edit_hypothesis(request, hypothesis_id):
     hypothesis = get_object_or_404(Hypothesis, pk=hypothesis_id)
     board = hypothesis.board
-
-    if not (request.user.is_staff or request.user == board.creator or request.user == hypothesis.creator):
-        raise PermissionDenied()
+    check_owner_authorization(request, board, hypothesis)
 
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
