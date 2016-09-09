@@ -1,6 +1,9 @@
 engines:
    radon:
      enabled: true
+     exclude_fingerprints:
+         # ignore cyclomatic complexity of comparison_style in board_extras.py; there's only a single decision point
+         - da1051f028463e1cff89fa70f1179609
    pep8:
      enabled: true
    duplication:

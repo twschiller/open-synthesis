@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from .models import ProjectNews
-from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH, BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
+from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH
+from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 from collections import defaultdict
 from django.db import transaction
 import logging
@@ -146,44 +147,38 @@ def detail(request, board_id, board_slug=None):
     View the board details. Evidence is sorted in order of diagnosticity. Hypotheses are sorted in order of
     consistency.
     """
-    def extract(x): return x.evidence.id, x.hypothesis.id
-
-    view_type = request.GET.get('view_type')
-    view_type = 'average' if view_type is None else view_type
+    view_type = 'average' if request.GET.get('view_type') is None else request.GET['view_type']
 
     board = get_object_or_404(Board, pk=board_id)
     votes = Evaluation.objects.filter(board=board)
 
     participants = set(map(lambda x: x.user, votes))
 
+    # calculate consensus and disagreement for each evidence/hypothesis pair
+    def extract(x): return x.evidence.id, x.hypothesis.id
     keyed = defaultdict(list)
     for vote in votes:
         keyed[extract(vote)].append(Eval.for_value(vote.value))
     consensus = {k: consensus_vote(v) for k, v in keyed.items()}
     disagreement = {k: calc_disagreement(v) for k, v in keyed.items()}
 
-    user_votes = {extract(v): Eval.for_value(v.value) for v in votes.filter(user=request.user)} if request.user.is_authenticated else None
+    user_votes = (
+        {extract(v): Eval.for_value(v.value) for v in votes.filter(user=request.user)}
+        if request.user.is_authenticated
+        else None)
 
-    # order evidence by diagnosticity and hypotheses by consistency
+    # augment hypotheses and evidence with diagnosticity and consistency
+    def group(first, second, func, key):
+        return list(map(lambda f: (f, func(map(lambda s: keyed[key(f, s)], second))), first))
     hypotheses = list(board.hypothesis_set.all())
     evidence = list(board.evidence_set.all())
-
-    hypothesis_consistency = list(
-        map(lambda h: (h, inconsistency(
-            map(lambda e: keyed[(e.id, h.id)], evidence)
-        )), hypotheses))
-    evidence_diagnosticity = list(
-        map(lambda e: (e, diagnosticity(
-            map(lambda h: keyed[(e.id, h.id)], hypotheses)
-        )), evidence))
-
-    evidence_diagnosticity.sort(key=lambda e: e[1], reverse=True)
-    hypothesis_consistency.sort(key=lambda h: h[1])
+    hypothesis_consistency = group(hypotheses, evidence, inconsistency, key=lambda h, e: (e, h))
+    evidence_diagnosticity = group(evidence, hypotheses, diagnosticity, key=lambda e, h: (e, h))
 
     context = {
         'board': board,
-        'evidences': evidence_diagnosticity,
-        'hypotheses': hypothesis_consistency,
+        'evidences': sorted(evidence_diagnosticity, key=lambda e: e[1], reverse=True),
+        'hypotheses': sorted(hypothesis_consistency, key=lambda h: h[1]),
         'view_type': view_type,
         'votes': consensus,
         'user_votes': user_votes,
@@ -493,28 +488,25 @@ def profile(request, account_id=None):
     Show the private/public profile for account_id. If account_id is None, shows the private profile for the logged in
     user. If account is specified and the user is not logged in, raise a 404.
     """
-    if request.user and not account_id:
-        account_id = request.user.id
+    account_id = request.user.id if request.user and not account_id else account_id
 
-    with transaction.atomic():
-        user = get_object_or_404(User, pk=account_id)
-        boards = Board.objects.filter(creator=user)
-        evidence = Evidence.objects.filter(creator=user)
-        hypotheses = Hypothesis.objects.filter(creator=user)
-        votes = Evaluation.objects.filter(user=user)
-        contributed = set(map(lambda x: x.board, evidence)).union(set(map(lambda x: x.board, hypotheses)))
-        voted = set(map(lambda x: x.board, votes))
-        context = {
-            'user': user,
-            'boards_created': boards,
-            'boards_contributed': contributed,
-            'board_voted': voted
-        }
+    # There's no real reason for these to be atomic
+    user = get_object_or_404(User, pk=account_id)
+    boards = Board.objects.filter(creator=user)
+    evidence = Evidence.objects.filter(creator=user)
+    hypotheses = Hypothesis.objects.filter(creator=user)
+    votes = Evaluation.objects.filter(user=user)
+    contributed = set(map(lambda x: x.board, evidence)).union(set(map(lambda x: x.board, hypotheses)))
+    voted = set(map(lambda x: x.board, votes))
+    context = {
+        'user': user,
+        'boards_created': boards,
+        'boards_contributed': contributed,
+        'board_voted': voted
+    }
 
-    if request.user and request.user.id == account_id:
-        return render(request, 'boards/profile.html', context)
-    else:
-        return render(request, 'boards/public_profile.html', context)
+    template = 'profile.html' if request.user and request.user.id == account_id else 'public_profile.html'
+    return render(request, 'boards/' + template, context)
 
 
 @login_required
