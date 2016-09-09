@@ -35,7 +35,11 @@
                 <div class="btn-group" role="group" aria-label="Board Actions">
                     <a class="btn btn-default btn-sm" href="{% url 'openach:add_evidence' board.id %}">Add Evidence</a>
                     <a class="btn btn-default btn-sm" href="{% url 'openach:add_hypothesis' board.id %}">Add Hypothesis</a>
-                </div>&nbsp;
+                    {% if request.user.is_staff or request.user == board.creator %}
+                        <a class="btn btn-default btn-sm" href="{% url 'openach:edit_board' board.id %}">Edit Board</a>
+                    {% endif %}
+                    <a class="btn btn-default btn-sm" href="{% url 'openach:board_history' board.id %}">View History</a>
+                </div><br/>
                 View:
                 <div class="btn-group" role="group" aria-label="View Type">
                     {% if view_type == 'disagreement' %}
@@ -61,6 +65,9 @@
                     <div>{{ hypothesis.hypothesis_text }}</div>
                     {% if debug_stats %}
                         <span class="label label-info">{{ inconsistency|floatformat:2 }}</span>
+                    {% endif %}
+                    {% if request.user.is_staff or request.user == board.creator or request.user == hypothesis.creator %}
+                        <a class="btn btn-default btn-xs" href="{% url 'openach:edit_hypothesis' hypothesis.id %}">Edit</a>
                     {% endif %}
                 </th>
             {% endfor %}

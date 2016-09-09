@@ -1,0 +1,24 @@
+{% extends 'boards/base.html' %}
+
+{% block title %}Edit Board | Open Synthesis{% endblock %}
+
+{% load bootstrap %}
+{% load i18n %}
+{% load board_extras %}
+
+{% block content %}
+    <h1>{% trans "Edit Board" %}</h1>
+
+    <p>Update the title and/or description for the board.</p>
+
+    <form action="{% url 'openach:edit_board' board.id %}" method="post">
+        {% csrf_token %}
+        {{ form|bootstrap }}
+        <div class="form-group">
+            <div>
+                <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>&nbsp;
+                <button type="submit" class="btn btn-primary">{% trans "Save Edits" %}</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

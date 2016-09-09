@@ -1,0 +1,23 @@
+{% extends 'boards/base.html' %}
+
+{% block title %}Edit Evidence | Open Synthesis{% endblock %}
+
+{% load board_extras %}
+{% load bootstrap %}
+{% load i18n %}
+
+{% block content %}
+    <h1>{% trans "Edit Evidence" %}</h1>
+
+    <form action="{% url 'openach:edit_evidence' evidence.id %}" method="post">
+        {% csrf_token %}
+        {{ form|bootstrap }}
+        <div class="form-group">
+            <div>
+                <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">Return to Evidence</a>
+                <button type="submit" class="btn btn-primary">{% trans "Save Edits" %}</button>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}

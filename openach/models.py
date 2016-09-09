@@ -5,6 +5,10 @@ from django.contrib.auth.models import User
 from openintel.settings import SLUG_MAX_LENGTH
 from enum import Enum, unique
 from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
+from field_history.tracker import FieldHistoryTracker
+import logging
+
 
 # See database portability constraints here: https://docs.djangoproject.com/en/1.10/ref/databases/#character-fields
 URL_MAX_LENGTH = 255
@@ -14,13 +18,17 @@ BOARD_TITLE_MAX_LENGTH = 200
 BOARD_DESC_MAX_LENGTH = 255
 
 
+logger = logging.getLogger(__name__)
+
+
 class Board(models.Model):
     """An ACH matrix with hypotheses, evidence, and evaluations."""
     board_title = models.CharField(max_length=BOARD_TITLE_MAX_LENGTH)
     board_slug = models.SlugField(null=True, allow_unicode=False, max_length=SLUG_MAX_LENGTH)
-    board_desc = models.CharField(max_length=BOARD_DESC_MAX_LENGTH)
+    board_desc = models.CharField('board description', max_length=BOARD_DESC_MAX_LENGTH)
     creator = models.ForeignKey(User, null=True)
     pub_date = models.DateTimeField('date published')
+    field_history = FieldHistoryTracker(['board_title', 'board_desc'])
 
     def __str__(self):
         return self.board_title
@@ -31,7 +39,11 @@ class Board(models.Model):
 
     def get_absolute_url(self):
         if self.board_slug:
-            return reverse('openach:detail_slug', args=(self.id, self.board_slug,))
+            try:
+                return reverse('openach:detail_slug', args=(self.id, self.board_slug,))
+            except NoReverseMatch:
+                logger.warn("Malformed SLUG for reverse URL match: {}".format(self.board_slug))
+                return reverse('openach:detail', args=(self.id,))
         else:
             return reverse('openach:detail', args=(self.id,))
 
@@ -39,9 +51,13 @@ class Board(models.Model):
 class Hypothesis(models.Model):
     """An ACH matrix hypothesis."""
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
-    hypothesis_text = models.CharField(max_length=HYPOTHESIS_MAX_LENGTH)
+    hypothesis_text = models.CharField('hypothesis', max_length=HYPOTHESIS_MAX_LENGTH)
     creator = models.ForeignKey(User, null=True)
     submit_date = models.DateTimeField('date added')
+    field_history = FieldHistoryTracker(['hypothesis_text'])
+
+    class Meta:
+        verbose_name_plural = "hypotheses"
 
     def __str__(self):
         return self.hypothesis_text
@@ -51,9 +67,13 @@ class Evidence(models.Model):
     """A piece of evidence for an ACH matrix."""
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
     creator = models.ForeignKey(User, null=True)
-    evidence_desc = models.CharField(max_length=EVIDENCE_MAX_LENGTH)
-    event_date = models.DateField('event date', null=True)
+    evidence_desc = models.CharField('evidence description', max_length=EVIDENCE_MAX_LENGTH)
+    event_date = models.DateField('evidence event date', null=True)
     submit_date = models.DateTimeField('date added')
+    field_history = FieldHistoryTracker(['evidence_desc', 'event_date'])
+
+    class Meta:
+        verbose_name_plural = "evidence"
 
 
 class EvidenceSource(models.Model):
