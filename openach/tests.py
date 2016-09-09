@@ -481,7 +481,7 @@ class EvidenceDetailTests(TestCase):
             board=self.board,
             creator=self.user,
             evidence_desc="Evidence #1",
-            event_date=None,
+            event_date=datetime.datetime.strptime('2010-06-01', "%Y-%m-%d").date(),
             submit_date=time
         )
         self.source = EvidenceSource.objects.create(
@@ -492,6 +492,10 @@ class EvidenceDetailTests(TestCase):
             submit_date=time,
             corroborating=True,
         )
+        self.tags = [
+            EvidenceSourceTag.objects.create(tag_name="Tag #1", tag_desc="Description for Tag #1"),
+            EvidenceSourceTag.objects.create(tag_name="Tag #2", tag_desc="Description for Tag #2"),
+        ]
 
     def test_evidence_detail_view(self):
         """
@@ -505,6 +509,8 @@ class EvidenceDetailTests(TestCase):
         self.assertContains(response, self.board.board_title)
         self.assertContains(response, "Add Corroborating Source")
         self.assertContains(response, "Add Conflicting Source")
+        self.assertContains(response, "Tag #1")
+        self.assertContains(response, "Tag #2")
 
     def test_display_comment_form_when_logged_in(self):
         self.client.login(username='john', password='johnpassword')
@@ -529,34 +535,33 @@ class EvidenceDetailTests(TestCase):
         Make sure that the user can tag a piece of evidence
         """
         self.client.login(username='john', password='johnpassword')
-        tag = EvidenceSourceTag.objects.create(
-            tag_name="Test Tag",
-            tag_desc="Test Tag Description"
-        )
         response = self.client.post(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)), data={
-            'tag': tag.tag_name
+            'tag': self.tags[0].tag_name
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(AnalystSourceTag.objects.all()), 0)
 
-    def test_do_not_duplicate_source_tag(self):
+    def test_display_added_tags_with_count(self):
+        AnalystSourceTag.objects.create(source=self.source, tagger=self.user, tag=self.tags[0], tag_date=timezone.now())
+        response = self.client.get(reverse('openach:evidence_detail', args=(self.evidence.id,)))
+        self.assertContains(response, self.tags[0].tag_name + " x 1")
+
+    def test_remove_source_tag_on_toggle(self):
         """
         Make sure that the user can tag a piece of evidence
         """
         self.client.login(username='john', password='johnpassword')
-        tag = EvidenceSourceTag.objects.create(
-            tag_name="Test Tag",
-            tag_desc="Test Tag Description"
-        )
-        response = self.client.post(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)), data={
-            'tag': tag.tag_name
-        })
-        self.assertEqual(response.status_code, 302)
+        tag = self.tags[0]
         response = self.client.post(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)), data={
             'tag': tag.tag_name
         })
         self.assertEqual(response.status_code, 302)
         self.assertEqual(len(AnalystSourceTag.objects.all()), 1)
+        response = self.client.post(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)), data={
+            'tag': tag.tag_name
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(AnalystSourceTag.objects.all()), 0)
 
     def test_cannot_get_add_source_tag_page(self):
         """

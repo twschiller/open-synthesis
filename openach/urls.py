@@ -14,7 +14,7 @@ urlpatterns = [
     url(r'^evidence/(?P<evidence_id>[0-9]+)/edit/', views.edit_evidence, name='edit_evidence'),
     url(r'^hypotheses/(?P<hypothesis_id>[0-9]+)/edit/', views.edit_hypothesis, name='edit_hypothesis'),
     url(r'^evidence/(?P<evidence_id>[0-9]+)/sources/(?P<source_id>[0-9]+)/tag',
-        views.add_source_tag,
+        views.toggle_source_tag,
         name='tag_source'),
     url(r'^evidence/(?P<evidence_id>[0-9]+)', views.evidence_detail, name='evidence_detail'),
     url(r'^boards/(?P<board_id>[0-9]+)/hypotheses/add', views.add_hypothesis, name='add_hypothesis'),

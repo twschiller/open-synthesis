@@ -63,7 +63,9 @@
                     <form action="{% url 'openach:tag_source' evidence.id source.id %}" method="post">
                         {% csrf_token %}
                         {% for tag in available_tags %}
-                            <input type="submit" class="btn btn-default btn-xs" name="tag" value="{{ tag.tag_name }}"/>
+                            {% get_source_tags user_tags source.id tag.id as tag_count %}
+                            <input type="submit" name="tag" value="{{ tag.tag_name }}"
+                                   class="btn btn-default btn-xs {% if tag_count %}active{% endif %}"/>
                         {% endfor %}
                     </form>
                 </td>

@@ -394,23 +394,22 @@ def add_source(request, evidence_id):
 
 
 @login_required
-def add_source_tag(request, evidence_id, source_id):
-    """Add a source tag for the given source and redirect to the evidence detail page for the associated evidence."""
+def toggle_source_tag(request, evidence_id, source_id):
+    """Toggle source tag for the given source and redirect to the evidence detail page for the associated evidence."""
     # May want to put in a sanity check here that source_id actually corresponds to evidence_id
+    # Inefficient to have to do the DB lookup before making a modification. May want to have the client pass in
+    # whether or not they're adding/removing the tag
     if request.method == 'POST':
         with transaction.atomic():
             source = get_object_or_404(EvidenceSource, pk=source_id)
             tag = EvidenceSourceTag.objects.get(tag_name=request.POST['tag'])
-            # This assumes that each user can only add a tag once to a source
-            AnalystSourceTag.objects.update_or_create(
-                source=source,
-                tagger=request.user,
-                tag=tag,
-                defaults={
-                    'tag_date': timezone.now()
-                }
-            )
-            messages.success(request, 'Added {} tag to source.'.format(tag.tag_name))
+            user_tag = AnalystSourceTag.objects.filter(source=source, tagger=request.user, tag=tag)
+            if user_tag.count() > 0:
+                user_tag.delete()
+                messages.success(request, 'Removed "{}" tag from source.'.format(tag.tag_name))
+            else:
+                AnalystSourceTag.objects.create(source=source, tagger=request.user, tag=tag, tag_date=timezone.now())
+                messages.success(request, 'Added "{}" tag to source.'.format(tag.tag_name))
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
     else:
         raise Http404()
@@ -424,13 +423,18 @@ def evidence_detail(request, evidence_id):
     all_tags = AnalystSourceTag.objects.filter(source__in=sources)
 
     source_tags = defaultdict(list)
+    user_tags = defaultdict(list)
     for tag in all_tags:
-        source_tags[(tag.source.id, tag.tag.id)].append(tag)
+        key = (tag.source.id, tag.tag.id)
+        source_tags[key].append(tag)
+        if tag.tagger == request.user:
+            user_tags[key].append(tag)
 
     context = {
         'evidence': evidence,
         'sources': sources,
         'source_tags': source_tags,
+        'user_tags': user_tags,
         'available_tags': available_tags,
     }
     return render(request, 'boards/evidence_detail.html', context)
