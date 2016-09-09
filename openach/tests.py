@@ -5,6 +5,7 @@ from django.urls import reverse
 from .models import Board, Eval, Evidence, Hypothesis, Evaluation, ProjectNews
 from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
 from .views import EvidenceSource, EvidenceSourceForm, EvidenceSourceTag, AnalystSourceTag
+from .views import BoardEditForm, EvidenceEditForm, HypothesisForm
 from django.contrib.auth.models import User
 import logging
 from django.core import mail
@@ -15,6 +16,7 @@ from django_comments.models import Comment
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from .models import URL_MAX_LENGTH
+from field_history.models import FieldHistory
 
 
 logger = logging.getLogger(__name__)
@@ -113,6 +115,51 @@ class BoardFormTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Board.objects.filter(board_slug='x' * SLUG_MAX_LENGTH)), 0)
+
+    def test_board_edit_form(self):
+        form = BoardEditForm({
+            'board_title': "New board title",
+            'board_desc': "New board description"
+        })
+        self.assertTrue(form.is_valid())
+
+    def test_can_show_edit_form(self):
+        board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "boards/edit_board.html")
+
+    def test_can_submit_edit_form(self):
+        board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
+
+        self.assertEqual(FieldHistory.objects.get_for_model(board).count(), 2)
+
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
+            'board_title': 'New Board Title',
+            'board_desc': 'New Board Description',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertGreaterEqual(len(Board.objects.filter(board_title='New Board Title')), 1)
+        self.assertGreaterEqual(len(Board.objects.filter(board_desc='New Board Description')), 1)
+
+        # check that field history was audited
+        self.assertEqual(FieldHistory.objects.get_for_model_and_field(board, 'board_title').count(), 2)
+        self.assertEqual(FieldHistory.objects.get_for_model_and_field(board, 'board_desc').count(), 2)
+
+    def test_can_view_board_history(self):
+        board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
+        self.client.login(username='john', password='johnpassword')
+        self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
+            'board_title': 'New Board Title',
+            'board_desc': 'New Board Description',
+        })
+        response = self.client.get(reverse('openach:board_history', args=(board.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "boards/board_audit.html")
+        self.assertContains(response, "New Board Title")
+        self.assertContains(response, "New Board Description")
 
 
 class SitemapTests(TestCase):
@@ -214,7 +261,7 @@ class EvidenceAssessmentTests(TestCase):
         self.assertEqual(Evaluation.objects.count(), 2, msg="Expecting 2 evaluation objects")
 
 
-class AddHypothesisTests(TestCase):
+class AddEditHypothesisTests(TestCase):
 
     def setUp(self):
         self.client = Client()
@@ -270,6 +317,26 @@ class AddHypothesisTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Hypothesis.objects.filter(hypothesis_text=text)), 0)
+
+    def test_hypothesis_edit_form(self):
+        form = HypothesisForm({
+            'hypothesis_text': "My Hypothesis",
+        })
+        self.assertTrue(form.is_valid())
+
+    def test_can_show_edit_form(self):
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_hypothesis', args=(self.hypotheses[0].id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "boards/edit_hypothesis.html")
+
+    def test_can_submit_edit_form(self):
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_hypothesis', args=(self.hypotheses[0].id,)), data={
+            'hypothesis_text': "Updated Hypothesis",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertGreaterEqual(len(Hypothesis.objects.filter(hypothesis_text='Updated Hypothesis')), 1)
 
 
 class BoardDetailTests(TestCase):
@@ -497,6 +564,7 @@ class EvidenceDetailTests(TestCase):
         """
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)))
+        self.assertEqual(response.status_code, 404)
 
 
 class AddEvidenceTests(TestCase):
@@ -563,7 +631,41 @@ class AddEvidenceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'boards/add_evidence.html')
 
+    def test_evidence_edit_form(self):
+        form = EvidenceEditForm({
+            'evidence_desc': "Evidence Description",
+            'event_date': "1/1/2016",
+        })
+        self.assertTrue(form.is_valid())
 
+    def test_can_show_edit_form(self):
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_evidence', args=(self.evidence.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "boards/edit_evidence.html")
+
+    def test_can_submit_edit_form(self):
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_evidence', args=(self.evidence.id,)), data={
+            'evidence_desc': "Updated Evidence Description",
+            'event_date': "1/2/2016",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertGreaterEqual(len(Evidence.objects.filter(evidence_desc='Updated Evidence Description')), 1)
 
 
 class AddSourceTests(TestCase):

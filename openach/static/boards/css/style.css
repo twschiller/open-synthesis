@@ -65,6 +65,12 @@ body {
     width: 150px;
 }
 
+.audit-table>thead>tr>th:first-child {
+    width: 150px;
+}
+.audit-table>tbody>tr>td:first-child {
+    width: 150px;
+}
 
 .eval-no-assessments {
     background-color: #fff;

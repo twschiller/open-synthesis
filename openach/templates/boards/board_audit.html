@@ -1,0 +1,38 @@
+{% extends 'boards/base.html' %}
+
+{% block title %}Change History for {{ board.board_title }} | Open Synthesis{% endblock %}
+
+{% load board_extras %}
+{% load comments %}
+{% load bootstrap %}
+
+{% block content %}
+
+    <h1>Change History: {{ board.board_title }}</h1>
+
+    <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>
+
+    <table class="table table-hover audit-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th colspan="2">Modification</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in history %}
+                <tr>
+                    <td>{{ event.date_created|date }}</td>
+                    <td>
+                        {% if event.user %}
+                            <a href="{% url 'profile' event.user.id %}">{{ event.user.username }}</a>
+                        {% endif %}
+                    </td>
+                    <td>Changed {% get_verbose_field_name event.object event.field_name %} to {{ event.field_value }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock content %}

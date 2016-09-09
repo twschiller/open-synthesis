@@ -1,0 +1,25 @@
+{% extends 'boards/base.html' %}
+
+{% block title %}Edit Hypothesis | Open Synthesis{% endblock %}
+
+{% load board_extras %}
+{% load bootstrap %}
+{% load i18n %}
+
+{% block content %}
+    <h1>{% trans "Edit Hypothesis for " %} <i>{{ board.board_title }}</i> </h1>
+
+    <div class="well">{{ board.board_desc }}</div>
+
+    <form action="{% url 'openach:edit_hypothesis' hypothesis.id %}" method="post">
+        {% csrf_token %}
+        {{ form|bootstrap }}
+        <div class="form-group">
+            <div class="">
+                <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>
+                <button type="submit" class="btn btn-primary">{% trans "Save Edits" %}</button>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}

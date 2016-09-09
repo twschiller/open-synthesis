@@ -116,3 +116,12 @@ def board_url(board):
     # In the future, we might just want to directly use get_absolute_url in the template. However, this extra level
     # of indirection gives us some additional flexibility
     return board.get_absolute_url()
+
+
+@register.simple_tag
+def get_verbose_field_name(instance, field_name):
+    """
+    Returns verbose_name for a field.
+    """
+    # https://stackoverflow.com/questions/14496978/fields-verbose-name-in-templates
+    return instance._meta.get_field(field_name).verbose_name.title()

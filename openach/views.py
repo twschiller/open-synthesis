@@ -10,6 +10,7 @@ from django.db import transaction
 import logging
 import itertools
 from django.urls import reverse
+from django.core.exceptions import PermissionDenied
 import statistics
 from django import forms
 from django.utils import timezone
@@ -18,6 +19,7 @@ from django.contrib import messages
 from slugify import slugify
 from django.contrib.sites.shortcuts import get_current_site
 import random
+from field_history.models import FieldHistory
 
 
 logger = logging.getLogger(__name__)
@@ -184,11 +186,32 @@ def detail(request, board_id, board_slug=None):
     return render(request, 'boards/detail.html', context)
 
 
+def board_history(request, board_id):
+    """Return the modification history (board details, evidence, hypotheses) for the board"""
+    # this approach to grabbing the history will likely be too slow for big boards
+    board = get_object_or_404(Board, pk=board_id)
+    evidence = Evidence.objects.filter(board=board)
+    hypotheses = Hypothesis.objects.filter(board=board)
+    history = [
+        list(FieldHistory.objects.get_for_model(board)),
+        itertools.chain(*map(lambda x: list(FieldHistory.objects.get_for_model(x)), evidence)),
+        itertools.chain(*map(lambda x: list(FieldHistory.objects.get_for_model(x)), hypotheses))
+    ]
+    history = list(itertools.chain(*history))
+    history.sort(key=lambda x: x.date_created, reverse=True)
+    return render(request, 'boards/board_audit.html', {'board': board, 'history': history})
+
+
 class BoardForm(forms.Form):
     board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
     board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
     hypothesis1 = forms.CharField(label='Hypothesis #1', max_length=HYPOTHESIS_MAX_LENGTH)
     hypothesis2 = forms.CharField(label='Hypothesis #2', max_length=HYPOTHESIS_MAX_LENGTH)
+
+
+class BoardEditForm(forms.Form):
+    board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
+    board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
 
 
 @login_required
@@ -218,6 +241,26 @@ def create_board(request):
     return render(request, 'boards/create_board.html', {'form': form})
 
 
+@login_required
+def edit_board(request, board_id):
+    board = get_object_or_404(Board, pk=board_id)
+    if not (request.user.is_staff or request.user == board.creator):
+        raise PermissionDenied()
+
+    if request.method == 'POST':
+        form = BoardEditForm(request.POST)
+        if form.is_valid():
+            board.board_title = form.cleaned_data['board_title']
+            board.board_desc = form.cleaned_data['board_desc']
+            board.board_slug = slugify(form.cleaned_data['board_title'], max_length=SLUG_MAX_LENGTH)
+            board.save()
+            messages.success(request, 'Updated board title and/or description.')
+            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+    else:
+        form = BoardEditForm(initial={'board_title': board.board_title, 'board_desc': board.board_desc})
+    return render(request, 'boards/edit_board.html', {'form': form, 'board': board})
+
+
 class EvidenceForm(forms.Form):
     """
     Form to add a new piece of evidence. The evidence provided must have at least one source. The analyst can provide
@@ -241,6 +284,18 @@ class EvidenceForm(forms.Form):
         label='Source Date',
         help_text='The date the source released or last updated the information corroborating the evidence. ' +
                   'Typically the date of the article or post',
+        widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
+    )
+
+
+class EvidenceEditForm(forms.Form):
+    evidence_desc = forms.CharField(
+        label='Evidence', max_length=EVIDENCE_MAX_LENGTH,
+        help_text='A short summary of the evidence. Use the Event Date field for capturing the date'
+    )
+    event_date = forms.DateField(
+        label='Event Date',
+        help_text='The date the event occurred or started',
         widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
     )
 
@@ -296,6 +351,27 @@ def add_evidence(request, board_id):
         form = EvidenceForm()
 
     return render(request, 'boards/add_evidence.html', {'form': form, 'board': board})
+
+
+@login_required
+def edit_evidence(request, evidence_id):
+    evidence = get_object_or_404(Evidence, pk=evidence_id)
+    board = evidence.board
+
+    if not (request.user.is_staff or request.user == board.creator or request.user == evidence.creator):
+        raise PermissionDenied()
+
+    if request.method == 'POST':
+        form = EvidenceEditForm(request.POST)
+        if form.is_valid():
+            evidence.evidence_desc = form.cleaned_data['evidence_desc']
+            evidence.event_date = form.cleaned_data['event_date']
+            evidence.save()
+            messages.success(request, 'Updated evidence description and/or date.')
+            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+    else:
+        form = EvidenceEditForm(initial={'evidence_desc': evidence.evidence_desc, 'event_date': evidence.event_date})
+    return render(request, 'boards/edit_evidence.html', {'form': form, 'evidence': evidence, 'board': board})
 
 
 @login_required
@@ -399,6 +475,26 @@ def add_hypothesis(request, board_id):
         'hypotheses': existing,
     }
     return render(request, 'boards/add_hypothesis.html', context)
+
+
+@login_required
+def edit_hypothesis(request, hypothesis_id):
+    hypothesis = get_object_or_404(Hypothesis, pk=hypothesis_id)
+    board = hypothesis.board
+
+    if not (request.user.is_staff or request.user == board.creator or request.user == hypothesis.creator):
+        raise PermissionDenied()
+
+    if request.method == 'POST':
+        form = HypothesisForm(request.POST)
+        if form.is_valid():
+            hypothesis.hypothesis_text = form.cleaned_data['hypothesis_text']
+            hypothesis.save()
+            messages.success(request, 'Updated hypothesis.')
+            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+    else:
+        form = HypothesisForm(initial={'hypothesis_text': hypothesis.hypothesis_text})
+    return render(request, 'boards/edit_hypothesis.html', {'form': form, 'hypothesis': hypothesis, 'board': board})
 
 
 def profile(request, account_id=None):
