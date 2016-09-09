@@ -2,6 +2,8 @@
 
 {% block title %}About | Open Synthesis{% endblock %}
 
+{% load static %}
+
 {% block content %}
 
     <div class="row">
@@ -34,6 +36,24 @@
                         another way you'd like to contribute, email us at
                         <a href="mailto:contribute@opensynthesis.org">contribute@opensynthesis.org</a>.
                     </p>
+                </div>
+            </div>
+
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Content License</h3>
+                </div>
+                <div class="panel-body">
+                    <p>
+                        Content on Open Synthesis is licensed under a
+                        <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">
+                            Creative Commons Attribution 4.0 International License (CC BY 4.0)</a>.
+                        Comments should be attributed to their respective author.
+                    </p>
+                    <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">
+                        <img src="{% static 'boards/images/license.png' %}"
+                             title="Creative Commons Attribution 4.0 International License Logo"/>
+                    </a>
                 </div>
             </div>
         </div>
