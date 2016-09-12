@@ -1,0 +1,12 @@
+doc-warnings: true
+test-warnings: false
+strictness: veryhigh
+uses:
+  - django
+python-targets:
+  - 3
+pep8:
+  full: true
+max-line-length: 119
+ignore-paths:
+  - ^openach/migrations/.*\.py$
