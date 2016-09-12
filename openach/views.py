@@ -8,6 +8,7 @@ import logging
 import itertools
 import statistics
 import random
+from functools import wraps
 
 from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
@@ -20,6 +21,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied
+from django.views.decorators.vary import vary_on_headers
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import available_attrs
 from slugify import slugify
 from field_history.models import FieldHistory
 from openintel.settings import DEBUG, CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY, SLUG_MAX_LENGTH
@@ -32,7 +36,38 @@ from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
+PAGE_CACHE_TIMEOUT_SECONDS = 60
 
+
+def cache_on_auth(timeout):
+    """
+    Cache the response based on whether or not the user is authenticated. Should NOT be used on pages that have
+    user-specific information, e.g., CSRF tokens.
+    """
+    # https://stackoverflow.com/questions/11661503/django-caching-for-authenticated-users-only
+    def decorator(view_func):
+        @wraps(view_func, assigned=available_attrs(view_func))
+        def _wrapped_view(request, *args, **kwargs):
+            return cache_page(timeout, key_prefix="_auth_%s_" % request.user.is_authenticated())(view_func)(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
+
+def cache_if_anon(timeout):
+    """Cache the page if the user is not authenticated and there are no messages to display."""
+    # https://stackoverflow.com/questions/11661503/django-caching-for-authenticated-users-only
+    def decorator(view_func):
+        @wraps(view_func, assigned=available_attrs(view_func))
+        def _wrapped_view(request, *args, **kwargs):
+            if request.user.is_authenticated() or messages.get_messages(request):
+                return view_func(request, *args, **kwargs)
+            else:
+                return cache_page(timeout)(view_func)(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
+
+@cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def index(request):
     """Returns a homepage showing project information, news, and recent boards."""
     # Show all of the boards until we can implement tagging, search, etc.
@@ -45,6 +80,7 @@ def index(request):
     return render(request, 'boards/index.html', context)
 
 
+@cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def about(request):
     """Returns an about page showing contribution, licensing, contact, and other information."""
     return render(request, 'boards/about.html')
@@ -157,11 +193,16 @@ def check_owner_authorization(request, board, has_creator=None):
         raise PermissionDenied()
 
 
+@cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def detail(request, board_id, dummy_board_slug=None):
     """
     View the board details. Evidence is sorted in order of diagnosticity. Hypotheses are sorted in order of
     consistency.
     """
+    # NOTE: Django's page cache considers full URL including dummy_board_slug. In the future, we may want to adjust
+    # the page key to only consider the id and the query parameters.
+    # https://docs.djangoproject.com/en/1.10/topics/cache/#the-per-view-cache
+    # NOTE: cannot cache page for logged in users b/c comments section contains CSRF and other protection mechanisms.
     view_type = 'average' if request.GET.get('view_type') is None else request.GET['view_type']
 
     board = get_object_or_404(Board, pk=board_id)
@@ -206,6 +247,7 @@ def detail(request, board_id, dummy_board_slug=None):
     return render(request, 'boards/detail.html', context)
 
 
+@cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def board_history(request, board_id):
     """Return the modification history (board details, evidence, hypotheses) for the board"""
     # this approach to grabbing the history will likely be too slow for big boards
@@ -440,8 +482,10 @@ def toggle_source_tag(request, evidence_id, source_id):
         raise Http404()
 
 
+@cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def evidence_detail(request, evidence_id):
     """Show detailed information about a piece of information and its sources"""
+    # NOTE: cannot cache page for logged in users b/c comments section contains CSRF and other protection mechanisms.
     evidence = get_object_or_404(Evidence, pk=evidence_id)
     available_tags = EvidenceSourceTag.objects.all()
     sources = EvidenceSource.objects.filter(evidence=evidence).order_by('-source_date')
@@ -517,11 +561,13 @@ def edit_hypothesis(request, hypothesis_id):
     return render(request, 'boards/edit_hypothesis.html', {'form': form, 'hypothesis': hypothesis, 'board': board})
 
 
+@cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def profile(request, account_id=None):
     """
     Show the private/public profile for account_id. If account_id is None, shows the private profile for the logged in
     user. If account is specified and the user is not logged in, raise a 404.
     """
+    # TODO: cache the page based on whether user is viewing private profile or public profile
     account_id = request.user.id if request.user and not account_id else account_id
 
     # There's no real reason for these to be atomic
