@@ -119,7 +119,7 @@ MIDDLEWARE_CLASSES = [
 ]
 
 # Configure N+1 detection during DEBUG and TESTING; see https://github.com/jmcarp/nplusone
-if DEBUG:
+if DEBUG or TESTING:
     INSTALLED_APPS.insert(0, 'nplusone.ext.django')
     MIDDLEWARE_CLASSES.insert(0, 'nplusone.ext.django.NPlusOneMiddleware',)
 
@@ -280,10 +280,8 @@ if env('SENDGRID_USERNAME') and env('SENDGRID_PASSWORD'):  # pragma: no cover
     # NOTE: django library uses _USER while Heroku uses _USERNAME
     SENDGRID_USER = env('SENDGRID_USERNAME')
     SENDGRID_PASSWORD = env('SENDGRID_PASSWORD')
-elif not TESTING and (env('ACCOUNT_EMAIL_REQUIRED') or env('INVITE_REQUIRED')):
-    raise ImproperlyConfigured("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
 else:
-    logger.warning("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
+    logger.warning("SendGrid not configured: SENDGRID_USER, SENDGRID_PASSWORD")
 
 # Instance configuration
 SITE_NAME = env('SITE_NAME')
