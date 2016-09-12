@@ -1,13 +1,19 @@
-from django.db import models
+"""openach Model Configuration
+
+For more information, please see:
+    https://docs.djangoproject.com/en/1.10/topics/db/models/
+"""
 import datetime
+import logging
+from enum import Enum, unique
+
+from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-from openintel.settings import SLUG_MAX_LENGTH
-from enum import Enum, unique
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
 from field_history.tracker import FieldHistoryTracker
-import logging
+from openintel.settings import SLUG_MAX_LENGTH
 
 
 # See database portability constraints here: https://docs.djangoproject.com/en/1.10/ref/databases/#character-fields
@@ -18,7 +24,7 @@ BOARD_TITLE_MAX_LENGTH = 200
 BOARD_DESC_MAX_LENGTH = 255
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 class Board(models.Model):
@@ -34,15 +40,17 @@ class Board(models.Model):
         return self.board_title
 
     def was_published_recently(self):
+        """Returns true iff the Board was created recently"""
         now = timezone.now()
         return now - datetime.timedelta(days=1) <= self.pub_date <= now
 
     def get_absolute_url(self):
+        """Returns the absolute URL for viewing the board details; includes the slug"""
         if self.board_slug:
             try:
                 return reverse('openach:detail_slug', args=(self.id, self.board_slug,))
             except NoReverseMatch:
-                logger.warn("Malformed SLUG for reverse URL match: {}".format(self.board_slug))
+                logger.warning("Malformed SLUG for reverse URL match: %s", self.board_slug)
                 return reverse('openach:detail', args=(self.id,))
         else:
             return reverse('openach:detail', args=(self.id,))
@@ -56,7 +64,7 @@ class Hypothesis(models.Model):
     submit_date = models.DateTimeField('date added')
     field_history = FieldHistoryTracker(['hypothesis_text'])
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
         verbose_name_plural = "hypotheses"
 
     def __str__(self):
@@ -72,7 +80,7 @@ class Evidence(models.Model):
     submit_date = models.DateTimeField('date added')
     field_history = FieldHistoryTracker(['evidence_desc', 'event_date'])
 
-    class Meta:
+    class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
         verbose_name_plural = "evidence"
 
 
@@ -137,7 +145,8 @@ class Evaluation(models.Model):
     value = models.PositiveSmallIntegerField(default=0, choices=EVALUATION_OPTIONS)
 
     def __str__(self):
-        return self.get_value_display()
+        # NOTE: Django's ORM automatically generates a get_xxx_display() member variable
+        return self.get_value_display()  # pylint: disable=no-member
 
 
 class ProjectNews(models.Model):

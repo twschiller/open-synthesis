@@ -1,10 +1,16 @@
-from django.contrib.sitemaps import Sitemap
-from .models import Board, Evidence, Hypothesis
+""" openach Sitemap Configuration
 
-# https://docs.djangoproject.com/en/1.10/ref/contrib/sitemaps
+Sitemaps convey meta-information to web search engines/crawlers about the content on the site. For more information,
+please see:
+    https://docs.djangoproject.com/en/1.10/ref/contrib/sitemaps
+"""
+from django.contrib.sitemaps import Sitemap
+
+from .models import Board, Evidence, Hypothesis
 
 
 class BoardSitemap(Sitemap):
+    """Sitemap containing metadata about ACH boards"""
     protocol = "https"
     changefreq = "daily"
     priority = 0.5
@@ -12,12 +18,12 @@ class BoardSitemap(Sitemap):
     def items(self):
         return Board.objects.filter()
 
-    def lastmod(self, obj):
+    def lastmod(self, obj):  # pylint: disable=no-self-use
         """
         Returns the last time the board or its content was modified. Currently returns the last time the board was
         structurally modified, that is a hypothesis or piece of evidence was added.
         """
-        def last_obj(class_): return max(
-            map(lambda x: x.submit_date, class_.objects.filter(board=obj)),
-            default=obj.pub_date)
-        return max([obj.pub_date, last_obj(Evidence), last_obj(Hypothesis)])
+        # self parameter is required to match the Sitemap interface
+        def _last_obj(class_):
+            return max(map(lambda x: x.submit_date, class_.objects.filter(board=obj)), default=obj.pub_date)
+        return max([obj.pub_date, _last_obj(Evidence), _last_obj(Hypothesis)])

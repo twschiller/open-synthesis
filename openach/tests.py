@@ -1,22 +1,24 @@
 import datetime
+import logging
+
 from django.utils import timezone
 from django.test import TestCase, Client
 from django.urls import reverse
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.sites.models import Site
+from django.core import mail
+from django_comments.models import Comment
+from unittest import skipUnless
+from openintel.settings import ACCOUNT_EMAIL_REQUIRED, DEFAULT_FROM_EMAIL, SLUG_MAX_LENGTH
+from field_history.models import FieldHistory
+
 from .models import Board, Eval, Evidence, Hypothesis, Evaluation, ProjectNews
+from .models import URL_MAX_LENGTH
+from .sitemap import BoardSitemap
 from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
 from .views import EvidenceSource, EvidenceSourceForm, EvidenceSourceTag, AnalystSourceTag
 from .views import BoardEditForm, EvidenceEditForm, HypothesisForm
-from django.contrib.auth.models import User
-import logging
-from django.core import mail
-from unittest import skipUnless
-from openintel.settings import ACCOUNT_EMAIL_REQUIRED, DEFAULT_FROM_EMAIL, SLUG_MAX_LENGTH
-from .sitemap import BoardSitemap
-from django_comments.models import Comment
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.sites.models import Site
-from .models import URL_MAX_LENGTH
-from field_history.models import FieldHistory
 
 
 logger = logging.getLogger(__name__)

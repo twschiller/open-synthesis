@@ -1,11 +1,18 @@
-from django.template.defaulttags import register
-from openach.models import Evaluation, Eval
+"""openach Django Template Helper Methods
+
+For more information, please see:
+    https://docs.djangoproject.com/en/1.10/howto/custom-template-tags/
+"""
 import logging
 import collections
 import math
 
+from django.template.defaulttags import register
 
-logger = logging.getLogger(__name__)
+from openach.models import Evaluation, Eval
+
+
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 @register.simple_tag
@@ -15,16 +22,17 @@ def get_detail(dictionary, evidence_id, hypothesis_id):
 
 
 @register.filter
-def detail_name(value):
-    if value:
-        return next(e[1] for e in Evaluation.EVALUATION_OPTIONS if e[0] == value.value)
+def detail_name(eval_):
+    """Returns the human-readable name for the given evaluation"""
+    if eval_:
+        return next(e[1] for e in Evaluation.EVALUATION_OPTIONS if e[0] == eval_.value)
     else:
         return 'No Assessments'
 
 
 @register.filter
-def detail_classname(value):
-    """Returns the CSS style associate with the given Evaluation"""
+def detail_classname(eval_):
+    """Returns the CSS style associate with the given evaluation"""
     mapping = {
         None: "eval-no-assessments",
         Eval.consistent: "eval-consistent",
@@ -34,7 +42,7 @@ def detail_classname(value):
         Eval.not_applicable: "eval-not-applicable",
         Eval.neutral: "eval-neutral"
     }
-    result = mapping.get(value)
+    result = mapping.get(eval_)
     return result
 
 
@@ -45,7 +53,7 @@ def get_source_tags(dictionary, source_id, tag_id):
 
 
 DisputeLevel = collections.namedtuple('DisputeLevel', ['max_level', 'name', 'css_class'])
-_dispute_levels = [
+DISPUTE_LEVELS = [
     DisputeLevel(max_level=0.5, name='Consensus', css_class='disagree-consensus'),
     DisputeLevel(max_level=1.5, name='Mild Dispute', css_class='disagree-mild-dispute'),
     DisputeLevel(max_level=2.0, name='Large Dispute', css_class='disagree-large-dispute'),
@@ -54,16 +62,18 @@ _dispute_levels = [
 
 
 def _dispute_level(value):
-    return list(filter(lambda x: value < x.max_level, _dispute_levels))[0]
+    return list(filter(lambda x: value < x.max_level, DISPUTE_LEVELS))[0]
 
 
 @register.filter
 def disagreement_category(value):
+    """Returns a human-readable description of the level of disagreement given by the value"""
     return 'No Assessments' if value is None else _dispute_level(value).name
 
 
 @register.filter
 def disagreement_style(value):
+    """Returns the CSS class name associated with the given level of disagreement"""
     return 'disagree-no-assessments' if value is None else _dispute_level(value).css_class
 
 
@@ -120,8 +130,7 @@ def board_url(board):
 
 @register.simple_tag
 def get_verbose_field_name(instance, field_name):
-    """
-    Returns verbose_name for a field.
-    """
+    """Returns verbose name for a field"""
     # https://stackoverflow.com/questions/14496978/fields-verbose-name-in-templates
-    return instance._meta.get_field(field_name).verbose_name.title()
+    # _meta is a standard API in Django: https://docs.djangoproject.com/en/1.10/ref/models/meta/
+    return instance._meta.get_field(field_name).verbose_name.title()  # pylint: disable=protected-access

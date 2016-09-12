@@ -1,33 +1,40 @@
+"""openach Views Configuration
+
+For more information, please see:
+    https://docs.djangoproject.com/en/1.10/topics/http/views/
+"""
+from collections import defaultdict
+import logging
+import itertools
+import statistics
+import random
+
+from django.contrib import messages
+from django.contrib.sites.shortcuts import get_current_site
+from django.db import transaction
+from django import forms
+from django.utils import timezone
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.urls import reverse
+from django.core.exceptions import PermissionDenied
+from slugify import slugify
+from field_history.models import FieldHistory
+from openintel.settings import DEBUG, CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY, SLUG_MAX_LENGTH
+
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from .models import ProjectNews
 from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH
 from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
-from collections import defaultdict
-from django.db import transaction
-import logging
-import itertools
-from django.urls import reverse
-from django.core.exceptions import PermissionDenied
-import statistics
-from django import forms
-from django.utils import timezone
-from openintel.settings import DEBUG, CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY, SLUG_MAX_LENGTH
-from django.contrib import messages
-from slugify import slugify
-from django.contrib.sites.shortcuts import get_current_site
-import random
-from field_history.models import FieldHistory
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def index(request):
-    """ Returns a basic homepage showing all of the board """
+    """Returns a homepage showing project information, news, and recent boards."""
     # Show all of the boards until we can implement tagging, search, etc.
     latest_board_list = Board.objects.order_by('-pub_date')
     latest_project_news = ProjectNews.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
@@ -39,15 +46,16 @@ def index(request):
 
 
 def about(request):
+    """Returns an about page showing contribution, licensing, contact, and other information."""
     return render(request, 'boards/about.html')
 
 
 def partition(pred, iterable):
-    """Use a predicate to partition entries into false entries and true entries"""
+    """Use a predicate to partition entries into false entries and true entries."""
     # https://stackoverflow.com/questions/8793772/how-to-split-a-sequence-according-to-a-predicate
     # NOTE: this might iterate over the collection twice
-    t1, t2 = itertools.tee(iterable)
-    return itertools.filterfalse(pred, t1), filter(pred, t2)
+    it1, it2 = itertools.tee(iterable)
+    return itertools.filterfalse(pred, it1), filter(pred, it2)
 
 
 def mean_na_neutral_vote(evaluations):
@@ -55,8 +63,9 @@ def mean_na_neutral_vote(evaluations):
     Returns the mean rating on a 1-5 scale for the given evaluations, or None if there are no evaluations. Treats N/As
     as a neutral vote.
     """
-    def replace_na(x): return x.value if (x and x is not Eval.not_applicable) else Eval.neutral.value
-    return statistics.mean(map(replace_na, evaluations)) if evaluations else None
+    def _replace_na(eval_):
+        return eval_.value if (eval_ and eval_ is not Eval.not_applicable) else Eval.neutral.value
+    return statistics.mean(map(_replace_na, evaluations)) if evaluations else None
 
 
 def calc_disagreement(evaluations):
@@ -67,15 +76,21 @@ def calc_disagreement(evaluations):
     """
     if evaluations:
         na_it, rated_it = partition(lambda x: x is not Eval.not_applicable, evaluations)
-        na = list(na_it)
-        rated = list(rated_it)
+        na_votes = list(na_it)
+        rated_votes = list(rated_it)
 
         # Here we use the sample standard deviation because we consider the evaluations are a sample of all the
         # evaluations that could be given.
         # Not clear the best way to make the N/A disagreement comparable to the evaluation disagreement calculation
-        na_disagreement = statistics.stdev(([0] * len(na)) + ([1] * len(rated))) if len(na) + len(rated) > 1 else 0.0
-        non_na_disagreement = statistics.stdev(map(lambda x: x.value, rated)) if len(rated) > 1 else 0.0
-        return max(na_disagreement, non_na_disagreement)
+        na_disagreement = (
+            statistics.stdev(([0] * len(na_votes)) + ([1] * len(rated_votes)))
+            if len(na_votes) + len(rated_votes) > 1
+            else 0.0)
+        rated_disagreement = (
+            statistics.stdev(map(lambda x: x.value, rated_votes))
+            if len(rated_votes) > 1
+            else 0.0)
+        return max(na_disagreement, rated_disagreement)
     else:
         return None
 
@@ -87,15 +102,15 @@ def consensus_vote(evaluations):
     the result toward Eval.neutral if there is a "tie".
     """
     na_it, rated_it = partition(lambda x: x is not Eval.not_applicable, evaluations)
-    na = list(na_it)
-    rated = list(rated_it)
+    na_votes = list(na_it)
+    rated_votes = list(rated_it)
 
-    if not na and not rated:
+    if not na_votes and not rated_votes:
         return None
-    elif len(na) > len(rated):
+    elif len(na_votes) > len(rated_votes):
         return Eval.not_applicable
     else:
-        consensus = round(statistics.mean(map(lambda x: x.value, rated)))
+        consensus = round(statistics.mean(map(lambda x: x.value, rated_votes)))
         return Eval.for_value(round(consensus))
 
 
@@ -135,14 +150,14 @@ def diagnosticity(evaluations):
 
 
 def check_owner_authorization(request, board, has_creator=None):
-    """Raises a PermissionDenied exception if the authenticated used does not have edits rights for the resource"""
+    """Raises a PermissionDenied exception if the authenticated used does not have edit rights for the resource"""
     if request.user.is_staff or request.user == board.creator or (has_creator and request.user == has_creator.creator):
         pass
     else:
         raise PermissionDenied()
 
 
-def detail(request, board_id, board_slug=None):
+def detail(request, board_id, dummy_board_slug=None):
     """
     View the board details. Evidence is sorted in order of diagnosticity. Hypotheses are sorted in order of
     consistency.
@@ -155,25 +170,26 @@ def detail(request, board_id, board_slug=None):
     participants = set(map(lambda x: x.user, votes))
 
     # calculate consensus and disagreement for each evidence/hypothesis pair
-    def extract(x): return x.evidence.id, x.hypothesis.id
+    def _pair_key(evaluation):
+        return evaluation.evidence.id, evaluation.hypothesis.id
     keyed = defaultdict(list)
     for vote in votes:
-        keyed[extract(vote)].append(Eval.for_value(vote.value))
+        keyed[_pair_key(vote)].append(Eval.for_value(vote.value))
     consensus = {k: consensus_vote(v) for k, v in keyed.items()}
     disagreement = {k: calc_disagreement(v) for k, v in keyed.items()}
 
     user_votes = (
-        {extract(v): Eval.for_value(v.value) for v in votes.filter(user=request.user)}
+        {_pair_key(v): Eval.for_value(v.value) for v in votes.filter(user=request.user)}
         if request.user.is_authenticated
         else None)
 
     # augment hypotheses and evidence with diagnosticity and consistency
-    def group(first, second, func, key):
+    def _group(first, second, func, key):
         return list(map(lambda f: (f, func(map(lambda s: keyed[key(f, s)], second))), first))
     hypotheses = list(board.hypothesis_set.all())
     evidence = list(board.evidence_set.all())
-    hypothesis_consistency = group(hypotheses, evidence, inconsistency, key=lambda h, e: (e, h))
-    evidence_diagnosticity = group(evidence, hypotheses, diagnosticity, key=lambda e, h: (e, h))
+    hypothesis_consistency = _group(hypotheses, evidence, inconsistency, key=lambda h, e: (e, h))
+    evidence_diagnosticity = _group(evidence, hypotheses, diagnosticity, key=lambda e, h: (e, h))
 
     context = {
         'board': board,
@@ -206,6 +222,7 @@ def board_history(request, board_id):
 
 
 class BoardForm(forms.Form):
+    """Board creation form. Users must specify at two competing hypotheses"""
     board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
     board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
     hypothesis1 = forms.CharField(label='Hypothesis #1', max_length=HYPOTHESIS_MAX_LENGTH)
@@ -213,12 +230,14 @@ class BoardForm(forms.Form):
 
 
 class BoardEditForm(forms.Form):
+    """Board edit form."""
     board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
     board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
 
 
 @login_required
 def create_board(request):
+    """Shows form for board creation and handles form submission."""
     if request.method == 'POST':
         form = BoardForm(request.POST)
         if form.is_valid():
@@ -246,6 +265,7 @@ def create_board(request):
 
 @login_required
 def edit_board(request, board_id):
+    """Shows form for editing a board and handles form submission"""
     board = get_object_or_404(Board, pk=board_id)
     check_owner_authorization(request, board)
 
@@ -264,6 +284,7 @@ def edit_board(request, board_id):
 
 
 class EvidenceEditForm(forms.Form):
+    """Form for modifying the basic evidence information"""
     evidence_desc = forms.CharField(
         label='Evidence', max_length=EVIDENCE_MAX_LENGTH,
         help_text='A short summary of the evidence. Use the Event Date field for capturing the date'
@@ -276,6 +297,7 @@ class EvidenceEditForm(forms.Form):
 
 
 class BaseSourceForm(forms.Form):
+    """Form for adding a source to a piece of evidence"""
     evidence_url = forms.URLField(
         label='Source Website',
         help_text='A source (e.g., news article or press release) corroborating the evidence',
@@ -283,21 +305,26 @@ class BaseSourceForm(forms.Form):
     )
     evidence_date = forms.DateField(
         label='Source Date',
+        # NOTE: pylint and pep8 disagree about the hanging indent below
         help_text='The date the source released or last updated the information corroborating the evidence. ' +
-                  'Typically the date of the article or post',
+                  'Typically the date of the article or post',  # pylint: disable=bad-continuation
         widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
     )
 
 
 class EvidenceForm(BaseSourceForm, EvidenceEditForm):
     """
-    Form to add a new piece of evidence. The evidence provided must have at least one source. The analyst can provide
-    additional sources later.
+    Form to add a new piece of evidence. The evidence provided must have at least one source.
+    The analyst can provide additional sources later.
     """
     pass
 
 
 class EvidenceSourceForm(BaseSourceForm):
+    """
+    Form for editing a corroborating/contradicting source for a piece of evidence. By default sources are
+    corroborating.
+    """
     corroborating = forms.BooleanField(
         required=False,
         widget=forms.HiddenInput()
@@ -341,6 +368,7 @@ def add_evidence(request, board_id):
 
 @login_required
 def edit_evidence(request, evidence_id):
+    """Shows a form for editing a piece of evidence and handles form submission"""
     evidence = get_object_or_404(Evidence, pk=evidence_id)
     board = evidence.board
     check_owner_authorization(request, board=board, has_creator=evidence)
@@ -360,6 +388,7 @@ def edit_evidence(request, evidence_id):
 
 @login_required
 def add_source(request, evidence_id):
+    """Shows a form for adding a corroborating/contradicting source for a piece of evidence and handles submission."""
     evidence = get_object_or_404(Evidence, pk=evidence_id)
     if request.method == 'POST':
         form = EvidenceSourceForm(request.POST)
@@ -436,11 +465,13 @@ def evidence_detail(request, evidence_id):
 
 
 class HypothesisForm(forms.Form):
+    """Form for a board hypothesis"""
     hypothesis_text = forms.CharField(label='Hypothesis', max_length=200)
 
 
 @login_required
 def add_hypothesis(request, board_id):
+    """Shows a form for adding a hypothesis to a board and handles form submission"""
     board = get_object_or_404(Board, pk=board_id)
     existing = Hypothesis.objects.filter(board=board)
 
@@ -467,6 +498,7 @@ def add_hypothesis(request, board_id):
 
 @login_required
 def edit_hypothesis(request, hypothesis_id):
+    """Shows a form for editing a hypothesis and handles board submission."""
     hypothesis = get_object_or_404(Hypothesis, pk=hypothesis_id)
     board = hypothesis.board
     check_owner_authorization(request, board, hypothesis)
@@ -516,7 +548,7 @@ def evaluate(request, board_id, evidence_id):
     reduce bias: (1) the analyst is not shown their previous assessment, and (2) the hypotheses are shown in a random
     order.
     """
-    # TODO: fix the db transaction structure in this method
+    # FIXME: need to fix the db transaction structure for this method
     default_eval = '------'
     board = get_object_or_404(Board, pk=board_id)
     evidence = get_object_or_404(Evidence, pk=evidence_id)
@@ -559,7 +591,7 @@ def robots(request):
     return render(request, 'robots.txt', {'sitemap': sitemap}, content_type='text/plain')
 
 
-def certbot(request, challenge_key):  # pragma: no cover
+def certbot(dummy_request, challenge_key):  # pragma: no cover
     """Respond to the Let's Encrypt certbot challenge"""
     # ignore coverage since keys aren't available in the testing environment
     if CERTBOT_PUBLIC_KEY and CERTBOT_PUBLIC_KEY == challenge_key:

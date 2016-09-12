@@ -15,17 +15,19 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-from openach import views
 from django.views.generic import TemplateView
 from django.contrib.sitemaps.views import sitemap
+from openach import views
 from openach.sitemap import BoardSitemap
 
+# NOTE: Django's API doesn't follow constant naming convention for 'sitemaps' and 'urlpatterns'
+
 # https://docs.djangoproject.com/en/1.10/ref/contrib/sitemaps/#initialization
-sitemaps = {
+sitemaps = {  # pylint: disable=invalid-name
     'board': BoardSitemap,
 }
 
-urlpatterns = [
+urlpatterns = [  # pylint: disable=invalid-name
     url(r'^admin/', admin.site.urls),
     url(r'robots\.txt', views.robots, name='robots'),
     url(r'contribute\.json', TemplateView.as_view(template_name='contribute.json', content_type='application/json')),

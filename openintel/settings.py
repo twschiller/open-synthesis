@@ -13,12 +13,14 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 # http://bruno.im/2013/may/18/django-stop-writing-settings-files/
 
 import os
-import dj_database_url
-import environ
 import logging
 import sys
 
-logger = logging.getLogger(__name__)
+import dj_database_url
+import environ
+
+
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 # https://stackoverflow.com/questions/4088253/django-how-to-detect-test-environment
@@ -30,7 +32,8 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # Set defaults and read .env file from root directory
 # Defaults should be "safe" from a security perspective
-env = environ.Env(
+# NOTE: 'env' follows naming convention from the environ documentation
+env = environ.Env(  # pylint: disable=invalid-name
     DEBUG=(bool, False),
     DJANGO_LOG_LEVEL=(str, "ERROR"),
     APP_LOG_LEVEL=(str, "ERROR"),
@@ -63,7 +66,8 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DEBUG')
 
 # https://docs.djangoproject.com/en/1.10/ref/settings/#std:setting-ALLOWED_HOSTS
-ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')
+# NOTE: 'env' will return a value because a default is defined for 'ALLOWED_HOSTS'
+ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')  # pylint: disable=no-member
 
 # Application definition
 
@@ -191,8 +195,9 @@ USE_TZ = True
 SITE_ID = 1
 
 # Update database configuration with $DATABASE_URL.
+# NOTE: 'db_from_env' follows naming convention from the Heroku documentation
 # TODO: migrate db config to use environ?
-db_from_env = dj_database_url.config(conn_max_age=500)
+db_from_env = dj_database_url.config(conn_max_age=500)  # pylint: disable=invalid-name
 DATABASES['default'].update(db_from_env)
 
 # Static files (CSS, JavaScript, Images)
