@@ -47,6 +47,3 @@ if not ACCOUNT_REQUIRED:
     # Only allow clients to view the sitemap if the admin is running a public instance
     pattern = url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap')
     urlpatterns.insert(0, pattern)
-
-
-

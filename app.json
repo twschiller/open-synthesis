@@ -7,12 +7,12 @@
   "keywords": ["python", "django", "analysis of competing hypotheses", "ACH" ],
   "addons": [ "heroku-postgresql", "rollbar:free", "sendgrid:starter", "memcachier:dev" ],
   "env": {
-    "APP_NAME": {
+    "SITE_NAME": {
       "description": "The name of your deployment, e.g., Open Synthesis",
       "required": true
     },
-    "APP_DOMAIN": {
-      "description": "The domain (including subdomain) that the deployment is being hosted at",
+    "SITE_DOMAIN": {
+      "description": "The domain (including subdomain) that the deployment is being hosted at. This is should be set to app-name.herokuapp.com where app-name is the name the Heroku app",
       "required": true
     },
     "ADMIN_EMAIL_ADDRESS": {
@@ -29,7 +29,7 @@
       "required": false
     },
     "ROLLBAR_ENABLED": {
-      "description": "Whether or warnings and errors should be sent to Rollbar for analysis (default=True)",
+      "description": "Whether or not warnings and errors should be sent to Rollbar for analysis (default=True)",
       "value": "True",
       "required": false
     },

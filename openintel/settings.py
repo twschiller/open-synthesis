@@ -376,4 +376,3 @@ def _get_cache():
 
 # https://docs.djangoproject.com/en/1.10/topics/cache/
 CACHES = _get_cache()
-
