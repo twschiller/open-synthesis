@@ -45,16 +45,8 @@ freedom of speech, safety, and productivity. More specific concerns include:
 
 ## Deploying to Heroku
 
-```sh
-$ heroku create
-$ git push heroku master
-
-$ heroku run python manage.py migrate
-$ heroku run python manage.py loaddata source_tags
-$ heroku run python manage.py check --deploy
-$ heroku open
-```
-or
+Detailed instructions for deploying your own instance can be found on the 
+[Custom Deployments wiki page](https://github.com/twschiller/open-synthesis/wiki/Custom-Deployments).
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
