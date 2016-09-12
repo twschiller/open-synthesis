@@ -51,25 +51,10 @@ If you are using Heroku, you can run the project with:
     
     heroku local web
     
-## Code Style
+## Code Style and Testing
 
-Python contributions should follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guidelines, with the
-following modifications:
-
-- Maximum line length is 119 characters.
-
-The `pep8` configuration for the project is maintained in the [tox.ini](tox.ini) file.
-
-## Testing
-
-New code should include tests that:
-
-- Exercise each new line of code
-- Have a reasonable set of test oracles (assertions) to determine whether or not the test passed
-- If you use `#pragma: no cover`, you should include a comment explaining why the code should be excluded from coverage
-reporting.
-
-The code coverage configuration is maintained in the [.coveragerc](.coveragerc) file.
+Before submitting a pull request, please review the 
+[Quality Controls Wiki page](https://github.com/twschiller/open-synthesis/wiki/Quality-Controls).
 
 # Acknowledgements
 
