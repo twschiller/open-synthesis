@@ -41,6 +41,8 @@ env = environ.Env(  # pylint: disable=invalid-name
     CERTBOT_SECRET_KEY=(str, None),
     SESSION_COOKIE_SECURE=(bool, True),
     CSRF_COOKIE_SECURE=(bool, True),
+    CSRF_COOKIE_HTTPONLY=(bool, True),
+    X_FRAME_OPTIONS=(str,"DENY"),
     ALLOWED_HOSTS=(str, "*"),
     SECURE_SSL_REDIRECT=(bool, True),
     SECURE_BROWSER_XSS_FILTER=(bool, True),
@@ -169,6 +171,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/1.10/topics/security/#ssl-https
 SESSION_COOKIE_SECURE = env('SESSION_COOKIE_SECURE')
 CSRF_COOKIE_SECURE = env('CSRF_COOKIE_SECURE')
+CSRF_COOKIE_HTTPONLY = env('CSRF_COOKIE_SECURE')
+X_FRAME_OPTIONS = env('X_FRAME_OPTIONS')
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

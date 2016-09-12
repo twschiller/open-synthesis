@@ -9,9 +9,9 @@ install:
 
 script:
   - python manage.py collectstatic --no-input
+  - python manage.py check --fail-level=WARNING
   - python manage.py test
   - coverage run --source='.' manage.py test
 
 after_success:
   - coveralls
-
