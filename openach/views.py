@@ -200,6 +200,7 @@ def detail(request, board_id, dummy_board_slug=None):
         'user_votes': user_votes,
         'disagreement': disagreement,
         'participants': participants,
+        'meta_description': board.board_desc,
         'debug_stats': DEBUG
     }
     return render(request, 'boards/detail.html', context)
@@ -460,6 +461,7 @@ def evidence_detail(request, evidence_id):
         'source_tags': source_tags,
         'user_tags': user_tags,
         'available_tags': available_tags,
+        'meta_description': "Analysis of evidence: {}".format(evidence.evidence_desc)
     }
     return render(request, 'boards/evidence_detail.html', context)
 
@@ -534,7 +536,8 @@ def profile(request, account_id=None):
         'user': user,
         'boards_created': boards,
         'boards_contributed': contributed,
-        'board_voted': voted
+        'board_voted': voted,
+        'meta_description': "Account profile for user {}".format(user)
     }
 
     template = 'profile.html' if request.user and request.user.id == account_id else 'public_profile.html'
