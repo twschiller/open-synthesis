@@ -17,8 +17,11 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic import TemplateView
 from django.contrib.sitemaps.views import sitemap
+from django.conf import settings
 from openach import views
 from openach.sitemap import BoardSitemap
+
+ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
 
 # NOTE: Django's API doesn't follow constant naming convention for 'sitemaps' and 'urlpatterns'
 
@@ -31,11 +34,16 @@ urlpatterns = [  # pylint: disable=invalid-name
     url(r'^admin/', admin.site.urls),
     url(r'robots\.txt', views.robots, name='robots'),
     url(r'contribute\.json', TemplateView.as_view(template_name='contribute.json', content_type='application/json')),
-    url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     url(r'^accounts/profile', views.profile),
     url(r'^accounts/(?P<account_id>[0-9]+)/profile$', views.profile, name='profile'),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^comments/', include('django_comments.urls')),
+    url(r'^invitations/', include('invitations.urls', namespace='invitations')),
     url(r'', include('openach.urls')),
     url(r'\.well-known/acme-challenge/(?P<challenge_key>[a-zA-Z0-9\-]+)$', views.certbot)
 ]
+
+if not ACCOUNT_REQUIRED:
+    # Only allow clients to view the sitemap if the admin is running a public instance
+    pattern = url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap')
+    urlpatterns.insert(0, pattern)
