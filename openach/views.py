@@ -250,13 +250,13 @@ def detail(request, board_id, dummy_board_slug=None):
 def board_history(request, board_id):
     """Return the modification history (board details, evidence, hypotheses) for the board"""
     # this approach to grabbing the history will likely be too slow for big boards
+    def _get_history(models):
+        return itertools.chain(*map(lambda x: list(FieldHistory.objects.get_for_model(x).select_related('user')), models))
     board = get_object_or_404(Board, pk=board_id)
-    evidence = Evidence.objects.filter(board=board)
-    hypotheses = Hypothesis.objects.filter(board=board)
     history = [
-        list(FieldHistory.objects.get_for_model(board).select_related('user')),
-        itertools.chain(*map(lambda x: list(FieldHistory.objects.get_for_model(x).select_related('user')), evidence)),
-        itertools.chain(*map(lambda x: list(FieldHistory.objects.get_for_model(x).select_related('user')), hypotheses))
+        _get_history([board]),
+        _get_history(Evidence.objects.filter(board=board)),
+        _get_history(Hypothesis.objects.filter(board=board)),
     ]
     history = list(itertools.chain(*history))
     history.sort(key=lambda x: x.date_created, reverse=True)
@@ -478,7 +478,8 @@ def toggle_source_tag(request, evidence_id, source_id):
                 messages.success(request, 'Added "{}" tag to source.'.format(tag.tag_name))
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
     else:
-        raise Http404()
+        # Redirect to the form where the user can toggle a source tag
+        return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
 
 
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
