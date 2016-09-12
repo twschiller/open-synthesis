@@ -18,7 +18,7 @@
     "ROLLBAR_ENABLED": {
       "description": "Whether or warnings and errors should be sent to Rollbar for analysis",
       "value": "True"
-    },
+    }
   },
   "scripts": {
     "postdeploy": "python manage.py migrate && manage.py loaddata source_tags && python manage.py check --deploy"
