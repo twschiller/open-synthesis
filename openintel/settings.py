@@ -279,7 +279,7 @@ if env('SENDGRID_USERNAME') and env('SENDGRID_PASSWORD'):  # pragma: no cover
     # NOTE: django library uses _USER while Heroku uses _USERNAME
     SENDGRID_USER = env('SENDGRID_USERNAME')
     SENDGRID_PASSWORD = env('SENDGRID_PASSWORD')
-elif env('ACCOUNT_EMAIL_REQUIRED') or env('INVITE_REQUIRED'):
+elif not TESTING and (env('ACCOUNT_EMAIL_REQUIRED') or env('INVITE_REQUIRED')):
     raise ImproperlyConfigured("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
 else:
     logger.warning("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
