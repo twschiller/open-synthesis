@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+""" Django's command-line utility for administrative tasks
+
+For more information, please see:
+    https://docs.djangoproject.com/en/1.10/ref/django-admin/
+"""
 import os
 import sys
 
@@ -11,7 +16,8 @@ if __name__ == "__main__":
         # issue is really that Django is missing to avoid masking other
         # exceptions on Python 2.
         try:
-            import django
+            # NOTE: the django import is used by 'execute_from_command_line' below
+            import django  # pylint: disable=unused-import
         except ImportError:
             raise ImportError(
                 "Couldn't import Django. Are you sure it's installed and "
