@@ -18,6 +18,7 @@ import sys
 
 import dj_database_url
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -52,6 +53,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     SECURE_HSTS_SECONDS=(int, 31536000),  # default to maximum age in seconds
     ROLLBAR_ACCESS_TOKEN=(str, None),
     ROLLBAR_ENABLED=(bool, False),
+    ACCOUNT_REQUIRED=(bool, False),
     ACCOUNT_EMAIL_REQUIRED=(bool, True),
     SENDGRID_USERNAME=(str, None),
     SENDGRID_PASSWORD=(str, None),
@@ -91,6 +93,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
 ]
+
 
 # This is using the pre-Django 1.10 middleware API. We'll need to update once the 3rd-party libraries are updated
 # to use the new API: https://docs.djangoproject.com/en/1.10/topics/http/middleware
@@ -273,15 +276,22 @@ if env('SENDGRID_USERNAME') and env('SENDGRID_PASSWORD'):  # pragma: no cover
     # NOTE: django library uses _USER while Heroku uses _USERNAME
     SENDGRID_USER = env('SENDGRID_USERNAME')
     SENDGRID_PASSWORD = env('SENDGRID_PASSWORD')
+elif env('ACCOUNT_EMAIL_REQUIRED'):
+    raise ImproperlyConfigured("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
 else:
     logger.warning("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
+
+# Instance configuration
+ACCOUNT_REQUIRED = env('ACCOUNT_REQUIRED')
+ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
 
 # Authentication Options:
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = env('ACCOUNT_EMAIL_REQUIRED')
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 # https://stackoverflow.com/questions/22700041/django-allauth-sends-verification-emails-from-webmasterservername
-DEFAULT_FROM_EMAIL = "info@opensynthesis.org"
+DEFAULT_FROM_EMAIL = env.get_value('DEFAULT_FROM_EMAIL', default=ADMIN_EMAIL_ADDRESS)
+
 
 # Challenge/Response for Let's Encrypt. In the future, we may want to support challenge/response for multiple domains.
 CERTBOT_PUBLIC_KEY = env('CERTBOT_PUBLIC_KEY')
@@ -356,3 +366,4 @@ def _get_cache():
 
 # https://docs.djangoproject.com/en/1.10/topics/cache/
 CACHES = _get_cache()
+

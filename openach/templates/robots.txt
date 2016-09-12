@@ -1,4 +1,8 @@
 User-agent: *
+{% if disallow_all %}
+Disallow: /
+{% else %}
 Sitemap: {{ sitemap }}
 Disallow: /accounts/
 Disallow: /admin/
+{% endif %}

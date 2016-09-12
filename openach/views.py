@@ -17,15 +17,15 @@ from django import forms
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404, HttpResponseRedirect, HttpResponse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test, REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User
 from django.urls import reverse
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ImproperlyConfigured
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import available_attrs
 from slugify import slugify
 from field_history.models import FieldHistory
-from openintel.settings import DEBUG, CERTBOT_PUBLIC_KEY, CERTBOT_SECRET_KEY, SLUG_MAX_LENGTH
+from django.conf import settings
 
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from .models import ProjectNews
@@ -36,6 +36,24 @@ from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 PAGE_CACHE_TIMEOUT_SECONDS = 60
+DEBUG = getattr(settings, 'DEBUG', False)
+SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH', 72)
+ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
+
+
+def account_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
+    """
+    Decorator for views that checks that (1) the user is logged in or (2) that an account is not required, redirecting
+    to the log-in page if necessary. See also django.contrib.auth.decorators.login_required
+    """
+    actual_decorator = user_passes_test(
+        lambda u: not ACCOUNT_REQUIRED or u.is_authenticated(),
+        login_url=login_url,
+        redirect_field_name=redirect_field_name
+    )
+    if function:
+        return actual_decorator(function)
+    return actual_decorator
 
 
 def cache_on_auth(timeout):
@@ -66,6 +84,7 @@ def cache_if_anon(timeout):
     return decorator
 
 
+@account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def index(request):
     """Returns a homepage showing project information, news, and recent boards."""
@@ -79,6 +98,7 @@ def index(request):
     return render(request, 'boards/index.html', context)
 
 
+@account_required
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def about(request):
     """Returns an about page showing contribution, licensing, contact, and other information."""
@@ -185,13 +205,14 @@ def diagnosticity(evaluations):
 
 
 def check_owner_authorization(request, board, has_creator=None):
-    """Raises a PermissionDenied exception if the authenticated used does not have edit rights for the resource"""
+    """Raises a PermissionDenied exception if the authenticated user does not have edit rights for the resource"""
     if request.user.is_staff or request.user == board.creator or (has_creator and request.user == has_creator.creator):
         pass
     else:
         raise PermissionDenied()
 
 
+@account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def detail(request, board_id, dummy_board_slug=None):
     """
@@ -246,6 +267,7 @@ def detail(request, board_id, dummy_board_slug=None):
     return render(request, 'boards/detail.html', context)
 
 
+@account_required
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def board_history(request, board_id):
     """Return the modification history (board details, evidence, hypotheses) for the board"""
@@ -283,8 +305,8 @@ def create_board(request):
     if request.method == 'POST':
         form = BoardForm(request.POST)
         if form.is_valid():
+            time = timezone.now()
             with transaction.atomic():
-                time = timezone.now()
                 board = Board.objects.create(
                     board_title=form.cleaned_data['board_title'],
                     board_slug=slugify(form.cleaned_data['board_title'], max_length=SLUG_MAX_LENGTH),
@@ -482,6 +504,7 @@ def toggle_source_tag(request, evidence_id, source_id):
         return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
 
 
+@account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def evidence_detail(request, evidence_id):
     """Show detailed information about a piece of information and its sources"""
@@ -561,6 +584,7 @@ def edit_hypothesis(request, hypothesis_id):
     return render(request, 'boards/edit_hypothesis.html', {'form': form, 'hypothesis': hypothesis, 'board': board})
 
 
+@account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def profile(request, account_id=None):
     """
@@ -635,15 +659,25 @@ def evaluate(request, board_id, evidence_id):
 
 def robots(request):
     """Returns the robots.txt including the sitemap location (using the site domain)"""
-    # Not sure if we should build the
-    sitemap = ''.join(['https://', get_current_site(request).domain, reverse('django.contrib.sitemaps.views.sitemap')])
-    return render(request, 'robots.txt', {'sitemap': sitemap}, content_type='text/plain')
+    context = {
+        'sitemap': (
+            ''.join(['https://', get_current_site(request).domain, reverse('django.contrib.sitemaps.views.sitemap')])
+            if not ACCOUNT_REQUIRED
+            else None
+        ),
+        'disallow_all': ACCOUNT_REQUIRED,
+    }
+    return render(request, 'robots.txt', context, content_type='text/plain')
 
 
 def certbot(dummy_request, challenge_key):  # pragma: no cover
-    """Respond to the Let's Encrypt certbot challenge"""
+    """Respond to the Let's Encrypt certbot challenge. If the challenge is not configured, returns a 404"""
     # ignore coverage since keys aren't available in the testing environment
-    if CERTBOT_PUBLIC_KEY and CERTBOT_PUBLIC_KEY == challenge_key:
-        return HttpResponse(CERTBOT_SECRET_KEY)
+    public_key = getattr(settings, 'CERTBOT_PUBLIC_KEY')
+    secret_key = getattr(settings, 'CERTBOT_SECRET_KEY')
+    if public_key and secret_key and public_key == challenge_key:
+        return HttpResponse(secret_key)
+    elif public_key and not secret_key:
+        raise ImproperlyConfigured("CERTBOT_SECRET_KEY not set")
     else:
         raise Http404()
