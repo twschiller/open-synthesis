@@ -7,7 +7,7 @@
   "keywords": ["python", "django", "analysis of competing hypotheses", "ACH" ],
   "addons": [ "heroku-postgresql", "rollbar:free", "sendgrid:starter", "memcachier:dev" ],
   "env": {
-    "SECRET_TOKEN": {
+    "DJANGO_SECRET_KEY": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
     },
