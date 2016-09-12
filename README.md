@@ -50,6 +50,7 @@ $ heroku create
 $ git push heroku master
 
 $ heroku run python manage.py migrate
+$ heroku run python manage.py setname
 $ heroku run python manage.py loaddata source_tags
 $ heroku run python manage.py check --deploy
 $ heroku open

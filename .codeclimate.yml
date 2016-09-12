@@ -4,6 +4,8 @@ engines:
      exclude_fingerprints:
          # ignore cyclomatic complexity of comparison_style in board_extras.py; there's only a single decision point
          - da1051f028463e1cff89fa70f1179609
+         # ignore cyclomatic complexity of certbot in views.py; there's only a single decision point
+         - f076ff22d980e5266da5304a6c43ea54
    pep8:
      enabled: true
    duplication:

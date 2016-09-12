@@ -7,20 +7,53 @@
   "keywords": ["python", "django", "analysis of competing hypotheses", "ACH" ],
   "addons": [ "heroku-postgresql", "rollbar:free", "sendgrid:starter", "memcachier:dev" ],
   "env": {
+    "SITE_NAME": {
+      "description": "The name of your deployment, e.g., Open Synthesis",
+      "required": true
+    },
+    "SITE_DOMAIN": {
+      "description": "The domain (including subdomain) that the deployment is being hosted at. This is should be set to app-name.herokuapp.com where app-name is the name the Heroku app",
+      "required": true
+    },
+    "ADMIN_EMAIL_ADDRESS": {
+      "description": "Website admin's email address. Used as default email address for sending/receiving email",
+      "required": true
+    },
     "DJANGO_SECRET_KEY": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
     },
     "DEBUG": {
       "description": "Whether or not the application is running in DEBUG mode (DO NOT ENABLE IN PRODUCTION)",
-      "value": "False"
+      "value": "False",
+      "required": false
     },
     "ROLLBAR_ENABLED": {
-      "description": "Whether or warnings and errors should be sent to Rollbar for analysis",
-      "value": "True"
+      "description": "Whether or not warnings and errors should be sent to Rollbar for analysis (default=True)",
+      "value": "True",
+      "required": false
+    },
+    "ACCOUNT_EMAIL_REQUIRED": {
+      "description": "Whether users must provide a valid email before using the service (default=True)",
+      "value": "True",
+      "required": false
+    },
+    "ACCOUNT_REQUIRED": {
+      "description": "Whether a user must have an account to access the site (default=False)",
+      "value": "False",
+      "required": false
+    },
+    "INVITE_REQUIRED": {
+      "description": "Whether a user must receive an invitation to join the site (default=False)",
+      "value": "False",
+      "required": false
+    },
+    "DEFAULT_FROM_EMAIL": {
+      "description": "Default email address for sending emails to users (default=ADMIN_EMAIL_ADDRESS)",
+      "required": false
     }
   },
   "scripts": {
-    "postdeploy": "python manage.py migrate && python manage.py loaddata source_tags && python manage.py check --deploy"
+    "postdeploy": "python manage.py migrate && python manage.py setname && python manage.py loaddata source_tags && python manage.py check --deploy"
   }
 }

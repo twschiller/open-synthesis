@@ -18,6 +18,7 @@ import sys
 
 import dj_database_url
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -43,7 +44,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     SESSION_COOKIE_SECURE=(bool, True),
     CSRF_COOKIE_SECURE=(bool, True),
     CSRF_COOKIE_HTTPONLY=(bool, True),
-    X_FRAME_OPTIONS=(str,"DENY"),
+    X_FRAME_OPTIONS=(str, "DENY"),
     ALLOWED_HOSTS=(str, "*"),
     SECURE_SSL_REDIRECT=(bool, True),
     SECURE_BROWSER_XSS_FILTER=(bool, True),
@@ -52,7 +53,9 @@ env = environ.Env(  # pylint: disable=invalid-name
     SECURE_HSTS_SECONDS=(int, 31536000),  # default to maximum age in seconds
     ROLLBAR_ACCESS_TOKEN=(str, None),
     ROLLBAR_ENABLED=(bool, False),
+    ACCOUNT_REQUIRED=(bool, False),
     ACCOUNT_EMAIL_REQUIRED=(bool, True),
+    INVITE_REQUIRED=(bool, False),
     SENDGRID_USERNAME=(str, None),
     SENDGRID_PASSWORD=(str, None),
     SLUG_MAX_LENGTH=(int, 72),
@@ -90,7 +93,10 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    # invitations must appear after allauth: https://github.com/bee-keeper/django-invitations#allauth-integration
+    'invitations',
 ]
+
 
 # This is using the pre-Django 1.10 middleware API. We'll need to update once the 3rd-party libraries are updated
 # to use the new API: https://docs.djangoproject.com/en/1.10/topics/http/middleware
@@ -113,7 +119,7 @@ MIDDLEWARE_CLASSES = [
 ]
 
 # Configure N+1 detection during DEBUG and TESTING; see https://github.com/jmcarp/nplusone
-if DEBUG:
+if DEBUG or TESTING:
     INSTALLED_APPS.insert(0, 'nplusone.ext.django')
     MIDDLEWARE_CLASSES.insert(0, 'nplusone.ext.django.NPlusOneMiddleware',)
 
@@ -128,6 +134,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'openach.context_processors.site',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -274,14 +281,27 @@ if env('SENDGRID_USERNAME') and env('SENDGRID_PASSWORD'):  # pragma: no cover
     SENDGRID_USER = env('SENDGRID_USERNAME')
     SENDGRID_PASSWORD = env('SENDGRID_PASSWORD')
 else:
-    logger.warning("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
+    logger.warning("SendGrid not configured: SENDGRID_USER, SENDGRID_PASSWORD")
+
+# Instance configuration
+SITE_NAME = env('SITE_NAME')
+SITE_DOMAIN = env('SITE_DOMAIN')
+ACCOUNT_REQUIRED = env('ACCOUNT_REQUIRED')
+ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
+INVITE_REQUIRED = env('INVITE_REQUIRED')
 
 # Authentication Options:
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = env('ACCOUNT_EMAIL_REQUIRED')
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 # https://stackoverflow.com/questions/22700041/django-allauth-sends-verification-emails-from-webmasterservername
-DEFAULT_FROM_EMAIL = "info@opensynthesis.org"
+DEFAULT_FROM_EMAIL = env.get_value('DEFAULT_FROM_EMAIL', default=ADMIN_EMAIL_ADDRESS)
+ACCOUNT_ADAPTER = 'invitations.models.InvitationsAdapter'
+
+# Invitations Options:
+# https://github.com/bee-keeper/django-invitations#additional-configuration
+INVITATIONS_INVITATION_ONLY = INVITE_REQUIRED
+INVITATIONS_ADAPTER = ACCOUNT_ADAPTER
 
 # Challenge/Response for Let's Encrypt. In the future, we may want to support challenge/response for multiple domains.
 CERTBOT_PUBLIC_KEY = env('CERTBOT_PUBLIC_KEY')
@@ -339,7 +359,7 @@ def _get_cache():
                 }
             }
         except:
-            logger.warning("Invalid MEMCACHIER configuration. Falling back to local memory cache.")
+            logger.warning("MEMCACHIER not configured; using local memory cache")
             return {
                 'default': {
                     'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
