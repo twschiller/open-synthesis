@@ -55,6 +55,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     ROLLBAR_ENABLED=(bool, False),
     ACCOUNT_REQUIRED=(bool, False),
     ACCOUNT_EMAIL_REQUIRED=(bool, True),
+    INVITE_REQUIRED=(bool, False),
     SENDGRID_USERNAME=(str, None),
     SENDGRID_PASSWORD=(str, None),
     SLUG_MAX_LENGTH=(int, 72),
@@ -92,6 +93,8 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    # invitations must appear after allauth: https://github.com/bee-keeper/django-invitations#allauth-integration
+    'invitations',
 ]
 
 
@@ -276,7 +279,7 @@ if env('SENDGRID_USERNAME') and env('SENDGRID_PASSWORD'):  # pragma: no cover
     # NOTE: django library uses _USER while Heroku uses _USERNAME
     SENDGRID_USER = env('SENDGRID_USERNAME')
     SENDGRID_PASSWORD = env('SENDGRID_PASSWORD')
-elif env('ACCOUNT_EMAIL_REQUIRED'):
+elif env('ACCOUNT_EMAIL_REQUIRED') or env('INVITE_REQUIRED'):
     raise ImproperlyConfigured("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
 else:
     logger.warning("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
@@ -284,6 +287,7 @@ else:
 # Instance configuration
 ACCOUNT_REQUIRED = env('ACCOUNT_REQUIRED')
 ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
+INVITE_REQUIRED = env('INVITE_REQUIRED')
 
 # Authentication Options:
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
@@ -291,7 +295,12 @@ ACCOUNT_EMAIL_REQUIRED = env('ACCOUNT_EMAIL_REQUIRED')
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 # https://stackoverflow.com/questions/22700041/django-allauth-sends-verification-emails-from-webmasterservername
 DEFAULT_FROM_EMAIL = env.get_value('DEFAULT_FROM_EMAIL', default=ADMIN_EMAIL_ADDRESS)
+ACCOUNT_ADAPTER = 'invitations.models.InvitationsAdapter'
 
+# Invitations Options:
+# https://github.com/bee-keeper/django-invitations#additional-configuration
+INVITATIONS_INVITATION_ONLY = INVITE_REQUIRED
+INVITATIONS_ADAPTER = ACCOUNT_ADAPTER
 
 # Challenge/Response for Let's Encrypt. In the future, we may want to support challenge/response for multiple domains.
 CERTBOT_PUBLIC_KEY = env('CERTBOT_PUBLIC_KEY')

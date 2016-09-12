@@ -7,6 +7,10 @@
   "keywords": ["python", "django", "analysis of competing hypotheses", "ACH" ],
   "addons": [ "heroku-postgresql", "rollbar:free", "sendgrid:starter", "memcachier:dev" ],
   "env": {
+    "ADMIN_EMAIL_ADDRESS": {
+      "description": "Website admin's email address. Used as default email address for sending/receiving email",
+      "required": true
+    },
     "DJANGO_SECRET_KEY": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
@@ -31,9 +35,10 @@
       "value": "False",
       "required": false
     },
-    "ADMIN_EMAIL_ADDRESS": {
-      "description": "Website admin's email address. Used as default email address for sending/receiving email",
-      "required": true
+    "INVITE_REQUIRED": {
+      "description": "Whether a user must receive an invitation to join the site (default=False)",
+      "value": "False",
+      "required": false
     },
     "DEFAULT_FROM_EMAIL": {
       "description": "Default email address for sending emails to users (default=ADMIN_EMAIL_ADDRESS)",

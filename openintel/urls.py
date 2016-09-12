@@ -38,6 +38,7 @@ urlpatterns = [  # pylint: disable=invalid-name
     url(r'^accounts/(?P<account_id>[0-9]+)/profile$', views.profile, name='profile'),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^comments/', include('django_comments.urls')),
+    url(r'^invitations/', include('invitations.urls', namespace='invitations')),
     url(r'', include('openach.urls')),
     url(r'\.well-known/acme-challenge/(?P<challenge_key>[a-zA-Z0-9\-]+)$', views.certbot)
 ]
