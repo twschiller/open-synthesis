@@ -316,7 +316,7 @@ PIPELINE = {
 
 
 def _get_cache():
-    if env('ENABLE_CACHE'):
+    if env('ENABLE_CACHE') and not TESTING:
         # https://devcenter.heroku.com/articles/django-memcache#configure-django-with-memcachier
         try:
             os.environ['MEMCACHE_SERVERS'] = env('MEMCACHIER_SERVERS').replace(',', ';')
