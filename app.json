@@ -7,6 +7,14 @@
   "keywords": ["python", "django", "analysis of competing hypotheses", "ACH" ],
   "addons": [ "heroku-postgresql", "rollbar:free", "sendgrid:starter", "memcachier:dev" ],
   "env": {
+    "APP_NAME": {
+      "description": "The name of your deployment, e.g., Open Synthesis",
+      "required": true
+    },
+    "APP_DOMAIN": {
+      "description": "The domain (including subdomain) that the deployment is being hosted at",
+      "required": true
+    },
     "ADMIN_EMAIL_ADDRESS": {
       "description": "Website admin's email address. Used as default email address for sending/receiving email",
       "required": true
@@ -46,6 +54,6 @@
     }
   },
   "scripts": {
-    "postdeploy": "python manage.py migrate && python manage.py loaddata source_tags && python manage.py check --deploy"
+    "postdeploy": "python manage.py migrate && python manage.py setname && python manage.py loaddata source_tags && python manage.py check --deploy"
   }
 }

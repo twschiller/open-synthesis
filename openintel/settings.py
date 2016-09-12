@@ -44,7 +44,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     SESSION_COOKIE_SECURE=(bool, True),
     CSRF_COOKIE_SECURE=(bool, True),
     CSRF_COOKIE_HTTPONLY=(bool, True),
-    X_FRAME_OPTIONS=(str,"DENY"),
+    X_FRAME_OPTIONS=(str, "DENY"),
     ALLOWED_HOSTS=(str, "*"),
     SECURE_SSL_REDIRECT=(bool, True),
     SECURE_BROWSER_XSS_FILTER=(bool, True),
@@ -134,6 +134,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'openach.context_processors.site',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -285,6 +286,8 @@ else:
     logger.warning("Email not configured: SENDGRID_USER, SENDGRID_PASSWORD")
 
 # Instance configuration
+SITE_NAME = env('SITE_NAME')
+SITE_DOMAIN = env('SITE_DOMAIN')
 ACCOUNT_REQUIRED = env('ACCOUNT_REQUIRED')
 ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
 INVITE_REQUIRED = env('INVITE_REQUIRED')
@@ -358,7 +361,7 @@ def _get_cache():
                 }
             }
         except:
-            logger.warning("Invalid MEMCACHIER configuration. Falling back to local memory cache.")
+            logger.warning("MEMCACHIER not configured; using local memory cache")
             return {
                 'default': {
                     'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
