@@ -567,11 +567,11 @@ class EvidenceDetailTests(TestCase):
 
     def test_cannot_get_add_source_tag_page(self):
         """
-        Make sure that a rouge client can't 'GET' the add source tag page
+        Make sure that a rouge client can't 'GET' the add source tag page. Instead the user should be redirected.
         """
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
 
 
 class AddEvidenceTests(TestCase):

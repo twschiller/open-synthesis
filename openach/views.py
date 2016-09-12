@@ -21,7 +21,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied
-from django.views.decorators.vary import vary_on_headers
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import available_attrs
 from slugify import slugify
@@ -206,13 +205,13 @@ def detail(request, board_id, dummy_board_slug=None):
     view_type = 'average' if request.GET.get('view_type') is None else request.GET['view_type']
 
     board = get_object_or_404(Board, pk=board_id)
-    votes = Evaluation.objects.filter(board=board)
+    votes = Evaluation.objects.filter(board=board).select_related('user')
 
     participants = set(map(lambda x: x.user, votes))
 
     # calculate consensus and disagreement for each evidence/hypothesis pair
     def _pair_key(evaluation):
-        return evaluation.evidence.id, evaluation.hypothesis.id
+        return evaluation.evidence_id, evaluation.hypothesis_id
     keyed = defaultdict(list)
     for vote in votes:
         keyed[_pair_key(vote)].append(Eval.for_value(vote.value))
@@ -251,13 +250,13 @@ def detail(request, board_id, dummy_board_slug=None):
 def board_history(request, board_id):
     """Return the modification history (board details, evidence, hypotheses) for the board"""
     # this approach to grabbing the history will likely be too slow for big boards
+    def _get_history(models):
+        return itertools.chain(*map(lambda x: list(FieldHistory.objects.get_for_model(x).select_related('user')), models))
     board = get_object_or_404(Board, pk=board_id)
-    evidence = Evidence.objects.filter(board=board)
-    hypotheses = Hypothesis.objects.filter(board=board)
     history = [
-        list(FieldHistory.objects.get_for_model(board)),
-        itertools.chain(*map(lambda x: list(FieldHistory.objects.get_for_model(x)), evidence)),
-        itertools.chain(*map(lambda x: list(FieldHistory.objects.get_for_model(x)), hypotheses))
+        _get_history([board]),
+        _get_history(Evidence.objects.filter(board=board)),
+        _get_history(Hypothesis.objects.filter(board=board)),
     ]
     history = list(itertools.chain(*history))
     history.sort(key=lambda x: x.date_created, reverse=True)
@@ -479,7 +478,8 @@ def toggle_source_tag(request, evidence_id, source_id):
                 messages.success(request, 'Added "{}" tag to source.'.format(tag.tag_name))
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
     else:
-        raise Http404()
+        # Redirect to the form where the user can toggle a source tag
+        return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
 
 
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
@@ -488,15 +488,15 @@ def evidence_detail(request, evidence_id):
     # NOTE: cannot cache page for logged in users b/c comments section contains CSRF and other protection mechanisms.
     evidence = get_object_or_404(Evidence, pk=evidence_id)
     available_tags = EvidenceSourceTag.objects.all()
-    sources = EvidenceSource.objects.filter(evidence=evidence).order_by('-source_date')
+    sources = EvidenceSource.objects.filter(evidence=evidence).order_by('-source_date').select_related('uploader')
     all_tags = AnalystSourceTag.objects.filter(source__in=sources)
 
     source_tags = defaultdict(list)
     user_tags = defaultdict(list)
     for tag in all_tags:
-        key = (tag.source.id, tag.tag.id)
+        key = (tag.source_id, tag.tag_id)
         source_tags[key].append(tag)
-        if tag.tagger == request.user:
+        if tag.tagger_id == request.user.id:
             user_tags[key].append(tag)
 
     context = {
