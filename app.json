@@ -12,7 +12,7 @@
       "required": true
     },
     "SITE_DOMAIN": {
-      "description": "The domain (including subdomain) that the deployment is being hosted at. This is should be set to app-name.herokuapp.com where app-name is the name the Heroku app",
+      "description": "The domain (including subdomain) that the deployment is being hosted at. This is should be set to app-name.herokuapp.com where app-name is the name of the Heroku app",
       "required": true
     },
     "ADMIN_EMAIL_ADDRESS": {
@@ -20,7 +20,7 @@
       "required": true
     },
     "DJANGO_SECRET_KEY": {
-      "description": "A secret key for verifying the integrity of signed cookies.",
+      "description": "A secret key for verifying the integrity of signed cookies",
       "generator": "secret"
     },
     "DEBUG": {
