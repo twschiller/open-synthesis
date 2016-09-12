@@ -112,6 +112,13 @@ MIDDLEWARE_CLASSES = [
     'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 ]
 
+# Configure N+1 detection during DEBUG and TESTING; see https://github.com/jmcarp/nplusone
+if DEBUG:
+    INSTALLED_APPS.insert(0, 'nplusone.ext.django')
+    MIDDLEWARE_CLASSES.insert(0, 'nplusone.ext.django.NPlusOneMiddleware',)
+
+NPLUSONE_RAISE = TESTING
+
 ROOT_URLCONF = 'openintel.urls'
 
 TEMPLATES = [
