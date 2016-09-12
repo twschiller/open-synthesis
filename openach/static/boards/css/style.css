@@ -118,6 +118,10 @@ body {
     background-color: #FCF3CF;
 }
 
+footer.license {
+    font-size: 0.8em;
+}
+
 #id_honeypot {
     display: none;
 }
