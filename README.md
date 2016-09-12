@@ -51,18 +51,12 @@ $ git push heroku master
 
 $ heroku run python manage.py migrate
 $ heroku run python manage.py loaddata source_tags
+$ heroku run python manage.py check --deploy
 $ heroku open
 ```
 or
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
-
-Additionally, after deploying, you should check that Django's security options are
-configured properly:
-
-```sh
-heroku run python manage.py check --deploy
-```
 
 ## Copyright
 

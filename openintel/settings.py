@@ -35,6 +35,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # NOTE: 'env' follows naming convention from the environ documentation
 env = environ.Env(  # pylint: disable=invalid-name
     DEBUG=(bool, False),
+    ENABLE_CACHE=(bool, True),
     DJANGO_LOG_LEVEL=(str, "ERROR"),
     APP_LOG_LEVEL=(str, "ERROR"),
     CERTBOT_PUBLIC_KEY=(str, None),
@@ -312,3 +313,39 @@ SLUG_MAX_LENGTH = env('SLUG_MAX_LENGTH')
 PIPELINE = {
     'PIPELINE_ENABLED': not DEBUG,
 }
+
+
+def _get_cache():
+    if env('ENABLE_CACHE') and not TESTING:
+        # https://devcenter.heroku.com/articles/django-memcache#configure-django-with-memcachier
+        try:
+            os.environ['MEMCACHE_SERVERS'] = env('MEMCACHIER_SERVERS').replace(',', ';')
+            os.environ['MEMCACHE_USERNAME'] = env('MEMCACHIER_USERNAME')
+            os.environ['MEMCACHE_PASSWORD'] = env('MEMCACHIER_PASSWORD')
+            logger.info("Using MEMCACHIER servers: {}".format(env('MEMCACHIER_SERVERS')))
+            return {
+                'default': {
+                    'BACKEND': 'django_pylibmc.memcached.PyLibMCCache',
+                    'TIMEOUT': 500,
+                    'BINARY': True,
+                    'OPTIONS': {'tcp_nodelay': True}
+                }
+            }
+        except:
+            logger.warning("Invalid MEMCACHIER configuration. Falling back to local memory cache.")
+            return {
+                'default': {
+                    'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
+                }
+            }
+    else:
+        # https://docs.djangoproject.com/en/1.10/topics/cache/#dummy-caching-for-development
+        logger.info("ENABLE_CACHE not set; using DummyCache")
+        return {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+            }
+        }
+
+# https://docs.djangoproject.com/en/1.10/topics/cache/
+CACHES = _get_cache()

@@ -1,14 +1,26 @@
 {
-  "name": "Open Intel",
-  "description": "Crowd Intelligence platform",
+  "name": "Open Synthesis",
+  "description": "Open platform for intelligence analysis",
   "image": "heroku/python",
-  "repository": "https://github.com/heroku/python-getting-started",
+  "website": "https://www.opensynthesis.org",
+  "repository": "https://github.com/twschiller/open-synthesis",
   "keywords": ["python", "django", "analysis of competing hypotheses", "ACH" ],
-  "addons": [ "heroku-postgresql", "rollbar:free", "sendgrid:starter" ],
+  "addons": [ "heroku-postgresql", "rollbar:free", "sendgrid:starter", "memcachier:dev" ],
   "env": {
     "SECRET_TOKEN": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
     },
+    "DEBUG": {
+      "description": "Whether or not the application is running in DEBUG mode (DO NOT ENABLE IN PRODUCTION)",
+      "value": "False"
+    },
+    "ROLLBAR_ENABLED": {
+      "description": "Whether or warnings and errors should be sent to Rollbar for analysis",
+      "value": "True"
+    },
+  },
+  "scripts": {
+    "postdeploy": "python manage.py migrate && manage.py loaddata source_tags && python manage.py check --deploy"
   }
 }

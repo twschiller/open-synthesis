@@ -6,8 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>{% block title %}{% endblock %}</title>
-    <meta name="description" content="Open Synthesis is an open platform for intelligence analysis">
-    <meta name="keywords" content="Analysis of Competing Hypothesis, ACH, intelligence analysis, platform">
+    {% if meta_description %}
+        <meta name="description" content="{{ meta_description }}">
+    {% else %}
+        <meta name="description" content="Open Synthesis is an open platform for intelligence analysis">
+    {% endif %}
+    {% if meta_keywords %}
+        <meta name="keywords" content="{{ meta_keywords }}">
+    {% else %}
+        <meta name="keywords" content="Analysis of Competing Hypothesis, ACH, intelligence analysis">
+    {% endif %}
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.min.css"
