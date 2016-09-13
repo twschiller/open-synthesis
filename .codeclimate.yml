@@ -12,7 +12,9 @@ engines:
      enabled: true
      config:
        languages:
-       - python
+         python:
+           # default mass threshold is 32; see: https://docs.codeclimate.com/docs/duplication
+           mass_threshold: 35
 
 ratings:
    paths:

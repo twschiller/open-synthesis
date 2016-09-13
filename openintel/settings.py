@@ -23,8 +23,12 @@ import environ
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-# https://stackoverflow.com/questions/4088253/django-how-to-detect-test-environment
-TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+def _detect_command(cmd):
+    """Return True iff the user is running the specified Django admin command."""
+    # https://stackoverflow.com/questions/4088253/django-how-to-detect-test-environment
+    return len(sys.argv) > 1 and sys.argv[1] == cmd
+
+TESTING = _detect_command('test')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -285,7 +289,7 @@ else:
 SITE_NAME = env('SITE_NAME')
 SITE_DOMAIN = env('SITE_DOMAIN')
 ACCOUNT_REQUIRED = env('ACCOUNT_REQUIRED')
-if len(sys.argv) > 1 and sys.argv[1] == 'createadmin':  # pragma: no cover
+if _detect_command('createadmin'):  # pragma: no cover
     # Load the admin credentials if the admin is creating a default account
     ADMIN_USERNAME = env('ADMIN_USERNAME')
     ADMIN_PASSWORD = env('ADMIN_PASSWORD')
