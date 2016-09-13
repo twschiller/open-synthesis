@@ -5,6 +5,7 @@ from django.conf import settings
 
 
 class Command(BaseCommand):
+    """Django admin command to set the site from the environment"""
     help = 'Sets the site name and domain from the environment'
 
     def handle(self, *args, **options):
@@ -21,7 +22,7 @@ class Command(BaseCommand):
 
         try:
             site = Site.objects.get(pk=site_id)
-        except Site.DoesNotExist:
+        except Site.DoesNotExist:  # pylint: disable=no-member
             raise CommandError('Site "%s" does not exist' % site_id)
 
         site.name = site_name
@@ -29,4 +30,4 @@ class Command(BaseCommand):
         site.save()
 
         msg = 'Successfully configured site #%s; name: "%s"; domain: %s' % (site_id, site_name, site_domain)
-        self.stdout.write(self.style.SUCCESS(msg))
+        self.stdout.write(self.style.SUCCESS(msg))  # pylint: disable=no-member

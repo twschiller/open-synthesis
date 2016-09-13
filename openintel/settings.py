@@ -18,7 +18,6 @@ import sys
 
 import dj_database_url
 import environ
-from django.core.exceptions import ImproperlyConfigured
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -346,10 +345,11 @@ def _get_cache():
     if env('ENABLE_CACHE') and not TESTING:
         # https://devcenter.heroku.com/articles/django-memcache#configure-django-with-memcachier
         try:
-            os.environ['MEMCACHE_SERVERS'] = env('MEMCACHIER_SERVERS').replace(',', ';')
+            # NOTE: if 'MEMCACHIER_SERVERS' isn't defined, the exception will get caught as expected
+            os.environ['MEMCACHE_SERVERS'] = env('MEMCACHIER_SERVERS').replace(',', ';')  # pylint: disable=no-member
             os.environ['MEMCACHE_USERNAME'] = env('MEMCACHIER_USERNAME')
             os.environ['MEMCACHE_PASSWORD'] = env('MEMCACHIER_PASSWORD')
-            logger.info("Using MEMCACHIER servers: {}".format(env('MEMCACHIER_SERVERS')))
+            logger.info("Using MEMCACHIER servers: %s", env('MEMCACHIER_SERVERS'))
             return {
                 'default': {
                     'BACKEND': 'django_pylibmc.memcached.PyLibMCCache',
@@ -358,7 +358,8 @@ def _get_cache():
                     'OPTIONS': {'tcp_nodelay': True}
                 }
             }
-        except:
+        except:  # pylint: disable=bare-except
+            # NOTE: bare except clause is OK here because all exceptions would be caused by a bad/missing configuration
             logger.warning("MEMCACHIER not configured; using local memory cache")
             return {
                 'default': {

@@ -1,10 +1,11 @@
-"""Django admin command to create an admin account based on the environment variables"""
+"""Django admin command to create an admin account based on environment variables"""
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from django.contrib.auth.models import User
 
 
 class Command(BaseCommand):
+    """Django admin command to create an admin account based on environment variables"""
     help = 'Automatically create superuser based on environment variables.'
 
     def handle(self, *args, **options):
@@ -21,4 +22,5 @@ class Command(BaseCommand):
         admin.is_staff = True
         admin.save()
 
-        self.stdout.write(self.style.SUCCESS('Successfully configured admin %s (%s)' % (username, email)))
+        msg = 'Successfully configured admin %s (%s)' % (username, email)
+        self.stdout.write(self.style.SUCCESS(msg))  # pylint: disable=no-member

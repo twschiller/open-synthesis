@@ -6,9 +6,7 @@ For more information, please see:
 from collections import defaultdict
 import logging
 import itertools
-import statistics
 import random
-from functools import wraps
 
 from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
@@ -17,20 +15,22 @@ from django import forms
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404, HttpResponseRedirect, HttpResponse
-from django.contrib.auth.decorators import login_required, user_passes_test, REDIRECT_FIELD_NAME
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured
-from django.views.decorators.cache import cache_page
-from django.utils.decorators import available_attrs
+from django.conf import settings
+from django.views.decorators.http import require_http_methods, require_safe
 from slugify import slugify
 from field_history.models import FieldHistory
-from django.conf import settings
+
 
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from .models import ProjectNews
 from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH
 from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
+from .metrics import consensus_vote, inconsistency, diagnosticity, calc_disagreement
+from .decorators import cache_if_anon, cache_on_auth, account_required
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -41,49 +41,15 @@ SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH', 72)
 ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
 
 
-def account_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
-    """
-    Decorator for views that checks that (1) the user is logged in or (2) that an account is not required, redirecting
-    to the log-in page if necessary. See also django.contrib.auth.decorators.login_required
-    """
-    actual_decorator = user_passes_test(
-        lambda u: not ACCOUNT_REQUIRED or u.is_authenticated(),
-        login_url=login_url,
-        redirect_field_name=redirect_field_name
-    )
-    if function:
-        return actual_decorator(function)
-    return actual_decorator
+def check_owner_authorization(request, board, has_creator=None):
+    """Raises a PermissionDenied exception if the authenticated user does not have edit rights for the resource"""
+    if request.user.is_staff or request.user == board.creator or (has_creator and request.user == has_creator.creator):
+        pass
+    else:
+        raise PermissionDenied()
 
 
-def cache_on_auth(timeout):
-    """
-    Cache the response based on whether or not the user is authenticated. Should NOT be used on pages that have
-    user-specific information, e.g., CSRF tokens.
-    """
-    # https://stackoverflow.com/questions/11661503/django-caching-for-authenticated-users-only
-    def decorator(view_func):
-        @wraps(view_func, assigned=available_attrs(view_func))
-        def _wrapped_view(request, *args, **kwargs):
-            return cache_page(timeout, key_prefix="_auth_%s_" % request.user.is_authenticated())(view_func)(request, *args, **kwargs)
-        return _wrapped_view
-    return decorator
-
-
-def cache_if_anon(timeout):
-    """Cache the page if the user is not authenticated and there are no messages to display."""
-    # https://stackoverflow.com/questions/11661503/django-caching-for-authenticated-users-only
-    def decorator(view_func):
-        @wraps(view_func, assigned=available_attrs(view_func))
-        def _wrapped_view(request, *args, **kwargs):
-            if request.user.is_authenticated() or messages.get_messages(request):
-                return view_func(request, *args, **kwargs)
-            else:
-                return cache_page(timeout)(view_func)(request, *args, **kwargs)
-        return _wrapped_view
-    return decorator
-
-
+@require_safe
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def index(request):
@@ -98,6 +64,7 @@ def index(request):
     return render(request, 'boards/index.html', context)
 
 
+@require_safe
 @account_required
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def about(request):
@@ -105,113 +72,7 @@ def about(request):
     return render(request, 'boards/about.html')
 
 
-def partition(pred, iterable):
-    """Use a predicate to partition entries into false entries and true entries."""
-    # https://stackoverflow.com/questions/8793772/how-to-split-a-sequence-according-to-a-predicate
-    # NOTE: this might iterate over the collection twice
-    it1, it2 = itertools.tee(iterable)
-    return itertools.filterfalse(pred, it1), filter(pred, it2)
-
-
-def mean_na_neutral_vote(evaluations):
-    """
-    Returns the mean rating on a 1-5 scale for the given evaluations, or None if there are no evaluations. Treats N/As
-    as a neutral vote.
-    """
-    def _replace_na(eval_):
-        return eval_.value if (eval_ and eval_ is not Eval.not_applicable) else Eval.neutral.value
-    return statistics.mean(map(_replace_na, evaluations)) if evaluations else None
-
-
-def calc_disagreement(evaluations):
-    """
-    Determine the disagreement for a set of evaluations. Determined as the max disagreement of (1) N/A and non-N/A
-    responses and (2) non-N/A evaluations
-    :param evaluations: an iterable of Eval
-    """
-    if evaluations:
-        na_it, rated_it = partition(lambda x: x is not Eval.not_applicable, evaluations)
-        na_votes = list(na_it)
-        rated_votes = list(rated_it)
-
-        # Here we use the sample standard deviation because we consider the evaluations are a sample of all the
-        # evaluations that could be given.
-        # Not clear the best way to make the N/A disagreement comparable to the evaluation disagreement calculation
-        na_disagreement = (
-            statistics.stdev(([0] * len(na_votes)) + ([1] * len(rated_votes)))
-            if len(na_votes) + len(rated_votes) > 1
-            else 0.0)
-        rated_disagreement = (
-            statistics.stdev(map(lambda x: x.value, rated_votes))
-            if len(rated_votes) > 1
-            else 0.0)
-        return max(na_disagreement, rated_disagreement)
-    else:
-        return None
-
-
-def consensus_vote(evaluations):
-    """
-    Determine the consensus Eval given an iterable of Eval. (1) whether or not the evidence is applicable, and
-    (2) if the evidence is applicable, how consistent the evidence is with the hypothesis. Is conservative, adjusting
-    the result toward Eval.neutral if there is a "tie".
-    """
-    na_it, rated_it = partition(lambda x: x is not Eval.not_applicable, evaluations)
-    na_votes = list(na_it)
-    rated_votes = list(rated_it)
-
-    if not na_votes and not rated_votes:
-        return None
-    elif len(na_votes) > len(rated_votes):
-        return Eval.not_applicable
-    else:
-        consensus = round(statistics.mean(map(lambda x: x.value, rated_votes)))
-        return Eval.for_value(round(consensus))
-
-
-def inconsistency(evaluations):
-    """
-    Calculate a metric for the inconsistency of a hypothesis with respect to a set of evidence. Does not account for
-    the reliability of the evidence (e.g., due to deception). Metric is monotonic in the number of pieces of evidence
-    that have been evaluated. That is, for a given hypothesis, further evidence can only serve to refute it (though
-    it may make the hypothesis more likely relative to the other hypotheses).
-    :param evaluations: an iterable of sets of Eval for the hypothesis
-    """
-    # The "inconsistency" needs to capture the extent to which a hypothesis has been refuted. The approach below
-    # computes a metric similar to "sum squared error" for evidence where the consensus is that the hypotheses is
-    # inconsistent. Currently we're treating N/A's a neutral. It may make sense to exclude them entirely because a
-    # hypotheses can be considered more consistent just because there's less evidence that applies to it.
-    na_neutral_consensuses = list(map(mean_na_neutral_vote, evaluations))
-    inconsistent = list(filter(lambda x: x is not None and x < Eval.neutral.value, na_neutral_consensuses))
-    return sum(map(lambda x: (Eval.neutral.value - x)**2, inconsistent))
-
-
-def diagnosticity(evaluations):
-    """
-    Calculate the diagnosticity of a piece of evidence given its evaluation vs. a set of hypotheses.
-    :param evaluations: an iterable of sets of Eval for a piece of evidence
-    """
-    # The "diagnosticity" needs to capture how well the evidence separates/distinguishes the hypotheses. If we don't
-    # show a preference between consistent/inconsistent, STDDEV captures this intuition OK. However, in the future,
-    # we may want to favor evidence for which hypotheses are inconsistent. Additionally, we may want to calculate
-    # "marginal diagnosticity" which takes into the rest of the evidence.
-    # (1) calculate the consensus for each hypothesis
-    # (2) map N/A to neutral because N/A doesn't help determine consistency of the evidence
-    # (3) calculate the population standard deviation of the evidence. It's more reasonable to consider the set of
-    #     hypotheses at a given time to be the population of hypotheses than as a "sample" (although it doesn't matter
-    #     much because we're comparing across hypothesis sets of the same size)
-    na_neutral_consensuses = list(filter(None.__ne__, map(mean_na_neutral_vote, evaluations)))
-    return statistics.pstdev(na_neutral_consensuses) if na_neutral_consensuses else 0.0
-
-
-def check_owner_authorization(request, board, has_creator=None):
-    """Raises a PermissionDenied exception if the authenticated user does not have edit rights for the resource"""
-    if request.user.is_staff or request.user == board.creator or (has_creator and request.user == has_creator.creator):
-        pass
-    else:
-        raise PermissionDenied()
-
-
+@require_safe
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def detail(request, board_id, dummy_board_slug=None):
@@ -267,6 +128,7 @@ def detail(request, board_id, dummy_board_slug=None):
     return render(request, 'boards/detail.html', context)
 
 
+@require_safe
 @account_required
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def board_history(request, board_id):
@@ -293,12 +155,7 @@ class BoardForm(forms.Form):
     hypothesis2 = forms.CharField(label='Hypothesis #2', max_length=HYPOTHESIS_MAX_LENGTH)
 
 
-class BoardEditForm(forms.Form):
-    """Board edit form."""
-    board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
-    board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
-
-
+@require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def create_board(request):
     """Shows form for board creation and handles form submission."""
@@ -327,6 +184,13 @@ def create_board(request):
     return render(request, 'boards/create_board.html', {'form': form})
 
 
+class BoardEditForm(forms.Form):
+    """Board edit form."""
+    board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
+    board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
+
+
+@require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def edit_board(request, board_id):
     """Shows form for editing a board and handles form submission"""
@@ -384,17 +248,7 @@ class EvidenceForm(BaseSourceForm, EvidenceEditForm):
     pass
 
 
-class EvidenceSourceForm(BaseSourceForm):
-    """
-    Form for editing a corroborating/contradicting source for a piece of evidence. By default sources are
-    corroborating.
-    """
-    corroborating = forms.BooleanField(
-        required=False,
-        widget=forms.HiddenInput()
-    )
-
-
+@require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def add_evidence(request, board_id):
     """
@@ -430,6 +284,7 @@ def add_evidence(request, board_id):
     return render(request, 'boards/add_evidence.html', {'form': form, 'board': board})
 
 
+@require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def edit_evidence(request, evidence_id):
     """Shows a form for editing a piece of evidence and handles form submission"""
@@ -450,6 +305,18 @@ def edit_evidence(request, evidence_id):
     return render(request, 'boards/edit_evidence.html', {'form': form, 'evidence': evidence, 'board': board})
 
 
+class EvidenceSourceForm(BaseSourceForm):
+    """
+    Form for editing a corroborating/contradicting source for a piece of evidence. By default sources are
+    corroborating.
+    """
+    corroborating = forms.BooleanField(
+        required=False,
+        widget=forms.HiddenInput()
+    )
+
+
+@require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def add_source(request, evidence_id):
     """Shows a form for adding a corroborating/contradicting source for a piece of evidence and handles submission."""
@@ -481,6 +348,7 @@ def add_source(request, evidence_id):
     return render(request, 'boards/add_source.html', context)
 
 
+@require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def toggle_source_tag(request, evidence_id, source_id):
     """Toggle source tag for the given source and redirect to the evidence detail page for the associated evidence."""
@@ -504,6 +372,7 @@ def toggle_source_tag(request, evidence_id, source_id):
         return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
 
 
+@require_safe
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def evidence_detail(request, evidence_id):
@@ -538,6 +407,7 @@ class HypothesisForm(forms.Form):
     hypothesis_text = forms.CharField(label='Hypothesis', max_length=200)
 
 
+@require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def add_hypothesis(request, board_id):
     """Shows a form for adding a hypothesis to a board and handles form submission"""
@@ -565,6 +435,7 @@ def add_hypothesis(request, board_id):
     return render(request, 'boards/add_hypothesis.html', context)
 
 
+@require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def edit_hypothesis(request, hypothesis_id):
     """Shows a form for editing a hypothesis and handles board submission."""
@@ -584,6 +455,7 @@ def edit_hypothesis(request, hypothesis_id):
     return render(request, 'boards/edit_hypothesis.html', {'form': form, 'hypothesis': hypothesis, 'board': board})
 
 
+@require_safe
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def profile(request, account_id=None):
@@ -614,6 +486,7 @@ def profile(request, account_id=None):
     return render(request, 'boards/' + template, context)
 
 
+@require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def evaluate(request, board_id, evidence_id):
     """
@@ -657,6 +530,7 @@ def evaluate(request, board_id, evidence_id):
         return render(request, 'boards/evaluate.html', context)
 
 
+@require_safe
 def robots(request):
     """Returns the robots.txt including the sitemap location (using the site domain)"""
     context = {
@@ -670,6 +544,7 @@ def robots(request):
     return render(request, 'robots.txt', context, content_type='text/plain')
 
 
+@require_safe
 def certbot(dummy_request, challenge_key):  # pragma: no cover
     """Respond to the Let's Encrypt certbot challenge. If the challenge is not configured, returns a 404"""
     # ignore coverage since keys aren't available in the testing environment

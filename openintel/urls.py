@@ -43,7 +43,6 @@ urlpatterns = [  # pylint: disable=invalid-name
     url(r'\.well-known/acme-challenge/(?P<challenge_key>[a-zA-Z0-9\-]+)$', views.certbot)
 ]
 
-if not ACCOUNT_REQUIRED:
+if not ACCOUNT_REQUIRED:  # pylint: disable=invalid-name
     # Only allow clients to view the sitemap if the admin is running a public instance
-    pattern = url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap')
-    urlpatterns.insert(0, pattern)
+    urlpatterns.insert(0, url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'))

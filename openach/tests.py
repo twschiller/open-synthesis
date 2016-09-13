@@ -10,18 +10,23 @@ from django.contrib.sites.models import Site
 from django.core import mail
 from django_comments.models import Comment
 from unittest import skipUnless
-from openintel.settings import ACCOUNT_EMAIL_REQUIRED, DEFAULT_FROM_EMAIL, SLUG_MAX_LENGTH
+from django.conf import settings
 from field_history.models import FieldHistory
 
+from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, inconsistency, calc_disagreement
 from .models import Board, Eval, Evidence, Hypothesis, Evaluation, ProjectNews
 from .models import URL_MAX_LENGTH
 from .sitemap import BoardSitemap
-from .views import consensus_vote, diagnosticity, inconsistency, calc_disagreement, mean_na_neutral_vote
 from .views import EvidenceSource, EvidenceSourceForm, EvidenceSourceTag, AnalystSourceTag
 from .views import BoardEditForm, EvidenceEditForm, HypothesisForm
 
 
 logger = logging.getLogger(__name__)
+
+
+ACCOUNT_EMAIL_REQUIRED = getattr(settings, 'ACCOUNT_EMAIL_REQUIRED', True)
+DEFAULT_FROM_EMAIL = getattr(settings, 'DEFAULT_FROM_EMAIL', "admin@localhost")
+SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH')
 
 
 class BoardMethodTests(TestCase):
