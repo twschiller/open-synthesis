@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/twschiller/open-synthesis.svg?branch=master)](https://travis-ci.org/twschiller/open-synthesis)
 [![Coverage Status](https://coveralls.io/repos/github/twschiller/open-synthesis/badge.svg?branch=master)](https://coveralls.io/github/twschiller/open-synthesis?branch=master)
 [![Code Climate Status](https://codeclimate.com/github/twschiller/open-synthesis/badges/gpa.svg)](https://codeclimate.com/github/twschiller/open-synthesis)
-[![Codacy Status](https://api.codacy.com/project/badge/Grade/f223127c989847b9b67cb63ace3ab086)](https://www.codacy.com/app/todd-schiller/open-synthesis)
+[![Code Health](https://landscape.io/github/twschiller/open-synthesis/master/landscape.svg?style=flat)](https://landscape.io/github/twschiller/open-synthesis/master)
 [![Requirements Status](https://requires.io/github/twschiller/open-synthesis/requirements.svg?branch=master)](https://requires.io/github/twschiller/open-synthesis/requirements/?branch=master)
 [![License Status](https://img.shields.io/badge/license-GPL-brightgreen.svg)](LICENSE.md)
 

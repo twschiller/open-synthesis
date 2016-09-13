@@ -561,7 +561,6 @@ def certbot(dummy_request, challenge_key):  # pragma: no cover
     If the challenge is not configured, raise a 404. For more information, please see:
         https://certbot.eff.org/
     """
-    """Respond to the Let's Encrypt certbot challenge. If the challenge is not configured, returns a 404"""
     # ignore coverage since keys aren't available in the testing environment
     public_key = getattr(settings, 'CERTBOT_PUBLIC_KEY')
     secret_key = getattr(settings, 'CERTBOT_SECRET_KEY')

@@ -65,7 +65,7 @@ we'd like to acknowledge the following:
 * Project hosting provided by [GitHub](https://github.com)
 * Continuous Integration provided by [Travis CI](https://travis-ci.org/)
 * Code Coverage Reporting provided by [Coveralls](https://coveralls.io/)
-* Code Lint Reporting provided by [Code Climate](https://codeclimate.com/)
+* Code Lint Reporting provided by [Code Climate](https://codeclimate.com/), [Codacy](https://www.codacy.com/), and [Landscape.io](https://landscape.io)
 * [Responsible Disclosure Policy](SECURITY.md) adapted from Bugcrowd's 
 [Open Source Responsible Disclosure Framework](https://github.com/bugcrowd/disclosure-policy) under a
 [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/)
