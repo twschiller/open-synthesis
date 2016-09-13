@@ -286,6 +286,10 @@ else:
 SITE_NAME = env('SITE_NAME')
 SITE_DOMAIN = env('SITE_DOMAIN')
 ACCOUNT_REQUIRED = env('ACCOUNT_REQUIRED')
+if len(sys.argv) > 1 and sys.argv[1] == 'createadmin':  # pragma: no cover
+    # Load the admin credentials if the admin is creating a default account
+    ADMIN_USERNAME = env('ADMIN_USERNAME')
+    ADMIN_PASSWORD = env('ADMIN_PASSWORD')
 ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
 INVITE_REQUIRED = env('INVITE_REQUIRED')
 
