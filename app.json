@@ -5,14 +5,23 @@
   "website": "https://www.opensynthesis.org",
   "repository": "https://github.com/twschiller/open-synthesis",
   "keywords": ["python", "django", "analysis of competing hypotheses", "ACH" ],
-  "addons": [ "heroku-postgresql", "rollbar:free", "sendgrid:starter", "memcachier:dev" ],
+  "addons": [ "heroku-postgresql:hobby-dev", "rollbar:free", "sendgrid:starter", "memcachier:dev" ],
   "env": {
     "SITE_NAME": {
-      "description": "The name of your deployment, e.g., Open Synthesis",
+      "description": "The name of your deployment, e.g., Open Synthesis. If you are planning on running a public instance, please do not use the name 'Open Synthesis' because may it cause confusion between your deployment and the official website.",
       "required": true
     },
     "SITE_DOMAIN": {
-      "description": "The domain (including subdomain) that the deployment is being hosted at. This is should be set to app-name.herokuapp.com where app-name is the name of the Heroku app",
+      "description": "The domain (including subdomain) that the deployment is being hosted at. This is should be set to app-name.herokuapp.com where app-name is the name of the Heroku app. If you plan on using a custom domain, it should be set to the custom domain, e.g., www.customdomain.com.",
+      "required": true
+    },
+    "ADMIN_USERNAME": {
+      "description": "Website admin's username",
+      "required": true,
+      "value": "admin"
+    },
+    "ADMIN_PASSWORD": {
+      "description": "Website admin's password. NOTE: this value will be shown on the application's settings page. Delete this configuration variable once you've deployed the application.",
       "required": true
     },
     "ADMIN_EMAIL_ADDRESS": {
@@ -54,6 +63,6 @@
     }
   },
   "scripts": {
-    "postdeploy": "python manage.py migrate && python manage.py setname && python manage.py loaddata source_tags && python manage.py check --deploy"
+    "postdeploy": "python manage.py migrate && python manage.py setname && python manage.py createadmin && python manage.py loaddata source_tags && python manage.py check --deploy"
   }
 }

@@ -7,9 +7,6 @@ from django.conf import settings
 class Command(BaseCommand):
     help = 'Sets the site name and domain from the environment'
 
-    def add_arguments(self, parser):
-        pass
-
     def handle(self, *args, **options):
         site_id = getattr(settings, 'SITE_ID', None)
         site_name = getattr(settings, 'SITE_NAME', None)
