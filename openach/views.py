@@ -88,7 +88,7 @@ def detail(request, board_id, dummy_board_slug=None):
     board = get_object_or_404(Board, pk=board_id)
     votes = Evaluation.objects.filter(board=board).select_related('user')
 
-    participants = set(map(lambda x: x.user, votes))
+    participants = {vote.user for vote in votes}
 
     # calculate consensus and disagreement for each evidence/hypothesis pair
     def _pair_key(evaluation):
@@ -468,11 +468,11 @@ def profile(request, account_id=None):
     # There's no real reason for these to be atomic
     user = get_object_or_404(User, pk=account_id)
     boards = Board.objects.filter(creator=user)
-    evidence = Evidence.objects.filter(creator=user)
-    hypotheses = Hypothesis.objects.filter(creator=user)
-    votes = Evaluation.objects.filter(user=user)
-    contributed = set(map(lambda x: x.board, evidence)).union(set(map(lambda x: x.board, hypotheses)))
-    voted = set(map(lambda x: x.board, votes))
+    evidence = Evidence.objects.filter(creator=user).select_related('board')
+    hypotheses = Hypothesis.objects.filter(creator=user).select_related('board')
+    votes = Evaluation.objects.filter(user=user).select_related('board')
+    contributed = {e.board for e in evidence}.union({h.board for h in hypotheses})
+    voted = {v.board for v in votes}
     context = {
         'user': user,
         'boards_created': boards,

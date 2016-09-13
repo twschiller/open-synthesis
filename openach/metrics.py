@@ -10,9 +10,10 @@ def mean_na_neutral_vote(evaluations):
     Returns the mean rating on a 1-5 scale for the given evaluations, or None if there are no evaluations. Treats N/As
     as a neutral vote.
     """
+    # NOTE: 'map' preferred to list comprehension here because the predicate is complicated
     def _replace_na(eval_):
         return eval_.value if (eval_ and eval_ is not Eval.not_applicable) else Eval.neutral.value
-    return statistics.mean(map(_replace_na, evaluations)) if evaluations else None
+    return statistics.mean(map(_replace_na, evaluations)) if evaluations else None  # pylint: disable=bad-builtin
 
 
 def calc_disagreement(evaluations):
@@ -34,7 +35,7 @@ def calc_disagreement(evaluations):
             if len(na_votes) + len(rated_votes) > 1
             else 0.0)
         rated_disagreement = (
-            statistics.stdev(map(lambda x: x.value, rated_votes))
+            statistics.stdev([v.value for v in rated_votes])
             if len(rated_votes) > 1
             else 0.0)
         return max(na_disagreement, rated_disagreement)
@@ -57,7 +58,7 @@ def consensus_vote(evaluations):
     elif len(na_votes) > len(rated_votes):
         return Eval.not_applicable
     else:
-        consensus = round(statistics.mean(map(lambda x: x.value, rated_votes)))
+        consensus = round(statistics.mean([v.value for v in rated_votes]))
         return Eval.for_value(round(consensus))
 
 
@@ -73,9 +74,10 @@ def inconsistency(evaluations):
     # computes a metric similar to "sum squared error" for evidence where the consensus is that the hypotheses is
     # inconsistent. Currently we're treating N/A's a neutral. It may make sense to exclude them entirely because a
     # hypotheses can be considered more consistent just because there's less evidence that applies to it.
-    na_neutral_consensuses = list(map(mean_na_neutral_vote, evaluations))
-    inconsistent = list(filter(lambda x: x is not None and x < Eval.neutral.value, na_neutral_consensuses))
-    return sum(map(lambda x: (Eval.neutral.value - x)**2, inconsistent))
+    # NOTE: could potentially speed up calculation be eliminating list comprehension before the sum
+    na_neutral_consensuses = map(mean_na_neutral_vote, evaluations)  # pylint: disable=bad-builtin
+    inconsistent = [val for val in na_neutral_consensuses if (val is not None and val < Eval.neutral.value)]
+    return sum((Eval.neutral.value - val)**2 for val in inconsistent)
 
 
 def diagnosticity(evaluations):
@@ -92,5 +94,8 @@ def diagnosticity(evaluations):
     # (3) calculate the population standard deviation of the evidence. It's more reasonable to consider the set of
     #     hypotheses at a given time to be the population of hypotheses than as a "sample" (although it doesn't matter
     #     much because we're comparing across hypothesis sets of the same size)
-    na_neutral_consensuses = list(filter(None.__ne__, map(mean_na_neutral_vote, evaluations)))
-    return statistics.pstdev(na_neutral_consensuses) if na_neutral_consensuses else 0.0
+    na_neutral = map(mean_na_neutral_vote, evaluations)  # pylint: disable=bad-builtin
+    try:
+        return statistics.pstdev(filter(None.__ne__, na_neutral))  # pylint: disable=bad-builtin
+    except statistics.StatisticsError:
+        return 0.0

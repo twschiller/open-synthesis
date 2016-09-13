@@ -62,7 +62,7 @@ DISPUTE_LEVELS = [
 
 
 def _dispute_level(value):
-    return list(filter(lambda x: value < x.max_level, DISPUTE_LEVELS))[0]
+    return next(level for level in DISPUTE_LEVELS if value < level.max_level)
 
 
 @register.filter
