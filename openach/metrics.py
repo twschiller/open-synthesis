@@ -75,9 +75,8 @@ def inconsistency(evaluations):
     # inconsistent. Currently we're treating N/A's a neutral. It may make sense to exclude them entirely because a
     # hypotheses can be considered more consistent just because there's less evidence that applies to it.
     # NOTE: could potentially speed up calculation be eliminating list comprehension before the sum
-    na_neutral_consensuses = map(mean_na_neutral_vote, evaluations)  # pylint: disable=bad-builtin
-    inconsistent = [val for val in na_neutral_consensuses if (val is not None and val < Eval.neutral.value)]
-    return sum((Eval.neutral.value - val)**2 for val in inconsistent)
+    na_neutral = map(mean_na_neutral_vote, evaluations)  # pylint: disable=bad-builtin
+    return sum((Eval.neutral.value - val)**2 for val in na_neutral if val is not None and val < Eval.neutral.value)
 
 
 def diagnosticity(evaluations):

@@ -17,7 +17,8 @@ from django.shortcuts import render, get_object_or_404
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+# NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
+from django.urls import reverse  # pylint: disable=no-name-in-module
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured
 from django.conf import settings
 from django.views.decorators.http import require_http_methods, require_safe
@@ -106,7 +107,7 @@ def detail(request, board_id, dummy_board_slug=None):
 
     # augment hypotheses and evidence with diagnosticity and consistency
     def _group(first, second, func, key):
-        return list(map(lambda f: (f, func(map(lambda s: keyed[key(f, s)], second))), first))
+        return [(f, func([keyed[key(f, s)] for s in second])) for f in first]
     hypotheses = list(board.hypothesis_set.all())
     evidence = list(board.evidence_set.all())
     hypothesis_consistency = _group(hypotheses, evidence, inconsistency, key=lambda h, e: (e, h))
@@ -134,7 +135,8 @@ def board_history(request, board_id):
     """Return the modification history (board details, evidence, hypotheses) for the board"""
     # this approach to grabbing the history will likely be too slow for big boards
     def _get_history(models):
-        return itertools.chain(*map(lambda x: list(FieldHistory.objects.get_for_model(x).select_related('user')), models))
+        changes = [FieldHistory.objects.get_for_model(x).select_related('user') for x in models]
+        return itertools.chain(*changes)
     board = get_object_or_404(Board, pk=board_id)
     history = [
         _get_history([board]),

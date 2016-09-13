@@ -10,7 +10,8 @@ from enum import Enum, unique
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse, NoReverseMatch
+# NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
+from django.urls import reverse, NoReverseMatch  # pylint: disable=no-name-in-module
 from django.conf import settings
 from field_history.tracker import FieldHistoryTracker
 

@@ -23,7 +23,7 @@ class BoardSitemap(Sitemap):
         Returns the last time the board or its content was modified. Currently returns the last time the board was
         structurally modified, that is a hypothesis or piece of evidence was added.
         """
-        # self parameter is required to match the Sitemap interface
+        # NOTE: self parameter is required to match the Sitemap interface
         def _last_obj(class_):
-            return max(map(lambda x: x.submit_date, class_.objects.filter(board=obj)), default=obj.pub_date)
+            return max((o.submit_date for o in class_.objects.filter(board=obj)), default=obj.pub_date)
         return max([obj.pub_date, _last_obj(Evidence), _last_obj(Hypothesis)])

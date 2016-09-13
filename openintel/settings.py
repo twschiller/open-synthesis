@@ -213,8 +213,8 @@ USE_TZ = True
 SITE_ID = 1
 
 # Update database configuration with $DATABASE_URL.
+# XXX: migrate db config to use environ library?
 # NOTE: 'db_from_env' follows naming convention from the Heroku documentation
-# TODO: migrate db config to use environ?
 db_from_env = dj_database_url.config(conn_max_age=500)  # pylint: disable=invalid-name
 DATABASES['default'].update(db_from_env)
 
@@ -236,7 +236,6 @@ STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 # Logging configuration
 # cf. https://chrxr.com/django-error-logging-configuration-heroku/
 # cf. https://stackoverflow.com/questions/18920428/django-logging-on-heroku
-# TODO: make django/gunicorn log formatting consistent
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -317,9 +316,7 @@ ROLLBAR = {
     'access_token': env('ROLLBAR_ACCESS_TOKEN'),
     'environment': 'development' if DEBUG else 'production',
     'root': PROJECT_ROOT,
-    # TODO: read branch and version information from git, potentially using gitpython
     'branch': 'master',
-    # 'code_version': git sha
 }
 
 # Content Security Policy (CSP) Header configuration
