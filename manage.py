@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Django's command-line utility for administrative tasks
+"""Django's command-line utility for administrative tasks.
 
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/ref/django-admin/

@@ -1,12 +1,25 @@
 doc-warnings: true
 test-warnings: false
 strictness: veryhigh
+
 uses:
   - django
 python-targets:
   - 3
+
+ignore-paths:
+  - manage.py
+  - runserver
+ignore-patterns:
+  - ^openach/migrations/.*\.py$
+
+requirements:
+  - requirements.txt
+autodetect: true
+
+max-line-length: 119
 pep8:
   full: true
-max-line-length: 119
-ignore-paths:
-  - ^openach/migrations/.*\.py$
+pep257:
+    disable:
+        - D203

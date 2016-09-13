@@ -1,4 +1,4 @@
-"""ACH Board Metrics"""
+"""Analysis of Competing Hypotheses Board Metrics."""
 import statistics
 
 from .util import partition
@@ -6,9 +6,9 @@ from .models import Eval
 
 
 def mean_na_neutral_vote(evaluations):
-    """
-    Returns the mean rating on a 1-5 scale for the given evaluations, or None if there are no evaluations. Treats N/As
-    as a neutral vote.
+    """Return the mean rating on a 1-5 scale for the given evaluation, or None if there are no evaluations.
+
+    Treats N/As as a neutral vote.
     """
     # NOTE: 'map' preferred to list comprehension here because the predicate is complicated
     def _replace_na(eval_):
@@ -17,9 +17,9 @@ def mean_na_neutral_vote(evaluations):
 
 
 def calc_disagreement(evaluations):
-    """
-    Determine the disagreement for a set of evaluations. Determined as the max disagreement of (1) N/A and non-N/A
-    responses and (2) non-N/A evaluations
+    """Return the disagreement level for evaluations, or None if no evaluations.
+
+    Calculated as the max disagreement of (1) N/A and non-N/A responses and (2) non-N/A evaluations
     :param evaluations: an iterable of Eval
     """
     if evaluations:
@@ -44,10 +44,11 @@ def calc_disagreement(evaluations):
 
 
 def consensus_vote(evaluations):
-    """
-    Determine the consensus Eval given an iterable of Eval. (1) whether or not the evidence is applicable, and
-    (2) if the evidence is applicable, how consistent the evidence is with the hypothesis. Is conservative, adjusting
-    the result toward Eval.neutral if there is a "tie".
+    """Return the consensus evaluation given a an iterable of evaluations, or None if no evaluations.
+
+    Calculated as (1) whether or not the evidence is applicable, and (2) if the evidence is applicable, how consistent
+    the evidence is with the hypothesis. The calculation is conservative, rounding the result toward Eval.neutral
+    if there is a tie.
     """
     na_it, rated_it = partition(lambda x: x is not Eval.not_applicable, evaluations)
     na_votes = list(na_it)
@@ -63,12 +64,12 @@ def consensus_vote(evaluations):
 
 
 def inconsistency(evaluations):
-    """
-    Calculate a metric for the inconsistency of a hypothesis with respect to a set of evidence. Does not account for
-    the reliability of the evidence (e.g., due to deception). Metric is monotonic in the number of pieces of evidence
-    that have been evaluated. That is, for a given hypothesis, further evidence can only serve to refute it (though
-    it may make the hypothesis more likely relative to the other hypotheses).
-    :param evaluations: an iterable of sets of Eval for the hypothesis
+    """Return the inconsistency of a hypothesis with respect to a set of evidence.
+
+    Calculation does not account for the reliability of the evidence (e.g., due to deception). Metric is monotonic in
+    the number of pieces of evidence that have been evaluated. That is, for a given hypothesis, further evidence can
+    only serve to refute it (though it may make the hypothesis more likely relative to the other hypotheses).
+    :param evaluations: an iterable of iterables of Eval for a hypothesis
     """
     # The "inconsistency" needs to capture the extent to which a hypothesis has been refuted. The approach below
     # computes a metric similar to "sum squared error" for evidence where the consensus is that the hypotheses is
@@ -80,9 +81,9 @@ def inconsistency(evaluations):
 
 
 def diagnosticity(evaluations):
-    """
-    Calculate the diagnosticity of a piece of evidence given its evaluation vs. a set of hypotheses.
-    :param evaluations: an iterable of sets of Eval for a piece of evidence
+    """Return the diagnosticity of a piece of evidence given its evaluations against a set of hypotheses.
+
+    :param evaluations: an iterable of iterables of Eval for a piece of evidence
     """
     # The "diagnosticity" needs to capture how well the evidence separates/distinguishes the hypotheses. If we don't
     # show a preference between consistent/inconsistent, STDDEV captures this intuition OK. However, in the future,

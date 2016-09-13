@@ -1,4 +1,4 @@
-"""openach Application Configuration
+"""openach Application Configuration.
 
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/ref/applications/
@@ -12,4 +12,5 @@ class OpenachConfig(AppConfig):
     For more information, please see:
         https://docs.djangoproject.com/en/1.10/ref/applications/
     """
+
     name = 'openach'

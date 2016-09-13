@@ -1,4 +1,4 @@
-"""openintel URL Configuration
+"""Open Synthesis URL Configuration.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.10/topics/http/urls/
@@ -45,4 +45,4 @@ urlpatterns = [  # pylint: disable=invalid-name
 
 if not ACCOUNT_REQUIRED:  # pylint: disable=invalid-name
     # Only allow clients to view the sitemap if the admin is running a public instance
-    urlpatterns.insert(0, url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'))
+    urlpatterns.insert(0, url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'))  # nopep8

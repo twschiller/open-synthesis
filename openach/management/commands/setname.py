@@ -1,14 +1,23 @@
-"""Django admin command to set the site from the environment"""
+"""Django admin command to set the site from the project settings.
+
+For more information, please see:
+    https://docs.djangoproject.com/en/1.10/ref/contrib/sites/
+"""
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.sites.models import Site
 from django.conf import settings
 
 
 class Command(BaseCommand):
-    """Django admin command to set the site from the environment"""
+    """Django admin command to set the site from the project settings.
+
+    Requires the following settings: SITE_ID, SITE_NAME, and SITE_DOMAIN.
+    """
+
     help = 'Sets the site name and domain from the environment'
 
     def handle(self, *args, **options):
+        """Handle the command invocation."""
         site_id = getattr(settings, 'SITE_ID', None)
         site_name = getattr(settings, 'SITE_NAME', None)
         site_domain = getattr(settings, 'SITE_DOMAIN', None)

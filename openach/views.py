@@ -1,4 +1,4 @@
-"""openach Views Configuration
+"""Analysis of Competing Hypotheses Django Application Views Configuration.
 
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/topics/http/views/
@@ -42,7 +42,7 @@ ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
 
 
 def check_owner_authorization(request, board, has_creator=None):
-    """Raises a PermissionDenied exception if the authenticated user does not have edit rights for the resource"""
+    """Raise a PermissionDenied exception if the authenticated user does not have edit rights for the resource."""
     if request.user.is_staff or request.user == board.creator or (has_creator and request.user == has_creator.creator):
         pass
     else:
@@ -53,7 +53,7 @@ def check_owner_authorization(request, board, has_creator=None):
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def index(request):
-    """Returns a homepage showing project information, news, and recent boards."""
+    """Return a homepage view showing project information, news, and recent boards."""
     # Show all of the boards until we can implement tagging, search, etc.
     latest_board_list = Board.objects.order_by('-pub_date')
     latest_project_news = ProjectNews.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
@@ -68,7 +68,7 @@ def index(request):
 @account_required
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def about(request):
-    """Returns an about page showing contribution, licensing, contact, and other information."""
+    """Return an about view showing contribution, licensing, contact, and other information."""
     return render(request, 'boards/about.html')
 
 
@@ -76,9 +76,9 @@ def about(request):
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def detail(request, board_id, dummy_board_slug=None):
-    """
-    View the board details. Evidence is sorted in order of diagnosticity. Hypotheses are sorted in order of
-    consistency.
+    """Return a detail view for the given board.
+
+    Evidence is sorted in order of diagnosticity. Hypotheses are sorted in order of consistency.
     """
     # NOTE: Django's page cache considers full URL including dummy_board_slug. In the future, we may want to adjust
     # the page key to only consider the id and the query parameters.
@@ -132,7 +132,7 @@ def detail(request, board_id, dummy_board_slug=None):
 @account_required
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def board_history(request, board_id):
-    """Return the modification history (board details, evidence, hypotheses) for the board"""
+    """Return a view with the modification history (board details, evidence, hypotheses) for the board."""
     # this approach to grabbing the history will likely be too slow for big boards
     def _get_history(models):
         changes = [FieldHistory.objects.get_for_model(x).select_related('user') for x in models]
@@ -149,7 +149,11 @@ def board_history(request, board_id):
 
 
 class BoardForm(forms.Form):
-    """Board creation form. Users must specify at two competing hypotheses"""
+    """Board creation form.
+
+    Users must specify at two competing hypotheses.
+    """
+
     board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
     board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
     hypothesis1 = forms.CharField(label='Hypothesis #1', max_length=HYPOTHESIS_MAX_LENGTH)
@@ -159,7 +163,7 @@ class BoardForm(forms.Form):
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def create_board(request):
-    """Shows form for board creation and handles form submission."""
+    """Return a board creation view, or handle the form submission."""
     if request.method == 'POST':
         form = BoardForm(request.POST)
         if form.is_valid():
@@ -187,6 +191,7 @@ def create_board(request):
 
 class BoardEditForm(forms.Form):
     """Board edit form."""
+
     board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
     board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
 
@@ -194,7 +199,7 @@ class BoardEditForm(forms.Form):
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def edit_board(request, board_id):
-    """Shows form for editing a board and handles form submission"""
+    """Return a board edit view, or handle the form submission."""
     board = get_object_or_404(Board, pk=board_id)
     check_owner_authorization(request, board)
 
@@ -213,7 +218,8 @@ def edit_board(request, board_id):
 
 
 class EvidenceEditForm(forms.Form):
-    """Form for modifying the basic evidence information"""
+    """Form for modifying the basic evidence information."""
+
     evidence_desc = forms.CharField(
         label='Evidence', max_length=EVIDENCE_MAX_LENGTH,
         help_text='A short summary of the evidence. Use the Event Date field for capturing the date'
@@ -226,7 +232,8 @@ class EvidenceEditForm(forms.Form):
 
 
 class BaseSourceForm(forms.Form):
-    """Form for adding a source to a piece of evidence"""
+    """Form for adding a source to a piece of evidence."""
+
     evidence_url = forms.URLField(
         label='Source Website',
         help_text='A source (e.g., news article or press release) corroborating the evidence',
@@ -242,19 +249,18 @@ class BaseSourceForm(forms.Form):
 
 
 class EvidenceForm(BaseSourceForm, EvidenceEditForm):
+    """Form for adding a new piece of evidence.
+
+    The evidence provided must have at least one source. The analyst can provide additional sources later.
     """
-    Form to add a new piece of evidence. The evidence provided must have at least one source.
-    The analyst can provide additional sources later.
-    """
+
     pass
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def add_evidence(request, board_id):
-    """
-    View to add a new piece of evidence (with a source) to the specified board.
-    """
+    """Return a view of adding evidence (with a source), or handle the form submission."""
     board = get_object_or_404(Board, pk=board_id)
 
     if request.method == 'POST':
@@ -288,7 +294,7 @@ def add_evidence(request, board_id):
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def edit_evidence(request, evidence_id):
-    """Shows a form for editing a piece of evidence and handles form submission"""
+    """Return a view for editing a piece of evidence, or handle for submission."""
     evidence = get_object_or_404(Evidence, pk=evidence_id)
     board = evidence.board
     check_owner_authorization(request, board=board, has_creator=evidence)
@@ -307,10 +313,11 @@ def edit_evidence(request, evidence_id):
 
 
 class EvidenceSourceForm(BaseSourceForm):
+    """Form for editing a corroborating/contradicting source for a piece of evidence.
+
+    The hidden corroborating field should be set by the view method before rendering the form.
     """
-    Form for editing a corroborating/contradicting source for a piece of evidence. By default sources are
-    corroborating.
-    """
+
     corroborating = forms.BooleanField(
         required=False,
         widget=forms.HiddenInput()
@@ -320,7 +327,7 @@ class EvidenceSourceForm(BaseSourceForm):
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def add_source(request, evidence_id):
-    """Shows a form for adding a corroborating/contradicting source for a piece of evidence and handles submission."""
+    """Return a view for adding a corroborating/contradicting source, or handle form submission."""
     evidence = get_object_or_404(Evidence, pk=evidence_id)
     if request.method == 'POST':
         form = EvidenceSourceForm(request.POST)
@@ -377,7 +384,7 @@ def toggle_source_tag(request, evidence_id, source_id):
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def evidence_detail(request, evidence_id):
-    """Show detailed information about a piece of information and its sources"""
+    """Return a view displaying detailed information about a piece of evidence and its sources."""
     # NOTE: cannot cache page for logged in users b/c comments section contains CSRF and other protection mechanisms.
     evidence = get_object_or_404(Evidence, pk=evidence_id)
     available_tags = EvidenceSourceTag.objects.all()
@@ -404,14 +411,15 @@ def evidence_detail(request, evidence_id):
 
 
 class HypothesisForm(forms.Form):
-    """Form for a board hypothesis"""
+    """Form for a board hypothesis."""
+
     hypothesis_text = forms.CharField(label='Hypothesis', max_length=200)
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def add_hypothesis(request, board_id):
-    """Shows a form for adding a hypothesis to a board and handles form submission"""
+    """Return a view for adding a hypothesis, or handle form submission."""
     board = get_object_or_404(Board, pk=board_id)
     existing = Hypothesis.objects.filter(board=board)
 
@@ -439,7 +447,7 @@ def add_hypothesis(request, board_id):
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def edit_hypothesis(request, hypothesis_id):
-    """Shows a form for editing a hypothesis and handles board submission."""
+    """Return a view for editing a hypothesis, or handle board submission."""
     hypothesis = get_object_or_404(Hypothesis, pk=hypothesis_id)
     board = hypothesis.board
     check_owner_authorization(request, board, hypothesis)
@@ -460,9 +468,10 @@ def edit_hypothesis(request, hypothesis_id):
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def profile(request, account_id=None):
-    """
-    Show the private/public profile for account_id. If account_id is None, shows the private profile for the logged in
-    user. If account is specified and the user is not logged in, raise a 404.
+    """Return a view of the private or public profile associated with account_id.
+
+    If account_id is None, show the private profile for the logged in user. If account is specified and the user is not
+    logged in, raise a 404.
     """
     # TODO: cache the page based on whether user is viewing private profile or public profile
     account_id = request.user.id if request.user and not account_id else account_id
@@ -490,10 +499,10 @@ def profile(request, account_id=None):
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def evaluate(request, board_id, evidence_id):
-    """
-    View for assessing a piece of evidence against all of the hypotheses. A couple measures are taken to attempt to
-    reduce bias: (1) the analyst is not shown their previous assessment, and (2) the hypotheses are shown in a random
-    order.
+    """Return a view for assessing a piece of evidence against all hypotheses.
+
+    Take a couple measures to reduce bias: (1) do not show the analyst their previous assessment, and (2) show
+    the hypotheses in a random order.
     """
     # FIXME: need to fix the db transaction structure for this method
     default_eval = '------'
@@ -533,7 +542,7 @@ def evaluate(request, board_id, evidence_id):
 
 @require_safe
 def robots(request):
-    """Returns the robots.txt including the sitemap location (using the site domain)"""
+    """Return the robots.txt including the sitemap location (using the site domain) if the site is public."""
     context = {
         'sitemap': (
             ''.join(['https://', get_current_site(request).domain, reverse('django.contrib.sitemaps.views.sitemap')])
@@ -547,6 +556,11 @@ def robots(request):
 
 @require_safe
 def certbot(dummy_request, challenge_key):  # pragma: no cover
+    """Return a response to the Let's Encrypt Certbot challenge.
+
+    If the challenge is not configured, raise a 404. For more information, please see:
+        https://certbot.eff.org/
+    """
     """Respond to the Let's Encrypt certbot challenge. If the challenge is not configured, returns a 404"""
     # ignore coverage since keys aren't available in the testing environment
     public_key = getattr(settings, 'CERTBOT_PUBLIC_KEY')

@@ -1,4 +1,4 @@
-"""openach Admin Dashboard Configuration
+"""openach Admin Dashboard Configuration.
 
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/ref/contrib/admin/
@@ -9,19 +9,22 @@ from .models import Board, Evidence, Hypothesis, EvidenceSourceTag, ProjectNews
 
 
 class HypothesisInline(admin.StackedInline):
-    """Inline editor for an ACH board's hypotheses"""
+    """Inline editor for an ACH board's hypotheses."""
+
     model = Hypothesis
     extra = 2
 
 
 class EvidenceInline(admin.StackedInline):
-    """Inline editor for an ACH board's evidence"""
+    """Inline editor for an ACH board's evidence."""
+
     model = Evidence
     extra = 2
 
 
 class BoardAdmin(admin.ModelAdmin):
-    """Admin interface for editing ACH boards"""
+    """Admin interface for editing ACH boards."""
+
     inlines = [HypothesisInline, EvidenceInline]
 
 
