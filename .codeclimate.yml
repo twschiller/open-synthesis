@@ -6,6 +6,10 @@ engines:
          - da1051f028463e1cff89fa70f1179609
          # ignore cyclomatic complexity of certbot in views.py; there's only a single decision point
          - f076ff22d980e5266da5304a6c43ea54
+     config:
+       python_version: 3
+       # only report methods that have moderate risk: https://radon.readthedocs.io/en/latest/commandline.html#the-cc-command
+       threshold: "C"
    pep8:
      enabled: true
    duplication:
