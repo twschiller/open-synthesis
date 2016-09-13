@@ -101,6 +101,10 @@ class Evidence(models.Model):
 
         verbose_name_plural = "evidence"
 
+    def __str__(self):
+        """Return a human-readable representation of the evidence."""
+        return self.evidence_desc
+
 
 class EvidenceSource(models.Model):
     """A source for a piece of evidence in the ACH matrix."""

@@ -476,6 +476,40 @@ class BoardDetailTests(TestCase):
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)) + "?view_type=comparison")
         self.assertEqual(response.status_code, 200)
 
+    def test_order_hypotheses_and_evidence(self):
+        """Test that the board detail views order evidence by diagnosticity and hypotheses by consistency."""
+        def mk_evidence(desc):
+            return Evidence.objects.create(board=self.board, creator=self.user, evidence_desc=desc, event_date=None, submit_date=timezone.now())
+
+        def mk_eval(hypothesis, evidence, eval_):
+            Evaluation.objects.create(board=self.board, hypothesis=hypothesis, evidence=evidence, user=self.user, value=eval_.value)
+
+        # put neutral evidence first so it's PK will be lower (and will probably be returned first by the DB)
+        neutral = mk_evidence("Neutral Evidence")
+        diagnostic = mk_evidence("Diagnostic Evidence")
+
+        # make the consistent hypothesis first (it's PK is lower and will be returned first by the DB)
+        mk_eval(self.hypotheses[0], diagnostic, Eval.inconsistent)
+        mk_eval(self.hypotheses[1], diagnostic, Eval.consistent)
+        mk_eval(self.hypotheses[0], neutral, Eval.neutral)
+        mk_eval(self.hypotheses[1], neutral, Eval.neutral)
+
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+
+        self.assertGreater(len([scored for scored in response.context['evidences'] if scored[1] > 0.0]), 0,
+                           msg="No evidence marked as diagnostic")
+        self.assertGreater(len([scored for scored in response.context['hypotheses'] if scored[1] > 0.0]), 0,
+                           msg="No evidence marked as inconsistent")
+
+        self.assertEqual(response.context['evidences'][0][0], diagnostic,
+                         msg="Diagnostic should be displayed first")
+        self.assertEqual(response.context['evidences'][1][0], neutral)
+
+        self.assertEqual(response.context['hypotheses'][0][0], self.hypotheses[1],
+                         msg="Consistent hypotheses should be displayed first")
+        self.assertEqual(response.context['hypotheses'][1][0], self.hypotheses[0])
+
 
 class EvidenceDetailTests(TestCase):
 
@@ -927,36 +961,26 @@ class ConsensusTests(TestCase):
 class DiagnosticityTests(TestCase):
 
     def test_mean_na_neutral_vote_maps_na_votes(self):
-        """
-        mean_na_neutral_vote() maps N/A votes to neutral
-        """
+        """mean_na_neutral_vote() maps N/A votes to neutral"""
         self.assertEqual(mean_na_neutral_vote([Eval.not_applicable]), Eval.neutral.value)
         self.assertEqual(mean_na_neutral_vote([Eval.not_applicable, Eval.very_inconsistent]), Eval.inconsistent.value)
 
     def test_mean_na_neutral_vote_only_maps_na_votes(self):
-        """
-        mean_na_neutral_vote() does not map values other than N/A
-        """
+        """mean_na_neutral_vote() does not map values other than N/A"""
         for x in Eval:
             if x is not Eval.not_applicable:
                 self.assertEqual(mean_na_neutral_vote([x]), x.value)
 
     def test_no_hypotheses_has_zero_diagnosticity(self):
-        """
-        diagnosticity() should return 0.0 when there are no votes
-        """
+        """diagnosticity() should return 0.0 when there are no votes"""
         self.assertEqual(diagnosticity([]), 0.0)
 
     def test_no_votes_has_zero_diagnosticity(self):
-        """
-        diagnosticity() should return 0.0 when there are no votes
-        """
+        """diagnosticity() should return 0.0 when there are no votes"""
         self.assertEqual(diagnosticity([[], []]), 0.0)
 
     def test_different_more_diagnostic_than_neutral(self):
-        """
-        diagnosticity() should be higher for hypothesis with difference consensus than hypotheses with same consensus
-        """
+        """diagnosticity() should be higher for hypothesis with difference consensus than hypotheses with same consensus"""
         different = diagnosticity([[Eval.consistent], [Eval.inconsistent]])
         same = diagnosticity([[Eval.neutral], [Eval.neutral]])
         self.assertGreater(different, same)

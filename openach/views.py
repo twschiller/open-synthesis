@@ -110,8 +110,8 @@ def detail(request, board_id, dummy_board_slug=None):
         return [(f, func([keyed[key(f, s)] for s in second])) for f in first]
     hypotheses = list(board.hypothesis_set.all())
     evidence = list(board.evidence_set.all())
-    hypothesis_consistency = _group(hypotheses, evidence, inconsistency, key=lambda h, e: (e, h))
-    evidence_diagnosticity = _group(evidence, hypotheses, diagnosticity, key=lambda e, h: (e, h))
+    hypothesis_consistency = _group(hypotheses, evidence, inconsistency, key=lambda h, e: (e.id, h.id))
+    evidence_diagnosticity = _group(evidence, hypotheses, diagnosticity, key=lambda e, h: (e.id, h.id))
 
     context = {
         'board': board,
