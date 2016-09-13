@@ -10,10 +10,9 @@ from enum import Enum, unique
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-from django.urls import reverse
-from django.urls.exceptions import NoReverseMatch
+from django.core.urlresolvers import reverse, NoReverseMatch
+from django.conf import settings
 from field_history.tracker import FieldHistoryTracker
-from openintel.settings import SLUG_MAX_LENGTH
 
 
 # See database portability constraints here: https://docs.djangoproject.com/en/1.10/ref/databases/#character-fields
@@ -23,6 +22,7 @@ HYPOTHESIS_MAX_LENGTH = 200
 BOARD_TITLE_MAX_LENGTH = 200
 BOARD_DESC_MAX_LENGTH = 255
 
+SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH', 72)
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 

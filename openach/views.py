@@ -17,7 +17,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.urls import reverse
+from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured
 from django.conf import settings
 from django.views.decorators.http import require_http_methods, require_safe
@@ -27,7 +27,7 @@ from field_history.models import FieldHistory
 
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from .models import ProjectNews
-from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH
+from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH, SLUG_MAX_LENGTH
 from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 from .metrics import consensus_vote, inconsistency, diagnosticity, calc_disagreement
 from .decorators import cache_if_anon, cache_on_auth, account_required
@@ -37,7 +37,6 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 PAGE_CACHE_TIMEOUT_SECONDS = 60
 DEBUG = getattr(settings, 'DEBUG', False)
-SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH', 72)
 ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
 
 
