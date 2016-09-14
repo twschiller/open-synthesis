@@ -58,6 +58,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     ROLLBAR_ENABLED=(bool, False),
     ACCOUNT_REQUIRED=(bool, False),
     ACCOUNT_EMAIL_REQUIRED=(bool, True),
+    EVIDENCE_REQUIRE_SOURCE=(bool, True),
     INVITE_REQUIRED=(bool, False),
     SENDGRID_USERNAME=(str, None),
     SENDGRID_PASSWORD=(str, None),
@@ -305,6 +306,7 @@ if _detect_command('createadmin'):  # pragma: no cover
     ADMIN_PASSWORD = env('ADMIN_PASSWORD')
 ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
 INVITE_REQUIRED = env('INVITE_REQUIRED')
+EVIDENCE_REQUIRE_SOURCE = env('EVIDENCE_REQUIRE_SOURCE')
 
 # Authentication Options:
 # https://django-allauth.readthedocs.io/en/latest/configuration.html

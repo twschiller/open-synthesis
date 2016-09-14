@@ -22,6 +22,8 @@ from django.urls import reverse  # pylint: disable=no-name-in-module
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured
 from django.conf import settings
 from django.views.decorators.http import require_http_methods, require_safe
+from django.forms import ValidationError
+from django.utils.translation import ugettext as _
 from slugify import slugify
 from field_history.models import FieldHistory
 
@@ -39,6 +41,7 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 PAGE_CACHE_TIMEOUT_SECONDS = 60
 DEBUG = getattr(settings, 'DEBUG', False)
 ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
+EVIDENCE_REQUIRE_SOURCE = getattr(settings, 'EVIDENCE_REQUIRE_SOURCE', True)
 
 DEFAULT_EVAL = '------'
 KEEP_EVAL = '-- Keep Previous Assessment'
@@ -230,8 +233,9 @@ class EvidenceEditForm(forms.Form):
         help_text='A short summary of the evidence. Use the Event Date field for capturing the date'
     )
     event_date = forms.DateField(
-        label='Event Date',
+        label='Event Date (Optional)',
         help_text='The date the event occurred or started',
+        required=False,
         widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
     )
 
@@ -256,10 +260,22 @@ class BaseSourceForm(forms.Form):
 class EvidenceForm(BaseSourceForm, EvidenceEditForm):
     """Form for adding a new piece of evidence.
 
-    The evidence provided must have at least one source. The analyst can provide additional sources later.
+    If EVIDENCE_REQUIRE_SOURCE is set, the evidence provided must have a source. Analysts can provide additional
+    corroborating / conflicting sources after adding the evidence.
     """
 
-    pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not EVIDENCE_REQUIRE_SOURCE:
+            self.fields['evidence_url'].required = False
+            self.fields['evidence_url'].label += ' (Optional)'
+            self.fields['evidence_date'].required = False
+            self.fields['evidence_date'].label += ' (Optional)'
+
+    def clean(self):
+        """Require a source date if the analyst provided a source URL"""
+        if self.cleaned_data['evidence_url'] and not self.cleaned_data['evidence_date']:
+            raise ValidationError(_('Please provide a date for the source.'), code='invalid')
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
@@ -280,14 +296,15 @@ def add_evidence(request, board_id):
                     creator=request.user,
                     submit_date=submit_date
                 )
-                EvidenceSource.objects.create(
-                    evidence=evidence,
-                    source_url=form.cleaned_data['evidence_url'],
-                    source_date=form.cleaned_data['evidence_date'],
-                    uploader=request.user,
-                    corroborating=True,
-                    submit_date=submit_date
-                )
+                if form.cleaned_data['evidence_url'] and form.cleaned_data['evidence_date']:
+                    EvidenceSource.objects.create(
+                        evidence=evidence,
+                        source_url=form.cleaned_data['evidence_url'],
+                        source_date=form.cleaned_data['evidence_date'],
+                        uploader=request.user,
+                        corroborating=True,
+                        submit_date=submit_date
+                    )
 
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
