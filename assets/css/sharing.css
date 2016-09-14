@@ -1,0 +1,83 @@
+/* Adapted from http://crunchify.com/how-to-create-social-sharing-button-without-any-plugin-and-script-loading-wordpress-speed-optimization-goal/ */
+
+@media screen and (min-width: 1024px) {
+    /* Hide WhatsApp sharing link on the Desktop */
+    .share-whatsapp {
+        display: none !important;
+    }
+}
+
+.share-link {
+    padding: 2px 8px 4px 8px !important;
+    color: white;
+    font-size: 12px;
+    border-radius: 2px;
+    margin-right: 2px;
+    cursor: pointer;
+    -moz-background-clip: padding;
+    -webkit-background-clip: padding-box;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,.2);
+    -moz-box-shadow: inset 0 -3px 0 rgba(0,0,0,.2);
+    -webkit-box-shadow: inset 0 -3px 0 rgba(0,0,0,.2);
+    margin-top: 2px;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.share-link:hover,.share-link:active {
+    color: white;
+}
+
+.share-twitter {
+    background: #00aced;
+}
+
+.share-twitter:hover,.share-twitter:active {
+    background: #0084b4;
+}
+
+.share-facebook {
+    background: #3B5997;
+}
+
+.share-facebook:hover,.share-facebook:active {
+    background: #2d4372;
+}
+
+.share-email {
+    background: #444;
+}
+
+.share-email:hover,.share-email:active {
+    background: #222;
+}
+
+.share-reddit {
+    background: #0074A1;
+}
+
+.share-reddit:hover,.share-reddit:active {
+    background: #006288;
+}
+
+.share-whatsapp {
+    background: #43d854;
+}
+
+.share-whatsapp:hover,.share-whatsapp:active {
+    background: #009688;
+}
+
+.share-social {
+    margin: 20px 0px 25px 0px;
+    -webkit-font-smoothing: antialiased;
+    font-size: 12px;
+}
+
+.share-hackernews {
+    background: #D64937;
+}
+
+.share-hackernews:hover,.share-hackernews:active {
+    background: #b53525;
+}

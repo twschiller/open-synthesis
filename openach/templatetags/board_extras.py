@@ -131,6 +131,12 @@ def board_url(board):
     return board.get_absolute_url()
 
 
+@register.filter
+def full_url(request, model):
+    """Return the URL of the model, including domain."""
+    return request.build_absolute_uri(model.get_absolute_url())
+
+
 @register.simple_tag
 def get_verbose_field_name(instance, field_name):
     """Return the verbose name for a field."""

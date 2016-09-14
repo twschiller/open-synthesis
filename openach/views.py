@@ -127,6 +127,7 @@ def detail(request, board_id, dummy_board_slug=None):
         'disagreement': disagreement,
         'participants': participants,
         'meta_description': board.board_desc,
+        'allow_share': not ACCOUNT_REQUIRED,
         'debug_stats': DEBUG
     }
     return render(request, 'boards/detail.html', context)
