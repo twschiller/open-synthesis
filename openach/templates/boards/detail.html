@@ -11,6 +11,10 @@
     <h1>Intelligence Board: <i>{{ board.board_title }}</i></h1>
 
     <div>
+        {% include 'boards/_sharing.html' with title=board.board_title url=board.get_absolute_url only %}
+    </div>
+
+    <div>
         {% if board.creator %}
             Board created by <a href="{% url 'profile' board.creator_id %}">{{ board.creator }}</a>
             on {{ board.pub_date|date }}.
