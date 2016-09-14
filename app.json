@@ -64,5 +64,13 @@
   },
   "scripts": {
     "postdeploy": "python manage.py migrate && python manage.py setname && python manage.py createadmin && python manage.py loaddata source_tags && python manage.py check --deploy"
-  }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    },
+    {
+      "url": "heroku/python"
+    }
+  ]
 }
