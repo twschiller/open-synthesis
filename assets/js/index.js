@@ -19,5 +19,5 @@ require('jquery');
 require('bootstrap');
 require('bootstrap-datepicker');
 
-require('bootstrap/dist/css/bootstrap.css');
-require('bootstrap-datepicker/dist/css/bootstrap-datepicker.css');
+require('bootstrap/dist/css/bootstrap.min.css');
+require('bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css');
