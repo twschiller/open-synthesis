@@ -23,7 +23,7 @@
     "url": "https://github.com/twschiller/open-synthesis/issues"
   },
   "homepage": "https://github.com/twschiller/open-synthesis#readme",
-  "devDependencies": {
+  "dependencies": {
     "bootstrap": "^3.3.7",
     "bootstrap-datepicker": "^1.6.4",
     "css-loader": "^0.25.0",
