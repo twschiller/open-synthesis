@@ -10,7 +10,9 @@
 {% block content %}
     <h1>Intelligence Board: <i>{{ board.board_title }}</i></h1>
 
-    {% include 'boards/_sharing.html' with title=board.board_title url=request|full_url:board only %}
+    {% if allow_share %}
+        {% include 'boards/_sharing.html' with title=board.board_title url=request|full_url:board only %}
+    {% endif %}
 
     <div>
         {% if board.creator %}
