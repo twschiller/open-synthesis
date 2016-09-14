@@ -18,12 +18,17 @@
 
     <form action="{% url 'openach:evaluate' board.id evidence.id %}" method="post">
         {% csrf_token %}
-        {% for hypothesis in hypotheses %}
+        {% for hypothesis, eval_ in hypotheses %}
             <div class="form-group">
                 <label for="hypothesis-{{ hypothesis.id }}" class="control-label">Hypothesis: {{ hypothesis.hypothesis_text }}</label>
                 <div>
                     <select id="hypothesis-{{ hypothesis.id }}" name="hypothesis-{{ hypothesis.id }}" class="form-control">
-                        <option value="{{ default_eval }}">{{ default_eval }}</option>
+                        {% if eval_ %}
+                            <option value="{{ keep_eval }}">{{ keep_eval }}</option>
+                            <option value="{{ remove_eval }}">{{ remove_eval }}</option>
+                        {% else %}
+                            <option value="{{ default_eval }}">{{ default_eval }}</option>
+                        {% endif %}
                         {% for option in options %}
                             <option value="{{ option.0 }}">{{ option.1 }}</option>
                         {% endfor %}

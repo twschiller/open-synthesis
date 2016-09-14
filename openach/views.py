@@ -40,6 +40,10 @@ PAGE_CACHE_TIMEOUT_SECONDS = 60
 DEBUG = getattr(settings, 'DEBUG', False)
 ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
 
+DEFAULT_EVAL = '------'
+KEEP_EVAL = '-- Keep Previous Assessment'
+REMOVE_EVAL = '-- Remove Assessment'
+
 
 def check_owner_authorization(request, board, has_creator=None):
     """Raise a PermissionDenied exception if the authenticated user does not have edit rights for the resource."""
@@ -504,38 +508,53 @@ def evaluate(request, board_id, evidence_id):
     Take a couple measures to reduce bias: (1) do not show the analyst their previous assessment, and (2) show
     the hypotheses in a random order.
     """
-    # FIXME: need to fix the db transaction structure for this method
-    default_eval = '------'
     board = get_object_or_404(Board, pk=board_id)
     evidence = get_object_or_404(Evidence, pk=evidence_id)
-    hypotheses = list(Hypothesis.objects.filter(board=board_id))
-    random.shuffle(hypotheses)
+
+    evaluations = {e.hypothesis_id: e for e in
+                   Evaluation.objects.filter(board=board_id, evidence=evidence_id, user=request.user)}
+
+    hypotheses = [(h, evaluations.get(h.id, None)) for h in Hypothesis.objects.filter(board=board_id)]
 
     if request.method == 'POST':
         with transaction.atomic():
-            # Remove user's previous votes for the the piece of evidence
-            Evaluation.objects.filter(board=board_id, evidence=evidence_id, user=request.user).delete()
-
-            # Add new votes for the hypotheses
-            for hypothesis in hypotheses:
+            for hypothesis, _ in hypotheses:
                 select = request.POST['hypothesis-{}'.format(hypothesis.id)]
-                if select != default_eval:
-                    Evaluation.objects.create(
+                if select == REMOVE_EVAL:
+                    Evaluation.objects.filter(
+                        board=board_id,
+                        evidence=evidence,
+                        user=request.user,
+                        hypothesis_id=hypothesis.id
+                    ).delete()
+                elif select != DEFAULT_EVAL and select != KEEP_EVAL:
+                    Evaluation.objects.update_or_create(
                         board=board,
                         evidence=evidence,
                         hypothesis=hypothesis,
                         user=request.user,
-                        value=select
+                        defaults={
+                            'value': select
+                        }
                     )
-
+                else:
+                    # don't add/update the evaluation
+                    pass
+        messages.success(request, "Recorded evaluations for evidence: {}".format(evidence.evidence_desc))
         return HttpResponseRedirect(reverse('openach:detail', args=(board_id,)))
     else:
+        new_hypotheses = [h for h in hypotheses if h[1] is None]
+        old_hypotheses = [h for h in hypotheses if h[1] is not None]
+        random.shuffle(old_hypotheses)
+        random.shuffle(new_hypotheses)
         context = {
             'board': board,
             'evidence': evidence,
-            'hypotheses': hypotheses,
+            'hypotheses': new_hypotheses + old_hypotheses,
             'options': Evaluation.EVALUATION_OPTIONS,
-            'default_eval': default_eval
+            'default_eval': DEFAULT_EVAL,
+            'keep_eval': KEEP_EVAL,
+            'remove_eval': REMOVE_EVAL,
         }
         return render(request, 'boards/evaluate.html', context)
 
