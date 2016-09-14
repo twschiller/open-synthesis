@@ -30,6 +30,7 @@ module.exports = {
     },
     plugins: [
         new BundleTracker({filename: './webpack-stats.json'}),
+        // https://webpack.github.io/docs/list-of-plugins.html#provideplugin
         new webpack.ProvidePlugin({
             $: "jquery",
             jQuery: "jquery"
@@ -37,11 +38,16 @@ module.exports = {
         new ExtractTextPlugin("style.css", {
             allChunks: true
         }),
+        // https://webpack.github.io/docs/list-of-plugins.html#uglifyjsplugin
         new webpack.optimize.UglifyJsPlugin({
             compress: {
                 warnings: false
             }
-        })
+        }),
+        // https://webpack.github.io/docs/list-of-plugins.html#dedupeplugin
+        new webpack.optimize.DedupePlugin(),
+        // https://webpack.github.io/docs/list-of-plugins.html#occurrenceorderplugin
+        new webpack.optimize.OccurrenceOrderPlugin(true)
     ],
     module: {
         loaders: [
