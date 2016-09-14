@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.sitemaps',
     'django_comments',
+    'webpack_loader',
     'field_history',
     'bootstrapform',
     'openach',
@@ -231,11 +232,20 @@ STATIC_URL = '/static/'
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
+    os.path.join(BASE_DIR, 'assets')
 )
 
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+
+# https://github.com/owais/django-webpack-loader#default-configuration
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
+    }
+}
 
 # Logging configuration
 # cf. https://chrxr.com/django-error-logging-configuration-heroku/
@@ -328,12 +338,6 @@ ROLLBAR = {
 # http://www.html5rocks.com/en/tutorials/security/content-security-policy/
 
 CSP_DEFAULT_SRC = ["'self'"]
-CSP_SCRIPT_SRC = [
-    "'self'", 'https://maxcdn.bootstrapcdn.com',
-    'https://code.jquery.com', 'https://cdnjs.cloudflare.com'
-]
-CSP_STYLE_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com', 'https://cdnjs.cloudflare.com']
-CSP_FONT_SRC = ["'self'", 'https://maxcdn.bootstrapcdn.com']
 
 # SEO Configuration
 SLUG_MAX_LENGTH = env('SLUG_MAX_LENGTH')

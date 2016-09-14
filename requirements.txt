@@ -30,3 +30,4 @@ pylibmc~=1.5.1
 django-pylibmc~=0.6.1
 nplusone~=0.7.2
 django-invitations~=1.7
+django-webpack-loader~=0.3.3

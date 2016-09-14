@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load render_bundle from webpack_loader %}
 <html lang="en-US">
 <head>
     <meta charset="utf-8">
@@ -16,12 +17,7 @@
     {% else %}
         <meta name="keywords" content="Analysis of Competing Hypothesis, ACH, intelligence analysis">
     {% endif %}
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.min.css"
-          rel="stylesheet"
-          integrity="sha384-5NocS5vv1V7pNg+id43cLyH4VlyQHptfkQYDzH63OBl0E7NTeUmaBwKHKc3EjTIb"
-          crossorigin="anonymous">
+    {% render_bundle 'main' 'css' %}
     <link rel="stylesheet" type="text/css" href="{% static 'boards/css/style.css' %}" />
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'boards/images/favicon.ico' %}"/>
 </head>
@@ -62,17 +58,7 @@
     {% endblock %}
 </div> <!-- /container -->
 
-<script src="https://code.jquery.com/jquery-3.1.0.slim.min.js"
-        integrity="sha256-cRpWjoSOw5KcyIOaZNo4i6fZ9tKPhYYb6i5T9RSVJG8="
-        crossorigin="anonymous"></script>
-
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-        crossorigin="anonymous"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"
-        integrity="sha384-BU6QNLIZsoGezWel6XIhlupzUX/fy/X5XrDyatPnvDMpnLzIKP3d2Iy9377QO7dj"
-        crossorigin="anonymous"></script>
+{% render_bundle 'main' 'js' %}
 
 </body>
 </html>

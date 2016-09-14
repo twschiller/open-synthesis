@@ -1,4 +1,5 @@
 venv
+node_modules
 *.pyc
 db.sqlite3
 .env
@@ -21,9 +22,15 @@ runserver
 .idea/sqlDataSources.xml
 .idea/dynamic.xml
 .idea/uiDesigner.xml
+*.log
+
 
 # MacOS files
 .DS_Store
 
 # Testing Artifacts
 .coverage
+
+# NPM/Webpack
+webpack-stats.json
+assets/bundles
