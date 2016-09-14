@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-require('jquery');
-require('bootstrap');
-require('bootstrap-datepicker');
+require("jquery");
+require("bootstrap");
+require("bootstrap-datepicker");
 
-require('bootstrap/dist/css/bootstrap.min.css');
-require('bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css');
+require("bootstrap/dist/css/bootstrap.min.css");
+require("bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css");
