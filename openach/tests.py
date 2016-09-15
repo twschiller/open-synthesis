@@ -1127,9 +1127,19 @@ class AccountManagementTests(TestCase):
 
     def test_can_show_signup_form(self):
         """Test that a non-logged-in user can view the sign-up form."""
+        setattr(settings, 'INVITATIONS_INVITATION_ONLY', False)
+        setattr(settings, 'INVITE_REQUEST_URL', 'https://google.com')
         response = self.client.get('/accounts/signup/')
         self.assertTemplateUsed('/account/email/signup.html')
         self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "invitation")
+
+    def test_can_show_invite_url(self):
+        """Test that a non-logged-in user can view the sign-up form that has an invite link."""
+        setattr(settings, 'INVITATIONS_INVITATION_ONLY', True)
+        setattr(settings, 'INVITE_REQUEST_URL', 'https://google.com')
+        response = self.client.get('/accounts/signup/')
+        self.assertContains(response, "invitation")
 
     @skipUnless(ACCOUNT_EMAIL_REQUIRED, reason="account email is not required.")
     def test_email_address_required(self):

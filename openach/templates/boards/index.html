@@ -54,7 +54,7 @@
                     {% if latest_project_news %}
                         {% for headline in latest_project_news %}
                             <li class="list-group-item">
-                                {{ headline.pub_date|date }}: {{ headline.content }}
+                                {{ headline.pub_date|date }}: {{ headline.content|urlize }}
                             </li>
                         {% endfor %}
                     {% else %}

@@ -57,6 +57,10 @@
       "value": "False",
       "required": false
     },
+    "INVITE_REQUEST_URL": {
+      "description": "URL where a user can request an invitation to the site (for an email address, user mailto:example@domain.com)",
+      "required": false
+    },
     "DEFAULT_FROM_EMAIL": {
       "description": "Default email address for sending emails to users (default=ADMIN_EMAIL_ADDRESS)",
       "required": false
