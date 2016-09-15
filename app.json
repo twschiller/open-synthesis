@@ -64,7 +64,7 @@
     "EVIDENCE_REQUIRE_SOURCE": {
       "description": "Whether or not analysts must provide a corroborating source when adding a piece of evidence (default=True)",
       "required": false,
-      "value": true
+      "value": "False"
     }
   },
   "scripts": {
