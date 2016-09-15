@@ -60,6 +60,11 @@
     "DEFAULT_FROM_EMAIL": {
       "description": "Default email address for sending emails to users (default=ADMIN_EMAIL_ADDRESS)",
       "required": false
+    },
+    "EVIDENCE_REQUIRE_SOURCE": {
+      "description": "Whether or not analysts must provide a corroborating source when adding a piece of evidence (default=True)",
+      "required": false,
+      "value": true
     }
   },
   "scripts": {
