@@ -28,12 +28,12 @@ SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH', 72)
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
+# https://docs.djangoproject.com/en/1.10/topics/db/managers/
 class RemovableModelManager(models.Manager):  # pylint: disable=too-few-public-methods
     """Query manager that excludes removed models."""
-    # https://docs.djangoproject.com/en/1.10/topics/db/managers/
 
     def get_queryset(self):
-        """Return the queryset, excluding removed models"""
+        """Return the queryset, excluding removed models."""
         return super(RemovableModelManager, self).get_queryset().filter(removed=False)
 
 
@@ -131,7 +131,7 @@ class Evidence(models.Model):
         return self.evidence_desc
 
     def get_canonical_url(self):
-        """Return the canonical URL for view evidence details"""
+        """Return the canonical URL for view evidence details."""
         return reverse('openach:evidence_detail', args=(self.id,))
 
 

@@ -55,7 +55,7 @@ def check_owner_authorization(request, board, has_creator=None):
 
 
 def owner_or_staff(request, board, has_creator=None):
-    """Return True if the authenticated user has ownership of the resource"""
+    """Return True if the authenticated user has ownership of the resource."""
     return request.user.is_staff or \
         request.user == board.creator or \
         (has_creator and request.user == has_creator.creator)
@@ -303,6 +303,10 @@ class EvidenceForm(BaseSourceForm, EvidenceEditForm):
     """
 
     def __init__(self, *args, **kwargs):
+        """Construct an evidence form.
+
+        Require an initial corroborating source (and date) if EVIDENCE_REQUIRE_SOURCE is True.
+        """
         super().__init__(*args, **kwargs)
         if not EVIDENCE_REQUIRE_SOURCE:
             self.fields['evidence_url'].required = False
@@ -600,7 +604,7 @@ def evaluate(request, board_id, evidence_id):
 
     if request.method == 'POST':
         with transaction.atomic():
-            for hypothesis, _ in hypotheses:
+            for hypothesis, dummy_evaluation in hypotheses:
                 select = request.POST['hypothesis-{}'.format(hypothesis.id)]
                 if select == REMOVE_EVAL:
                     Evaluation.objects.filter(

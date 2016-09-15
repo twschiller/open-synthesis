@@ -147,7 +147,7 @@ def canonical_url(request, model):
 
 @register.filter
 def canonical_profile_url(request, user):
-    """Return the canonical URL of the user's public profile"""
+    """Return the canonical URL of the user's public profile."""
     return request.build_absolute_uri(reverse('profile', args=(user.id,)))
 
 
