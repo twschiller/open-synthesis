@@ -55,6 +55,7 @@ def get_source_tags(dictionary, source_id, tag_id):
 
 
 DisputeLevel = collections.namedtuple('DisputeLevel', ['max_level', 'name', 'css_class'])
+# NOTE: the levels here need to match the levels in _detail_icons
 DISPUTE_LEVELS = [
     DisputeLevel(max_level=0.5, name='Consensus', css_class='disagree-consensus'),
     DisputeLevel(max_level=1.5, name='Mild Dispute', css_class='disagree-mild-dispute'),

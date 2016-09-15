@@ -101,9 +101,9 @@
                 </td>
                 {% for hypothesis, inconsistency in hypotheses %}
                     {% get_detail votes evidence.id hypothesis.id as detail %}
+                    {% get_detail disagreement evidence.id hypothesis.id as detail_disagreement %}
 
                     {% if view_type == 'disagreement' %}
-                        {% get_detail disagreement evidence.id hypothesis.id as detail_disagreement %}
                         <td class="assessment {{ detail_disagreement|disagreement_style }}">
                             {% if detail_disagreement < 0.5 %}
                                 {{ detail_disagreement|disagreement_category }}:
@@ -118,19 +118,23 @@
                         {% if user_detail == detail %}
                             <td class="assessment {{ user_detail|detail_classname }}">
                                 {{ user_detail|detail_name }}
+                                {% include 'boards/_detail_icons.html' %}
                             </td>
                         {% elif user_detail %}
                             <td class="assessment {% comparison_style user_detail detail %}">
                                 {{ user_detail|detail_name }} vs. {{ detail|detail_name }}
+                                {% include 'boards/_detail_icons.html' %}
                             </td>
                         {% else %}
                             <td class="assessment {{ user_detail|detail_classname }}">
                                 Consensus: {{ detail|detail_name }}
+                                {% include 'boards/_detail_icons.html' %}
                             </td>
                         {% endif %}
                     {% else %}
                         <td class="assessment {{ detail|detail_classname }}">
                             {{ detail|detail_name }}
+                            {% include 'boards/_detail_icons.html' %}
                         </td>
                     {% endif %}
                 {% endfor %}
