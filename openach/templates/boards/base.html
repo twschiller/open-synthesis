@@ -1,22 +1,18 @@
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
+<!DOCTYPE html>
 <html lang="en-US">
-<head>
+<head prefix="og: http://ogp.me/ns# profile: http://ogp.me/ns/profile# website: http://ogp.me/ns/website# ">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>{% block title %}{% endblock %}</title>
-    {% if meta_description %}
-        <meta name="description" content="{{ meta_description }}">
-    {% else %}
-        <meta name="description" content="{{ site.name }} is an open platform for intelligence analysis">
-    {% endif %}
-    {% if meta_keywords %}
-        <meta name="keywords" content="{{ meta_keywords }}">
-    {% else %}
-        <meta name="keywords" content="Analysis of Competing Hypothesis, ACH, intelligence analysis">
-    {% endif %}
+    {% include 'boards/_meta.html' %}
+
+    {% block opengraph %}
+    {% endblock %}
+
     {% render_bundle 'main' 'css' %}
     <link rel="stylesheet" type="text/css" href="{% static 'boards/css/style.css' %}" />
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'boards/images/favicon.ico' %}"/>

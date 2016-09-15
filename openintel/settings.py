@@ -63,6 +63,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     SENDGRID_USERNAME=(str, None),
     SENDGRID_PASSWORD=(str, None),
     SLUG_MAX_LENGTH=(int, 72),
+    TWITTER_ACCOUNT=(str, None),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -140,6 +141,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'openach.context_processors.site',
+                'openach.context_processors.meta',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -307,6 +309,7 @@ if _detect_command('createadmin'):  # pragma: no cover
 ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
 INVITE_REQUIRED = env('INVITE_REQUIRED')
 EVIDENCE_REQUIRE_SOURCE = env('EVIDENCE_REQUIRE_SOURCE')
+TWITTER_ACCOUNT = env('TWITTER_ACCOUNT')
 
 # Authentication Options:
 # https://django-allauth.readthedocs.io/en/latest/configuration.html

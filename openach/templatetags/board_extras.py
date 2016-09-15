@@ -8,6 +8,8 @@ import collections
 import math
 
 from django.template.defaulttags import register
+# NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
+from django.urls import reverse  # pylint: disable=no-name-in-module
 
 from openach.models import Evaluation, Eval
 
@@ -135,6 +137,18 @@ def board_url(board):
 def full_url(request, model):
     """Return the URL of the model, including domain."""
     return request.build_absolute_uri(model.get_absolute_url())
+
+
+@register.filter
+def canonical_url(request, model):
+    """Return the canonical URL of the model, including domain, and excluding slugs and parameters."""
+    return request.build_absolute_uri(model.get_canonical_url())
+
+
+@register.filter
+def canonical_profile_url(request, user):
+    """Return the canonical URL of the user's public profile"""
+    return request.build_absolute_uri(reverse('profile', args=(user.id,)))
 
 
 @register.simple_tag

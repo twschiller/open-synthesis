@@ -5,6 +5,12 @@
 
 {% block title %}User {{ user.username }} | {{ site.name }}{% endblock %}
 
+{% block opengraph %}
+    <meta property="og:type" content="profile" />
+    <meta property="profile:username" content="{{ user.username }}">
+    <meta property="og:url" content="{{ request|canonical_profile_url:user }}">
+{% endblock %}
+
 {% block content %}
     <div class="row">
         <div class="col-md-7">
