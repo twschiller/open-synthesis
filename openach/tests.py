@@ -138,6 +138,23 @@ class BoardFormTests(TestCase):
         response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "boards/edit_board.html")
+        self.assertNotContains(response, "Remove Board")
+
+    def test_staff_edit_form_has_remove_button(self):
+        """Test that the edit form contains a remove button for staff."""
+        board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
+        self.user.is_staff = True
+        self.user.save()
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
+        self.assertContains(response, "Remove Board", status_code=200)
+
+    def test_non_owner_cannot_edit(self):
+        """Test that the form is not displayed to the user that did not create the board."""
+        board = Board.objects.create(board_title="Board #1", creator=None, pub_date=timezone.now())
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
+        self.assertEqual(response.status_code, 403)
 
     def test_can_submit_edit_form(self):
         """Test that a logged in user can edit a board by submitting the form."""
@@ -171,6 +188,15 @@ class BoardFormTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Board.objects.count(), 0)
         self.assertEqual(Board.all_objects.count(), 1)
+
+    def test_non_owner_cannot_remove_board(self):
+        """Test that a random user can't delete the board using a POST request."""
+        board = Board.objects.create(board_title="Board #1", creator=None, pub_date=timezone.now())
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
+            'remove': 'remove'
+        })
+        self.assertEqual(response.status_code, 403)
 
     def test_can_view_board_history(self):
         """Test that the board history shows a change in board title and description."""
@@ -356,7 +382,7 @@ class AddEditHypothesisTests(TestCase):
     def test_can_show_edit_form(self):
         """Test that the a user can view the hypothesis editing form."""
         self.client.login(username='john', password='johnpassword')
-        response = self.client.post(reverse('openach:edit_hypothesis', args=(self.hypotheses[0].id,)))
+        response = self.client.get(reverse('openach:edit_hypothesis', args=(self.hypotheses[0].id,)))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "boards/edit_hypothesis.html")
 
@@ -734,9 +760,22 @@ class AddEvidenceTests(TestCase):
             submit_date=timezone.now()
         )
         self.client.login(username='john', password='johnpassword')
-        response = self.client.post(reverse('openach:edit_evidence', args=(self.evidence.id,)))
+        response = self.client.get(reverse('openach:edit_evidence', args=(self.evidence.id,)))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "boards/edit_evidence.html")
+
+    def test_edit_form_has_remove_button(self):
+        """Test that the edit form includes a remove button for the evidence creator."""
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_evidence', args=(self.evidence.id,)))
+        self.assertContains(response, "Remove Evidence", status_code=200)
 
     def test_can_submit_edit_form(self):
         """Test that the evidence edit form properly updates the evidence."""

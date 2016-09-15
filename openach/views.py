@@ -56,13 +56,24 @@ def check_owner_authorization(request, board, has_creator=None):
 
 def owner_or_staff(request, board, has_creator=None):
     """Return True if the authenticated user has ownership of the resource"""
-    return request.user.is_staff or request.user == board.creator or \
-           (has_creator and request.user == has_creator.creator)
+    return request.user.is_staff or \
+        request.user == board.creator or \
+        (has_creator and request.user == has_creator.creator)
 
 
 def is_field_provided(form, field):
     """Return true if field has non-None value in the form."""
     return field in form.cleaned_data and form.cleaned_data[field] is not None
+
+
+def _remove_and_redirect(request, removable, message_detail):
+    """Mark a model as removed and redirect the user to the associated board detail page."""
+    removable.removed = True
+    removable.save()
+    klass_name = removable._meta.verbose_name.title()  # pylint: disable=protected-access
+    klass = klass_name[:1].lower() + klass_name[1:] if klass_name else ''
+    messages.success(request, 'Removed {}: {}'.format(klass, message_detail))
+    return HttpResponseRedirect(reverse('openach:detail', args=(removable.board.id,)))
 
 
 @require_safe
@@ -352,10 +363,7 @@ def edit_evidence(request, evidence_id):
     if request.method == 'POST':
         form = EvidenceEditForm(request.POST)
         if 'remove' in form.data:
-            evidence.removed = True
-            evidence.save()
-            messages.success(request, 'Removed evidence {}'.format(evidence.evidence_desc))
-            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+            return _remove_and_redirect(request, evidence, evidence.evidence_desc)
 
         elif form.is_valid():
             evidence.evidence_desc = form.cleaned_data['evidence_desc']
@@ -521,10 +529,7 @@ def edit_hypothesis(request, hypothesis_id):
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
         if 'remove' in form.data:
-            hypothesis.removed = True
-            hypothesis.save()
-            messages.success(request, 'Removed hypothesis {}'.format(hypothesis.hypothesis_text))
-            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+            return _remove_and_redirect(request, hypothesis, hypothesis.hypothesis_text)
 
         elif form.is_valid():
             hypothesis.hypothesis_text = form.cleaned_data['hypothesis_text']

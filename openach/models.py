@@ -28,7 +28,7 @@ SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH', 72)
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-class RemovableModelManager(models.Manager):
+class RemovableModelManager(models.Manager):  # pylint: disable=too-few-public-methods
     """Query manager that excludes removed models."""
     # https://docs.djangoproject.com/en/1.10/topics/db/managers/
 
