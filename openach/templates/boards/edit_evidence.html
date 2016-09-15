@@ -15,7 +15,10 @@
         <div class="form-group">
             <div>
                 <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">Return to Evidence</a>
-                <button type="submit" class="btn btn-primary">{% trans "Save Edits" %}</button>
+                {% if allow_remove %}
+                    <button type="submit" class="btn btn-danger" name="remove" value="remove">{% trans "Remove Evidence" %}</button>&nbsp;
+                {% endif %}
+                <button type="submit" class="btn btn-primary" value="save">{% trans "Save Edits" %}</button>
             </div>
         </div>
     </form>

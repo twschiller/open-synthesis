@@ -36,7 +36,8 @@ class Board(models.Model):
     board_desc = models.CharField('board description', max_length=BOARD_DESC_MAX_LENGTH)
     creator = models.ForeignKey(User, null=True)
     pub_date = models.DateTimeField('date published')
-    field_history = FieldHistoryTracker(['board_title', 'board_desc'])
+    removed = models.BooleanField(default=False)
+    field_history = FieldHistoryTracker(['board_title', 'board_desc', 'removed'])
 
     def __str__(self):
         """Return a human-readable representation of the board."""
@@ -70,7 +71,8 @@ class Hypothesis(models.Model):
     hypothesis_text = models.CharField('hypothesis', max_length=HYPOTHESIS_MAX_LENGTH)
     creator = models.ForeignKey(User, null=True)
     submit_date = models.DateTimeField('date added')
-    field_history = FieldHistoryTracker(['hypothesis_text'])
+    removed = models.BooleanField(default=False)
+    field_history = FieldHistoryTracker(['hypothesis_text', 'removed'])
 
     class Meta:  # pylint: disable=too-few-public-methods
         """Hypothesis Model meta options.
@@ -94,7 +96,8 @@ class Evidence(models.Model):
     evidence_desc = models.CharField('evidence description', max_length=EVIDENCE_MAX_LENGTH)
     event_date = models.DateField('evidence event date', null=True)
     submit_date = models.DateTimeField('date added')
-    field_history = FieldHistoryTracker(['evidence_desc', 'event_date'])
+    removed = models.BooleanField(default=False)
+    field_history = FieldHistoryTracker(['evidence_desc', 'event_date', 'removed'])
 
     class Meta:  # pylint: disable=too-few-public-methods
         """Evidence Model meta options.
@@ -124,6 +127,7 @@ class EvidenceSource(models.Model):
     uploader = models.ForeignKey(User)
     submit_date = models.DateTimeField('date added')
     corroborating = models.BooleanField()
+    removed = models.BooleanField(default=False)
 
 
 class EvidenceSourceTag(models.Model):

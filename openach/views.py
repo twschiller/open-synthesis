@@ -50,15 +50,32 @@ REMOVE_EVAL = '-- Remove Assessment'
 
 def check_owner_authorization(request, board, has_creator=None):
     """Raise a PermissionDenied exception if the authenticated user does not have edit rights for the resource."""
-    if request.user.is_staff or request.user == board.creator or (has_creator and request.user == has_creator.creator):
-        pass
-    else:
+    if not owner_or_staff(request, board, has_creator):
         raise PermissionDenied()
+
+
+def owner_or_staff(request, board, has_creator=None):
+    """Return True if the authenticated user has ownership of the resource"""
+    return request.user.is_staff or request.user == board.creator or \
+           (has_creator and request.user == has_creator.creator)
 
 
 def is_field_provided(form, field):
     """Return true if field has non-None value in the form."""
     return field in form.cleaned_data and form.cleaned_data[field] is not None
+
+
+def get_removable_object_or_404(klass, *args, **kwargs):
+    """Call get_object_or_404(), additionally raising a 404 if the object has been marked as removed."""
+    result = get_object_or_404(klass, *args, **kwargs)
+    if result.removed:
+        raise Http404("Object no longer exists")
+    return result
+
+
+def visible_objects(klass):
+    """Return query set of objects that have not been removed"""
+    return klass.objects.filter(removed=False)
 
 
 @require_safe
@@ -67,7 +84,7 @@ def is_field_provided(form, field):
 def index(request):
     """Return a homepage view showing project information, news, and recent boards."""
     # Show all of the boards until we can implement tagging, search, etc.
-    latest_board_list = Board.objects.order_by('-pub_date')
+    latest_board_list = visible_objects(Board).order_by('-pub_date')
     latest_project_news = ProjectNews.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
     context = {
         'latest_board_list': latest_board_list,
@@ -98,7 +115,7 @@ def detail(request, board_id, dummy_board_slug=None):
     # NOTE: cannot cache page for logged in users b/c comments section contains CSRF and other protection mechanisms.
     view_type = 'average' if request.GET.get('view_type') is None else request.GET['view_type']
 
-    board = get_object_or_404(Board, pk=board_id)
+    board = get_removable_object_or_404(Board, pk=board_id)
     votes = Evaluation.objects.filter(board=board).select_related('user')
 
     participants = {vote.user for vote in votes}
@@ -120,8 +137,8 @@ def detail(request, board_id, dummy_board_slug=None):
     # augment hypotheses and evidence with diagnosticity and consistency
     def _group(first, second, func, key):
         return [(f, func([keyed[key(f, s)] for s in second])) for f in first]
-    hypotheses = list(board.hypothesis_set.all())
-    evidence = list(board.evidence_set.all())
+    hypotheses = list(board.hypothesis_set.filter(removed=False))
+    evidence = list(board.evidence_set.filter(removed=False))
     hypothesis_consistency = _group(hypotheses, evidence, inconsistency, key=lambda h, e: (e.id, h.id))
     evidence_diagnosticity = _group(evidence, hypotheses, diagnosticity, key=lambda e, h: (e.id, h.id))
 
@@ -213,12 +230,23 @@ class BoardEditForm(forms.Form):
 @login_required
 def edit_board(request, board_id):
     """Return a board edit view, or handle the form submission."""
-    board = get_object_or_404(Board, pk=board_id)
+    board = get_removable_object_or_404(Board, pk=board_id)
     check_owner_authorization(request, board)
+    allow_remove = request.user.is_staff
 
     if request.method == 'POST':
         form = BoardEditForm(request.POST)
-        if form.is_valid():
+
+        if 'remove' in form.data:
+            if allow_remove:
+                board.removed = True
+                board.save()
+                messages.success(request, 'Removed board {}'.format(board.board_title))
+                return HttpResponseRedirect(reverse('openach:index'))
+            else:
+                raise PermissionDenied()
+
+        elif form.is_valid():
             board.board_title = form.cleaned_data['board_title']
             board.board_desc = form.cleaned_data['board_desc']
             board.board_slug = slugify(form.cleaned_data['board_title'], max_length=SLUG_MAX_LENGTH)
@@ -227,7 +255,14 @@ def edit_board(request, board_id):
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = BoardEditForm(initial={'board_title': board.board_title, 'board_desc': board.board_desc})
-    return render(request, 'boards/edit_board.html', {'form': form, 'board': board})
+
+    context = {
+        'form': form,
+        'board': board,
+        'allow_remove': allow_remove
+    }
+
+    return render(request, 'boards/edit_board.html', context)
 
 
 class EvidenceEditForm(forms.Form):
@@ -287,7 +322,7 @@ class EvidenceForm(BaseSourceForm, EvidenceEditForm):
 @login_required
 def add_evidence(request, board_id):
     """Return a view of adding evidence (with a source), or handle the form submission."""
-    board = get_object_or_404(Board, pk=board_id)
+    board = get_removable_object_or_404(Board, pk=board_id)
 
     if request.method == 'POST':
         form = EvidenceForm(request.POST)
@@ -322,13 +357,20 @@ def add_evidence(request, board_id):
 @login_required
 def edit_evidence(request, evidence_id):
     """Return a view for editing a piece of evidence, or handle for submission."""
-    evidence = get_object_or_404(Evidence, pk=evidence_id)
+    evidence = get_removable_object_or_404(Evidence, pk=evidence_id)
+    # don't care that the board might have been removed
     board = evidence.board
     check_owner_authorization(request, board=board, has_creator=evidence)
 
     if request.method == 'POST':
         form = EvidenceEditForm(request.POST)
-        if form.is_valid():
+        if 'remove' in form.data:
+            evidence.removed = True
+            evidence.save()
+            messages.success(request, 'Removed evidence {}'.format(evidence.evidence_desc))
+            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+
+        elif form.is_valid():
             evidence.evidence_desc = form.cleaned_data['evidence_desc']
             evidence.event_date = form.cleaned_data['event_date']
             evidence.save()
@@ -336,7 +378,16 @@ def edit_evidence(request, evidence_id):
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = EvidenceEditForm(initial={'evidence_desc': evidence.evidence_desc, 'event_date': evidence.event_date})
-    return render(request, 'boards/edit_evidence.html', {'form': form, 'evidence': evidence, 'board': board})
+
+    context = {
+        'form': form,
+        'evidence': evidence,
+        'board': board,
+        # allow anyone who can edit the evidence to also remove it
+        'allow_remove': True
+    }
+
+    return render(request, 'boards/edit_evidence.html', context)
 
 
 class EvidenceSourceForm(BaseSourceForm):
@@ -355,7 +406,7 @@ class EvidenceSourceForm(BaseSourceForm):
 @login_required
 def add_source(request, evidence_id):
     """Return a view for adding a corroborating/contradicting source, or handle form submission."""
-    evidence = get_object_or_404(Evidence, pk=evidence_id)
+    evidence = get_removable_object_or_404(Evidence, pk=evidence_id)
     if request.method == 'POST':
         form = EvidenceSourceForm(request.POST)
         if form.is_valid():
@@ -392,7 +443,7 @@ def toggle_source_tag(request, evidence_id, source_id):
     # whether or not they're adding/removing the tag
     if request.method == 'POST':
         with transaction.atomic():
-            source = get_object_or_404(EvidenceSource, pk=source_id)
+            source = get_removable_object_or_404(EvidenceSource, pk=source_id)
             tag = EvidenceSourceTag.objects.get(tag_name=request.POST['tag'])
             user_tag = AnalystSourceTag.objects.filter(source=source, tagger=request.user, tag=tag)
             if user_tag.count() > 0:
@@ -413,9 +464,9 @@ def toggle_source_tag(request, evidence_id, source_id):
 def evidence_detail(request, evidence_id):
     """Return a view displaying detailed information about a piece of evidence and its sources."""
     # NOTE: cannot cache page for logged in users b/c comments section contains CSRF and other protection mechanisms.
-    evidence = get_object_or_404(Evidence, pk=evidence_id)
+    evidence = get_removable_object_or_404(Evidence, pk=evidence_id)
     available_tags = EvidenceSourceTag.objects.all()
-    sources = EvidenceSource.objects.filter(evidence=evidence).order_by('-source_date').select_related('uploader')
+    sources = visible_objects(EvidenceSource).filter(evidence=evidence).order_by('-source_date').select_related('uploader')
     all_tags = AnalystSourceTag.objects.filter(source__in=sources)
 
     source_tags = defaultdict(list)
@@ -447,8 +498,8 @@ class HypothesisForm(forms.Form):
 @login_required
 def add_hypothesis(request, board_id):
     """Return a view for adding a hypothesis, or handle form submission."""
-    board = get_object_or_404(Board, pk=board_id)
-    existing = Hypothesis.objects.filter(board=board)
+    board = get_removable_object_or_404(Board, pk=board_id)
+    existing = visible_objects(Hypothesis).filter(board=board)
 
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
@@ -475,20 +526,36 @@ def add_hypothesis(request, board_id):
 @login_required
 def edit_hypothesis(request, hypothesis_id):
     """Return a view for editing a hypothesis, or handle board submission."""
-    hypothesis = get_object_or_404(Hypothesis, pk=hypothesis_id)
+    hypothesis = get_removable_object_or_404(Hypothesis, pk=hypothesis_id)
+    # don't care if the board has been removed
     board = hypothesis.board
     check_owner_authorization(request, board, hypothesis)
 
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
-        if form.is_valid():
+        if 'remove' in form.data:
+            hypothesis.removed = True
+            hypothesis.save()
+            messages.success(request, 'Removed hypothesis {}'.format(hypothesis.hypothesis_text))
+            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+
+        elif form.is_valid():
             hypothesis.hypothesis_text = form.cleaned_data['hypothesis_text']
             hypothesis.save()
             messages.success(request, 'Updated hypothesis.')
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = HypothesisForm(initial={'hypothesis_text': hypothesis.hypothesis_text})
-    return render(request, 'boards/edit_hypothesis.html', {'form': form, 'hypothesis': hypothesis, 'board': board})
+
+    context = {
+        'form': form,
+        'hypothesis': hypothesis,
+        'board': board,
+        # allow anyone who an edit a hypothesis to remove it
+        'allow_remove': True,
+    }
+
+    return render(request, 'boards/edit_hypothesis.html', context)
 
 
 @require_safe
@@ -505,12 +572,12 @@ def profile(request, account_id=None):
 
     # There's no real reason for these to be atomic
     user = get_object_or_404(User, pk=account_id)
-    boards = Board.objects.filter(creator=user)
-    evidence = Evidence.objects.filter(creator=user).select_related('board')
-    hypotheses = Hypothesis.objects.filter(creator=user).select_related('board')
+    boards = visible_objects(Board).filter(creator=user)
+    evidence = visible_objects(Evidence).filter(creator=user).select_related('board')
+    hypotheses = visible_objects(Evidence).filter(creator=user).select_related('board')
     votes = Evaluation.objects.filter(user=user).select_related('board')
     contributed = {e.board for e in evidence}.union({h.board for h in hypotheses})
-    voted = {v.board for v in votes}
+    voted = {v.board for v in votes if not v.board.removed}
     context = {
         'user': user,
         'boards_created': boards,
@@ -531,13 +598,13 @@ def evaluate(request, board_id, evidence_id):
     Take a couple measures to reduce bias: (1) do not show the analyst their previous assessment, and (2) show
     the hypotheses in a random order.
     """
-    board = get_object_or_404(Board, pk=board_id)
-    evidence = get_object_or_404(Evidence, pk=evidence_id)
+    board = get_removable_object_or_404(Board, pk=board_id)
+    evidence = get_removable_object_or_404(Evidence, pk=evidence_id)
 
     evaluations = {e.hypothesis_id: e for e in
                    Evaluation.objects.filter(board=board_id, evidence=evidence_id, user=request.user)}
 
-    hypotheses = [(h, evaluations.get(h.id, None)) for h in Hypothesis.objects.filter(board=board_id)]
+    hypotheses = [(h, evaluations.get(h.id, None)) for h in visible_objects(Hypothesis).filter(board=board_id)]
 
     if request.method == 'POST':
         with transaction.atomic():
