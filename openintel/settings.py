@@ -64,6 +64,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     SENDGRID_PASSWORD=(str, None),
     SLUG_MAX_LENGTH=(int, 72),
     TWITTER_ACCOUNT=(str, None),
+    DONATE_BITCOIN_ADDRESS=(str, None)
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -310,6 +311,7 @@ ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
 INVITE_REQUIRED = env('INVITE_REQUIRED')
 EVIDENCE_REQUIRE_SOURCE = env('EVIDENCE_REQUIRE_SOURCE')
 TWITTER_ACCOUNT = env('TWITTER_ACCOUNT')
+DONATE_BITCOIN_ADDRESS = env('DONATE_BITCOIN_ADDRESS')
 
 # Authentication Options:
 # https://django-allauth.readthedocs.io/en/latest/configuration.html

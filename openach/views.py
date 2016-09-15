@@ -8,15 +8,19 @@ import logging
 import itertools
 import random
 
+import qrcode
+from qrcode.image.svg import SvgPathImage
 from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import transaction
 from django import forms
 from django.utils import timezone
+from django.utils.http import urlencode
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 # NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
 from django.urls import reverse  # pylint: disable=no-name-in-module
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured
@@ -26,7 +30,8 @@ from django.forms import ValidationError
 from django.utils.translation import ugettext as _
 from slugify import slugify
 from field_history.models import FieldHistory
-
+from django.views.decorators.http import etag
+from io import BytesIO
 
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from .models import ProjectNews
@@ -76,6 +81,16 @@ def _remove_and_redirect(request, removable, message_detail):
     return HttpResponseRedirect(reverse('openach:detail', args=(removable.board.id,)))
 
 
+def bitcoin_donation_url(address):
+    """Return a Bitcoin donation URL for DONATE_BITCOIN_ADDRESS or None."""
+    if address:
+        msg = "Donate to {}".format(Site.objects.get_current().name)
+        url = "bitcoin:{}?{}".format(address, urlencode({'message': msg}))
+        return url
+    else:
+        return None
+
+
 @require_safe
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
@@ -96,7 +111,12 @@ def index(request):
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def about(request):
     """Return an about view showing contribution, licensing, contact, and other information."""
-    return render(request, 'boards/about.html')
+    address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
+    context = {
+        'bitcoin_address': address,
+        'bitcoin_donate_url': bitcoin_donation_url(address),
+    }
+    return render(request, 'boards/about.html', context=context)
 
 
 @require_safe
@@ -675,3 +695,29 @@ def certbot(dummy_request, challenge_key):  # pragma: no cover
         raise ImproperlyConfigured("CERTBOT_SECRET_KEY not set")
     else:
         raise Http404()
+
+
+@require_safe
+@etag(lambda r: getattr(settings, 'DONATE_BITCOIN_ADDRESS', ''))
+def bitcoin_qrcode(dummy_request):
+    """Return a QR Code for donating via Bitcoin."""
+    address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', '')
+    if address:
+        # https://pypi.python.org/pypi/qrcode/5.3
+        logger.debug("Generating QR code for address %s", address)
+        qr = qrcode.QRCode(
+            version=1,
+            # about 15% or less errors can be corrected.
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(bitcoin_donation_url(address))
+        qr.make(fit=True)
+        img = qr.make_image(image_factory=SvgPathImage)
+        raw = BytesIO()
+        img.save(raw)
+        raw.flush()
+        return HttpResponse(raw.getvalue(), content_type="image/svg+xml")
+    else:
+        raise Http404

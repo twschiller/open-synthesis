@@ -18,7 +18,7 @@ from .models import Board, Eval, Evidence, Hypothesis, Evaluation, ProjectNews
 from .models import URL_MAX_LENGTH
 from .sitemap import BoardSitemap
 from .views import EvidenceSource, EvidenceSourceForm, EvidenceSourceTag, AnalystSourceTag
-from .views import BoardEditForm, EvidenceEditForm, HypothesisForm
+from .views import BoardEditForm, EvidenceEditForm, HypothesisForm, bitcoin_donation_url
 
 
 logger = logging.getLogger(__name__)
@@ -977,10 +977,34 @@ class RobotsViewTests(TestCase):
 
 class AboutViewTests(TestCase):
 
+    address = "abc123"
+
     def test_can_render_about_page(self):
         """Test that any user can view the about page."""
+        setattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
         response = self.client.get(reverse('openach:about'))
         self.assertIsNotNone(response)
+        self.assertNotContains(response, "Donate")
+
+    def test_can_create_bitcoin_donation_link(self):
+        """Test utility method for constructing Bitcoin links."""
+        self.assertIsNone(bitcoin_donation_url(""))
+        self.assertIn("abc123", bitcoin_donation_url(self.address))
+
+    def test_can_generate_bitcoin_qrcode(self):
+        """Test SVG QR Code generation."""
+        setattr(settings, 'DONATE_BITCOIN_ADDRESS', self.address)
+        response = self.client.get(reverse('openach:bitcoin_donate'))
+        self.assertEqual(response.status_code, 200)
+        # should probably also test for content type image/svg+xml here
+
+    def test_can_render_about_page_with_donate(self):
+        """Test that any user can view an about page with a donate link if a Bitcoin address is set."""
+        setattr(settings, 'DONATE_BITCOIN_ADDRESS', self.address)
+        response = self.client.get(reverse('openach:about'))
+        self.assertIsNotNone(response)
+        self.assertContains(response, 'Donate', status_code=200)
+        self.assertContains(response, self.address, status_code=200)
 
 
 class ConsensusTests(TestCase):
