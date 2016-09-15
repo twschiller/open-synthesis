@@ -59,6 +59,30 @@
         </div>
 
         <div class="col-md-5">
+
+            {% if bitcoin_address %}
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Donate</h3>
+                    </div>
+                    <div class="panel-body">
+
+                        <div class="media">
+                            <div class="media-left">
+                                <a href="{{ bitcoin_donate_url }}">
+                                    <img class="pull-left media-object" src="{% url 'openach:bitcoin_donate' %}" alt="Bitcoin donation QR code" width="100">
+                                </a>
+                            </div>
+                            <div class="media-body">
+                                <h4 class="media-heading">Donate via Bitcoin</h4>
+                                Donations help offset the operating costs for {{ site.name }}:
+                                <a href="{{ bitcoin_donate_url }}">{{ bitcoin_address }}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">Reporting Bugs</h3>
@@ -103,6 +127,7 @@
                     </p>
                 </div>
             </div>
+
         </div>
 
     </div> <!-- .row -->

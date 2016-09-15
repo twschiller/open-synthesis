@@ -69,6 +69,10 @@
     "TWITTER_ACCOUNT": {
       "description": "Twitter handle associated with the instance (must include preceding '@')",
       "required": false
+    },
+    "DONATE_BITCOIN_ADDRESS": {
+      "description": "Bitcoin address for accepting donations",
+      "required": false
     }
   },
   "scripts": {
