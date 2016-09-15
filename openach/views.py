@@ -56,6 +56,11 @@ def check_owner_authorization(request, board, has_creator=None):
         raise PermissionDenied()
 
 
+def is_field_provided(form, field):
+    """Return true if field has non-None value in the form."""
+    return field in form.cleaned_data and form.cleaned_data[field] is not None
+
+
 @require_safe
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
@@ -273,8 +278,8 @@ class EvidenceForm(BaseSourceForm, EvidenceEditForm):
             self.fields['evidence_date'].label += ' (Optional)'
 
     def clean(self):
-        """Require a source date if the analyst provided a source URL"""
-        if self.cleaned_data['evidence_url'] and not self.cleaned_data['evidence_date']:
+        """Require a source date if the analyst provided a source URL."""
+        if is_field_provided(self, 'evidence_url') and not is_field_provided(self, 'evidence_date'):
             raise ValidationError(_('Please provide a date for the source.'), code='invalid')
 
 
@@ -296,7 +301,7 @@ def add_evidence(request, board_id):
                     creator=request.user,
                     submit_date=submit_date
                 )
-                if form.cleaned_data['evidence_url'] and form.cleaned_data['evidence_date']:
+                if is_field_provided(form, 'evidence_url') and is_field_provided(form, 'evidence_date'):
                     EvidenceSource.objects.create(
                         evidence=evidence,
                         source_url=form.cleaned_data['evidence_url'],
