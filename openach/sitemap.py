@@ -18,7 +18,7 @@ class BoardSitemap(Sitemap):
 
     def items(self):
         """Return all the items for the Sitemap."""
-        return Board.objects.filter()
+        return Board.objects.all()
 
     def lastmod(self, obj):  # pylint: disable=no-self-use
         """Return the last time the board or its content was structurally modified."""

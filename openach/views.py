@@ -50,15 +50,30 @@ REMOVE_EVAL = '-- Remove Assessment'
 
 def check_owner_authorization(request, board, has_creator=None):
     """Raise a PermissionDenied exception if the authenticated user does not have edit rights for the resource."""
-    if request.user.is_staff or request.user == board.creator or (has_creator and request.user == has_creator.creator):
-        pass
-    else:
+    if not owner_or_staff(request, board, has_creator):
         raise PermissionDenied()
+
+
+def owner_or_staff(request, board, has_creator=None):
+    """Return True if the authenticated user has ownership of the resource"""
+    return request.user.is_staff or \
+        request.user == board.creator or \
+        (has_creator and request.user == has_creator.creator)
 
 
 def is_field_provided(form, field):
     """Return true if field has non-None value in the form."""
     return field in form.cleaned_data and form.cleaned_data[field] is not None
+
+
+def _remove_and_redirect(request, removable, message_detail):
+    """Mark a model as removed and redirect the user to the associated board detail page."""
+    removable.removed = True
+    removable.save()
+    klass_name = removable._meta.verbose_name.title()  # pylint: disable=protected-access
+    klass = klass_name[:1].lower() + klass_name[1:] if klass_name else ''
+    messages.success(request, 'Removed {}: {}'.format(klass, message_detail))
+    return HttpResponseRedirect(reverse('openach:detail', args=(removable.board.id,)))
 
 
 @require_safe
@@ -120,8 +135,8 @@ def detail(request, board_id, dummy_board_slug=None):
     # augment hypotheses and evidence with diagnosticity and consistency
     def _group(first, second, func, key):
         return [(f, func([keyed[key(f, s)] for s in second])) for f in first]
-    hypotheses = list(board.hypothesis_set.all())
-    evidence = list(board.evidence_set.all())
+    hypotheses = list(board.hypothesis_set.filter(removed=False))
+    evidence = list(board.evidence_set.filter(removed=False))
     hypothesis_consistency = _group(hypotheses, evidence, inconsistency, key=lambda h, e: (e.id, h.id))
     evidence_diagnosticity = _group(evidence, hypotheses, diagnosticity, key=lambda e, h: (e.id, h.id))
 
@@ -153,8 +168,8 @@ def board_history(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
     history = [
         _get_history([board]),
-        _get_history(Evidence.objects.filter(board=board)),
-        _get_history(Hypothesis.objects.filter(board=board)),
+        _get_history(Evidence.all_objects.filter(board=board)),
+        _get_history(Hypothesis.all_objects.filter(board=board)),
     ]
     history = list(itertools.chain(*history))
     history.sort(key=lambda x: x.date_created, reverse=True)
@@ -215,10 +230,21 @@ def edit_board(request, board_id):
     """Return a board edit view, or handle the form submission."""
     board = get_object_or_404(Board, pk=board_id)
     check_owner_authorization(request, board)
+    allow_remove = request.user.is_staff
 
     if request.method == 'POST':
         form = BoardEditForm(request.POST)
-        if form.is_valid():
+
+        if 'remove' in form.data:
+            if allow_remove:
+                board.removed = True
+                board.save()
+                messages.success(request, 'Removed board {}'.format(board.board_title))
+                return HttpResponseRedirect(reverse('openach:index'))
+            else:
+                raise PermissionDenied()
+
+        elif form.is_valid():
             board.board_title = form.cleaned_data['board_title']
             board.board_desc = form.cleaned_data['board_desc']
             board.board_slug = slugify(form.cleaned_data['board_title'], max_length=SLUG_MAX_LENGTH)
@@ -227,7 +253,14 @@ def edit_board(request, board_id):
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = BoardEditForm(initial={'board_title': board.board_title, 'board_desc': board.board_desc})
-    return render(request, 'boards/edit_board.html', {'form': form, 'board': board})
+
+    context = {
+        'form': form,
+        'board': board,
+        'allow_remove': allow_remove
+    }
+
+    return render(request, 'boards/edit_board.html', context)
 
 
 class EvidenceEditForm(forms.Form):
@@ -323,12 +356,16 @@ def add_evidence(request, board_id):
 def edit_evidence(request, evidence_id):
     """Return a view for editing a piece of evidence, or handle for submission."""
     evidence = get_object_or_404(Evidence, pk=evidence_id)
+    # don't care that the board might have been removed
     board = evidence.board
     check_owner_authorization(request, board=board, has_creator=evidence)
 
     if request.method == 'POST':
         form = EvidenceEditForm(request.POST)
-        if form.is_valid():
+        if 'remove' in form.data:
+            return _remove_and_redirect(request, evidence, evidence.evidence_desc)
+
+        elif form.is_valid():
             evidence.evidence_desc = form.cleaned_data['evidence_desc']
             evidence.event_date = form.cleaned_data['event_date']
             evidence.save()
@@ -336,7 +373,16 @@ def edit_evidence(request, evidence_id):
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = EvidenceEditForm(initial={'evidence_desc': evidence.evidence_desc, 'event_date': evidence.event_date})
-    return render(request, 'boards/edit_evidence.html', {'form': form, 'evidence': evidence, 'board': board})
+
+    context = {
+        'form': form,
+        'evidence': evidence,
+        'board': board,
+        # allow anyone who can edit the evidence to also remove it
+        'allow_remove': True
+    }
+
+    return render(request, 'boards/edit_evidence.html', context)
 
 
 class EvidenceSourceForm(BaseSourceForm):
@@ -476,19 +522,32 @@ def add_hypothesis(request, board_id):
 def edit_hypothesis(request, hypothesis_id):
     """Return a view for editing a hypothesis, or handle board submission."""
     hypothesis = get_object_or_404(Hypothesis, pk=hypothesis_id)
+    # don't care if the board has been removed
     board = hypothesis.board
     check_owner_authorization(request, board, hypothesis)
 
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
-        if form.is_valid():
+        if 'remove' in form.data:
+            return _remove_and_redirect(request, hypothesis, hypothesis.hypothesis_text)
+
+        elif form.is_valid():
             hypothesis.hypothesis_text = form.cleaned_data['hypothesis_text']
             hypothesis.save()
             messages.success(request, 'Updated hypothesis.')
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = HypothesisForm(initial={'hypothesis_text': hypothesis.hypothesis_text})
-    return render(request, 'boards/edit_hypothesis.html', {'form': form, 'hypothesis': hypothesis, 'board': board})
+
+    context = {
+        'form': form,
+        'hypothesis': hypothesis,
+        'board': board,
+        # allow anyone who an edit a hypothesis to remove it
+        'allow_remove': True,
+    }
+
+    return render(request, 'boards/edit_hypothesis.html', context)
 
 
 @require_safe
@@ -510,7 +569,7 @@ def profile(request, account_id=None):
     hypotheses = Hypothesis.objects.filter(creator=user).select_related('board')
     votes = Evaluation.objects.filter(user=user).select_related('board')
     contributed = {e.board for e in evidence}.union({h.board for h in hypotheses})
-    voted = {v.board for v in votes}
+    voted = {v.board for v in votes if not v.board.removed}
     context = {
         'user': user,
         'boards_created': boards,

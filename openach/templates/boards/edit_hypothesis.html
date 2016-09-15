@@ -16,7 +16,10 @@
         {{ form|bootstrap }}
         <div class="form-group">
             <div class="">
-                <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>
+                <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>&nbsp;
+                {% if allow_remove %}
+                    <button type="submit" class="btn btn-danger" name="remove" value="remove">{% trans "Remove Hypothesis" %}</button>&nbsp;
+                {% endif %}
                 <button type="submit" class="btn btn-primary">{% trans "Save Edits" %}</button>
             </div>
         </div>

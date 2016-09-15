@@ -29,47 +29,55 @@ DEFAULT_FROM_EMAIL = getattr(settings, 'DEFAULT_FROM_EMAIL', "admin@localhost")
 SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH')
 
 
+def remove(model):
+    """Mark model as removed."""
+    model.removed = True
+    model.save()
+
+
 class BoardMethodTests(TestCase):
 
     def test_was_published_recently_with_future_board(self):
-        """
-        was_published_recently() should return False for board whose
-        pub_date is in the future.
-        """
+        """Test that was_published_recently() returns False for board whose pub_date is in the future."""
         time = timezone.now() + datetime.timedelta(days=30)
         future_board = Board(pub_date=time)
         self.assertIs(future_board.was_published_recently(), False)
 
     def test_was_published_recently_with_old_question(self):
-        """
-        was_published_recently() should return False for boards whose
-        pub_date is older than 1 day.
-        """
+        """Test that was_published_recently() returns False for boards whose pub_date is older than 1 day."""
         time = timezone.now() - datetime.timedelta(days=30)
         old_board = Board(pub_date=time)
         self.assertIs(old_board.was_published_recently(), False)
 
     def test_was_published_recently_with_recent_question(self):
-        """
-        was_published_recently() should return True for boards whose
-        pub_date is within the last day.
-        """
+        """Test that was_published_recently() returns True for boards whose pub_date is within the last day."""
         time = timezone.now() - datetime.timedelta(hours=1)
         recent_board = Board(pub_date=time)
         self.assertIs(recent_board.was_published_recently(), True)
 
     def test_board_url_without_slug(self):
-        """
-        Smoke test to make sure we can grab the URL of a board that has no slug
-        """
+        """Test to make sure we can grab the URL of a board that has no slug."""
         self.assertIsNotNone(Board(id=1).get_absolute_url())
 
     def test_board_url_with_slug(self):
-        """
-        Smoke test to make sure we can grab the URL of a board that has a slug
-        """
+        """Test to make sure we can grab the URL of a board that has a slug."""
         slug = 'test-slug'
         self.assertTrue(slug in Board(id=1, board_slug=slug).get_absolute_url())
+
+
+class RemovableModelManagerTests(TestCase):
+
+    def test_objects_does_not_include_removed(self):
+        """Test that after an object is marked as removed, it doesn't appear in the query set."""
+        board = Board.objects.create(
+            board_title="Title",
+            board_desc="Description",
+            pub_date=timezone.now()
+        )
+        self.assertEqual(Board.objects.count(), 1)
+        remove(board)
+        self.assertEqual(Board.objects.count(), 0)
+        self.assertEqual(Board.all_objects.count(), 1)
 
 
 class BoardFormTests(TestCase):
@@ -79,25 +87,19 @@ class BoardFormTests(TestCase):
         self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
 
     def test_create_board_requires_login(self):
-        """
-        Test that the board creation form requires the user to be logged in
-        """
+        """Test that the board creation form requires the user to be logged in."""
         response = self.client.get(reverse('openach:create_board'))
         self.assertEqual(response.status_code, 302)
 
     def test_show_create_board_form(self):
-        """
-        Test that a logged in user can view the board creation form
-        """
+        """Test that a logged in user can view the board creation form."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:create_board'))
         self.assertTemplateUsed(response, 'boards/create_board.html')
         self.assertEqual(response.status_code, 200)
 
     def test_submit_valid_create_board(self):
-        """
-        Test that a logged in user can create a board via the form creation
-        """
+        """Test that a logged in user can create a board via the form creation."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:create_board'), data={
             'board_title': 'Test Board Title',
@@ -110,9 +112,7 @@ class BoardFormTests(TestCase):
         self.assertGreater(len(Board.objects.filter(board_slug='test-board-title')), 0)
 
     def test_submit_valid_create_board_long_title(self):
-        """
-        Test that a user can create a board with a long name and that the slug will be truncated
-        """
+        """Test that a user can create a board with a long name and that the slug will be truncated."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:create_board'), data={
             'board_title': 'x' * (SLUG_MAX_LENGTH + 5),
@@ -124,6 +124,7 @@ class BoardFormTests(TestCase):
         self.assertGreater(len(Board.objects.filter(board_slug='x' * SLUG_MAX_LENGTH)), 0)
 
     def test_board_edit_form(self):
+        """Test that the board editing form validates for reasonable input."""
         form = BoardEditForm({
             'board_title': "New board title",
             'board_desc': "New board description"
@@ -131,16 +132,36 @@ class BoardFormTests(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_can_show_edit_form(self):
+        """Test that a logged in user can view the board edit form."""
         board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "boards/edit_board.html")
+        self.assertNotContains(response, "Remove Board")
+
+    def test_staff_edit_form_has_remove_button(self):
+        """Test that the edit form contains a remove button for staff."""
+        board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
+        self.user.is_staff = True
+        self.user.save()
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
+        self.assertContains(response, "Remove Board", status_code=200)
+
+    def test_non_owner_cannot_edit(self):
+        """Test that the form is not displayed to the user that did not create the board."""
+        board = Board.objects.create(board_title="Board #1", creator=None, pub_date=timezone.now())
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
+        self.assertEqual(response.status_code, 403)
 
     def test_can_submit_edit_form(self):
+        """Test that a logged in user can edit a board by submitting the form."""
         board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
 
-        self.assertEqual(FieldHistory.objects.get_for_model(board).count(), 2)
+        # board initially has 3 changed fields: title, description, and if it has been removed
+        self.assertEqual(FieldHistory.objects.get_for_model(board).count(), 3)
 
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
@@ -151,11 +172,34 @@ class BoardFormTests(TestCase):
         self.assertGreaterEqual(len(Board.objects.filter(board_title='New Board Title')), 1)
         self.assertGreaterEqual(len(Board.objects.filter(board_desc='New Board Description')), 1)
 
-        # check that field history was audited
+        # check that field history was recorded
         self.assertEqual(FieldHistory.objects.get_for_model_and_field(board, 'board_title').count(), 2)
         self.assertEqual(FieldHistory.objects.get_for_model_and_field(board, 'board_desc').count(), 2)
 
+    def test_can_remove_board(self):
+        """Test that staff can mark a board as removed via the form."""
+        board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
+        self.user.is_staff = True
+        self.user.save()
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
+            'remove': 'remove'
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Board.objects.count(), 0)
+        self.assertEqual(Board.all_objects.count(), 1)
+
+    def test_non_owner_cannot_remove_board(self):
+        """Test that a random user can't delete the board using a POST request."""
+        board = Board.objects.create(board_title="Board #1", creator=None, pub_date=timezone.now())
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
+            'remove': 'remove'
+        })
+        self.assertEqual(response.status_code, 403)
+
     def test_can_view_board_history(self):
+        """Test that the board history shows a change in board title and description."""
         board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
         self.client.login(username='john', password='johnpassword')
         self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
@@ -167,6 +211,15 @@ class BoardFormTests(TestCase):
         self.assertTemplateUsed(response, "boards/board_audit.html")
         self.assertContains(response, "New Board Title")
         self.assertContains(response, "New Board Description")
+
+    def test_can_view_evidence_history(self):
+        """Test that the board history shows the history of evidence that has been removed."""
+        board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
+        evidence = Evidence.objects.create(board=board, evidence_desc="Evidence", submit_date=timezone.now())
+        remove(evidence)
+        response = self.client.get(reverse('openach:board_history', args=(board.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, evidence.evidence_desc)
 
 
 class SitemapTests(TestCase):
@@ -192,12 +245,18 @@ class SitemapTests(TestCase):
         ]
 
     def test_can_get_items(self):
-        """ Test that we can get all the board """
+        """Test that we can get all the boards."""
         sitemap = BoardSitemap()
-        self.assertEqual(len(sitemap.items()), 1)
+        self.assertEqual(len(sitemap.items()), 1, "Sitemap included removed board")
+
+    def test_cannot_get_removed_items(self):
+        """Test that the sitemap doesn't include removed boards."""
+        remove(self.board)
+        sitemap = BoardSitemap()
+        self.assertEqual(len(sitemap.items()), 0)
 
     def test_can_get_last_update(self):
-        """ Test that sitemap uses the latest change """
+        """Test that sitemap uses the latest change."""
         latest = Hypothesis.objects.create(
             board=self.board,
             hypothesis_text="Hypothesis #2",
@@ -238,16 +297,12 @@ class EvidenceAssessmentTests(TestCase):
         ]
 
     def test_require_login_for_assessment(self):
-        """
-        Make sure that a user must be logged in to access the evidence evaluation screen
-        """
+        """Test that a user must be logged in in to access the evidence evaluation screen."""
         response = self.client.get(reverse('openach:evaluate', args=(self.board.id, self.evidence.id,)))
         self.assertEqual(response.status_code, 302)
 
     def test_evidence_assessment_form_renders(self):
-        """
-        Make sure the evidence assessment form renders in a reasonable way
-        """
+        """Test that the evidence assessment form renders in a reasonable way."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:evaluate', args=(self.board.id, self.evidence.id,)))
         self.assertEqual(response.status_code, 200)
@@ -256,9 +311,7 @@ class EvidenceAssessmentTests(TestCase):
             self.assertContains(response, hypothesis.hypothesis_text)
 
     def test_evidence_assessment_form_submit(self):
-        """
-        Make sure the evidence assessment form can handle a submit
-        """
+        """Test that the evidence assessment form can handle a submit"""
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:evaluate', args=(self.board.id, self.evidence.id)), data={
             'hypothesis-{}'.format(self.hypotheses[0].id): '0',
@@ -290,16 +343,12 @@ class AddEditHypothesisTests(TestCase):
         ]
 
     def test_require_login_for_add_hypothesis(self):
-        """
-        Make sure that the user must be logged in to access the add hypothesis form
-        """
+        """Test that a user must be logged in  to access the add hypothesis form."""
         response = self.client.get(reverse('openach:add_hypothesis', args=(self.board.id,)))
         self.assertEqual(response.status_code, 302)
 
     def test_add_hypothesis_show_form(self):
-        """
-        Make sure the add hypothesis form renders in a reasonable way
-        """
+        """Test that the add hypothesis form renders in a reasonable way."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:add_hypothesis', args=(self.board.id,)))
         self.assertEqual(response.status_code, 200)
@@ -314,9 +363,7 @@ class AddEditHypothesisTests(TestCase):
         self.assertContains(response, self.board.board_desc)
 
     def test_add_hypothesis_submit(self):
-        """
-        Make sure the hypothesis is actually added to the database when the user submits the form
-        """
+        """Test that the hypothesis is added to the database when the user submits the form."""
         self.client.login(username='john', password='johnpassword')
         text = 'Test Hypothesis 3'
         response = self.client.post(reverse('openach:add_hypothesis', args=(self.board.id,)), data={
@@ -326,24 +373,37 @@ class AddEditHypothesisTests(TestCase):
         self.assertGreater(len(Hypothesis.objects.filter(hypothesis_text=text)), 0)
 
     def test_hypothesis_edit_form(self):
+        """Test that the form validation passes for valid input."""
         form = HypothesisForm({
             'hypothesis_text': "My Hypothesis",
         })
         self.assertTrue(form.is_valid())
 
     def test_can_show_edit_form(self):
+        """Test that the a user can view the hypothesis editing form."""
         self.client.login(username='john', password='johnpassword')
-        response = self.client.post(reverse('openach:edit_hypothesis', args=(self.hypotheses[0].id,)))
+        response = self.client.get(reverse('openach:edit_hypothesis', args=(self.hypotheses[0].id,)))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "boards/edit_hypothesis.html")
 
     def test_can_submit_edit_form(self):
+        """Test that the hypothesis text is updated via the form."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:edit_hypothesis', args=(self.hypotheses[0].id,)), data={
             'hypothesis_text': "Updated Hypothesis",
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreaterEqual(len(Hypothesis.objects.filter(hypothesis_text='Updated Hypothesis')), 1)
+
+    def test_can_remove_hypothesis(self):
+        """Test that the hypothesis is removed when the user clicks the remove button."""
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_hypothesis', args=(self.hypotheses[0].id,)), data={
+            'remove': "remove",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(Hypothesis.objects.all()), 1)
+        self.assertEqual(len(Hypothesis.all_objects.all()), 2)
 
 
 class BoardDetailTests(TestCase):
@@ -386,6 +446,7 @@ class BoardDetailTests(TestCase):
         )
 
     def test_can_display_board_with_no_evidence(self):
+        """Test that the detail view renders for a board with no evidence."""
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
         self.assertEqual(response.status_code, 200)
 
@@ -393,12 +454,14 @@ class BoardDetailTests(TestCase):
             self.assertContains(response, hypothesis.hypothesis_text)
 
     def test_can_display_board_with_no_assessments(self):
+        """Test that the detail view renders for a board with no assessments."""
         self._add_evidence()
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.evidence.evidence_desc)
 
     def test_can_display_board_with_assessments_from_single_user(self):
+        """Test that the detail view renders for a board with assessments from a single user."""
         self._add_evidence()
         self._add_eval(self.hypotheses[0], self.user, Eval.consistent)
         self._add_eval(self.hypotheses[1], self.user, Eval.inconsistent)
@@ -407,6 +470,7 @@ class BoardDetailTests(TestCase):
         self.assertContains(response, "Inconsistent", status_code=200)
 
     def test_can_display_board_with_multiple_assessments(self):
+        """Test that the detail view displays merge assessments from multiple users."""
         self._add_evidence()
         other = User.objects.create_user('paul', 'mccartney@thebeatles.com', 'paulpassword')
         self._add_eval(self.hypotheses[0], self.user, Eval.inconsistent)
@@ -417,6 +481,7 @@ class BoardDetailTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_can_display_comments(self):
+        """Test that the detail view includes comments about the board."""
         comment = Comment.objects.create(
             content_type=ContentType.objects.get_for_model(Board),
             object_pk=self.board.id,
@@ -430,25 +495,30 @@ class BoardDetailTests(TestCase):
         self.assertContains(response, comment.comment)
 
     def test_display_comment_form_when_logged_in(self):
+        """Test that the detail view shows a comment entry form for logged in users."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
         self.assertContains(response, "Add comment")
 
     def test_do_not_display_comparison_button_when_logged_out(self):
+        """Test that the comparison view option is not displayed to anonymous users."""
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
         self.assertNotContains(response, "Comparison")
 
     def test_display_comparison_button_when_logged_in(self):
+        """Test that the comparison view option is displayed for logged in users."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
         self.assertContains(response, "Comparison")
 
     def test_can_display_disagreement_with_no_assessments(self):
+        """Test that the disagreement view option is displayed for all users."""
         self._add_evidence()
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)) + "?view_type=disagreement")
         self.assertEqual(response.status_code, 200)
 
     def test_can_display_disagreement_with_multiple_assessments(self):
+        """Test that the disagreement view renders when there are assessments from multiple users."""
         self._add_evidence()
         other = User.objects.create_user('paul', 'mccartney@thebeatles.com', 'paulpassword')
         self._add_eval(self.hypotheses[0], self.user, Eval.inconsistent)
@@ -460,12 +530,14 @@ class BoardDetailTests(TestCase):
         self.assertContains(response, "Extreme Dispute")
 
     def test_can_display_comparison_no_assessments(self):
+        """Test that the comparison view renders when there are no assessments."""
         self._add_evidence()
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)) + "?view_type=comparison")
         self.assertEqual(response.status_code, 200)
 
     def test_can_display_comparison(self):
+        """Test that the comparison view renders when the user has provided assessments against a consensus."""
         self._add_evidence()
         other = User.objects.create_user('paul', 'mccartney@thebeatles.com', 'paulpassword')
         self._add_eval(self.hypotheses[0], self.user, Eval.inconsistent)
@@ -539,9 +611,7 @@ class EvidenceDetailTests(TestCase):
         ]
 
     def test_evidence_detail_view(self):
-        """
-        Make sure that reasonable information is shown on the evidence detail form
-        """
+        """Test that the evidence detail view renders reasonably."""
         response = self.client.get(reverse('openach:evidence_detail', args=(self.evidence.id,)))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'boards/evidence_detail.html')
@@ -554,11 +624,13 @@ class EvidenceDetailTests(TestCase):
         self.assertContains(response, "Tag #2")
 
     def test_display_comment_form_when_logged_in(self):
+        """Test that the comment entry form is displayed when a user is logged in."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:evidence_detail', args=(self.evidence.id,)))
         self.assertContains(response, "Add comment")
 
     def test_can_display_comments(self):
+        """Test that comments are displayed even if the user is not logged in."""
         comment = Comment.objects.create(
             content_type=ContentType.objects.get_for_model(Evidence),
             object_pk=self.evidence.id,
@@ -572,9 +644,7 @@ class EvidenceDetailTests(TestCase):
         self.assertContains(response, comment.comment)
 
     def test_add_source_tag(self):
-        """
-        Make sure that the user can tag a piece of evidence
-        """
+        """Test that a logged in user can tag a piece of evidence."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)), data={
             'tag': self.tags[0].tag_name
@@ -583,14 +653,13 @@ class EvidenceDetailTests(TestCase):
         self.assertGreater(len(AnalystSourceTag.objects.all()), 0)
 
     def test_display_added_tags_with_count(self):
+        """Test that source tags are displayed with a count of how many times the tag has been applied to the source."""
         AnalystSourceTag.objects.create(source=self.source, tagger=self.user, tag=self.tags[0], tag_date=timezone.now())
         response = self.client.get(reverse('openach:evidence_detail', args=(self.evidence.id,)))
         self.assertContains(response, self.tags[0].tag_name + " x 1")
 
     def test_remove_source_tag_on_toggle(self):
-        """
-        Make sure that the user can tag a piece of evidence
-        """
+        """Test that a logged in user can tag a piece of evidence."""
         self.client.login(username='john', password='johnpassword')
         tag = self.tags[0]
         response = self.client.post(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)), data={
@@ -605,12 +674,16 @@ class EvidenceDetailTests(TestCase):
         self.assertEqual(len(AnalystSourceTag.objects.all()), 0)
 
     def test_cannot_get_add_source_tag_page(self):
-        """
-        Make sure that a rouge client can't 'GET' the add source tag page. Instead the user should be redirected.
-        """
+        """Test that a rouge client can't 'GET' the add source tag page."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:tag_source', args=(self.evidence.id, self.source.id)))
         self.assertEqual(response.status_code, 302)
+
+    def test_cannot_view_removed_evidence(self):
+        """Test that a user cannot view evidence details for evidence that has been marked as removed."""
+        remove(self.evidence)
+        response = self.client.get(reverse('openach:evidence_detail', args=(self.evidence.id,)))
+        self.assertEqual(response.status_code, 404)
 
 
 class AddEvidenceTests(TestCase):
@@ -628,16 +701,12 @@ class AddEvidenceTests(TestCase):
         )
 
     def test_require_login_for_add_evidence(self):
-        """
-        Make sure that the user must be logged in to access the add evidence form
-        """
+        """Test that the user must be logged in to access the add evidence form."""
         response = self.client.get(reverse('openach:add_evidence', args=(self.board.id,)))
         self.assertEqual(response.status_code, 302)
 
     def test_add_evidence_show_form(self):
-        """
-        Make sure the add evidence form renders in a reasonable way
-        """
+        """Test that the add evidence view renders in a reasonable way."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:add_evidence', args=(self.board.id,)))
         self.assertEqual(response.status_code, 200)
@@ -649,9 +718,7 @@ class AddEvidenceTests(TestCase):
         self.assertContains(response, "Return to Board")
 
     def test_add_evidence_submit(self):
-        """
-        Make sure the evidence is actually added to the database when the user submits the form
-        """
+        """Test that the evidence is added to the database when the user submits the form."""
         self.client.login(username='john', password='johnpassword')
         text = 'Test Hypothesis 3'
         response = self.client.post(reverse('openach:add_evidence', args=(self.board.id,)), data={
@@ -664,9 +731,7 @@ class AddEvidenceTests(TestCase):
         self.assertGreater(len(Evidence.objects.filter(evidence_desc=text)), 0)
 
     def test_validate_url_length(self):
-        """
-        Test bug reported in issue #58, form should reject long URLs
-        """
+        """Test that the form rejects long URLs (issue #58)."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:add_evidence', args=(self.board.id,)), data={
             'evidence_desc': "Evidence Description",
@@ -678,6 +743,7 @@ class AddEvidenceTests(TestCase):
         self.assertTemplateUsed(response, 'boards/add_evidence.html')
 
     def test_evidence_edit_form(self):
+        """Test that form validation passes for reasonable input."""
         form = EvidenceEditForm({
             'evidence_desc': "Evidence Description",
             'event_date': "1/1/2016",
@@ -685,6 +751,21 @@ class AddEvidenceTests(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_can_show_edit_form(self):
+        """Test that a logged in user can view the edit evidence form."""
+        self.evidence = Evidence.objects.create(
+            board=self.board,
+            creator=self.user,
+            evidence_desc="Evidence #1",
+            event_date=None,
+            submit_date=timezone.now()
+        )
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:edit_evidence', args=(self.evidence.id,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "boards/edit_evidence.html")
+
+    def test_edit_form_has_remove_button(self):
+        """Test that the edit form includes a remove button for the evidence creator."""
         self.evidence = Evidence.objects.create(
             board=self.board,
             creator=self.user,
@@ -694,10 +775,10 @@ class AddEvidenceTests(TestCase):
         )
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:edit_evidence', args=(self.evidence.id,)))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "boards/edit_evidence.html")
+        self.assertContains(response, "Remove Evidence", status_code=200)
 
     def test_can_submit_edit_form(self):
+        """Test that the evidence edit form properly updates the evidence."""
         self.evidence = Evidence.objects.create(
             board=self.board,
             creator=self.user,
@@ -712,6 +793,16 @@ class AddEvidenceTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreaterEqual(len(Evidence.objects.filter(evidence_desc='Updated Evidence Description')), 1)
+
+    def test_can_remove_evidence(self):
+        """Test that evidence can be marked as removed via the form."""
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:edit_evidence', args=(self.evidence.id,)), data={
+            'remove': 'remove'
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Evidence.objects.count(), 0)
+        self.assertEqual(Evidence.all_objects.count(), 1)
 
 
 class AddSourceTests(TestCase):
@@ -729,16 +820,12 @@ class AddSourceTests(TestCase):
         )
 
     def test_require_login_for_add_source(self):
-        """
-        Make sure that the user must be logged in to access the add source form
-        """
+        """Test that the user must be logged in to access the add source form."""
         response = self.client.get(reverse('openach:add_source', args=(self.evidence.id,)))
         self.assertEqual(response.status_code, 302)
 
     def test_add_source_show_form(self):
-        """
-        Make sure the add evidence form renders in a reasonable way
-        """
+        """Test that the add evidence form renders in a reasonable way."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:add_source', args=(self.evidence.id,)))
         self.assertEqual(response.status_code, 200)
@@ -750,9 +837,7 @@ class AddSourceTests(TestCase):
         self.assertContains(response, "Return to Evidence")
 
     def test_add_evidence_source_submit(self):
-        """
-        Make sure the source is actually added to the database when the user submits the form
-        """
+        """Test that the source is actually added to the database when the user submits the form."""
         self.client.login(username='john', password='johnpassword')
         url = "https://google.com"
         response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
@@ -765,17 +850,13 @@ class AddSourceTests(TestCase):
         self.assertGreater(len(EvidenceSource.objects.filter(corroborating=True)), 0)
 
     def test_add_conflicting_evidence_form(self):
-        """
-        Make sure form is for conflicting sources when ?kind=conflicting query parameter is supplied
-        """
+        """Test that the form is for conflicting sources when ?kind=conflicting query parameter is supplied."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:add_source', args=(self.evidence.id,)) + "?kind=conflicting")
         self.assertContains(response, "Add Conflicting Source")
 
     def test_retain_source_type_on_form_error(self):
-        """
-        Make sure form is for conflict sources when user submits a malformed form without the query string
-        """
+        """Test that the form is for conflicting sources when user submits a invalid form without a query string."""
         self.client.login(username='john', password='johnpassword')
         url = "https://google.com"
         response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
@@ -786,9 +867,7 @@ class AddSourceTests(TestCase):
         self.assertContains(response, "Add Conflicting Source", status_code=200)
 
     def test_reject_long_url(self):
-        """
-        Issue #58, make sure form rejects long URLs
-        """
+        """Test the the add source form rejects long URLs (issue #58)."""
         form = EvidenceSourceForm({
             'evidence_url':  "https://google.com" + ("x" * URL_MAX_LENGTH),
             'evidence_date': "1/1/2016",
@@ -796,9 +875,7 @@ class AddSourceTests(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_add_conflicting_evidence_source_form(self):
-        """
-        Sanity check for the EvidenceSourceForm
-        """
+        """Test tha the form validation passes for reasonable input."""
         form = EvidenceSourceForm({
             'evidence_url':  "https://google.com",
             'evidence_date': "1/1/2016",
@@ -812,9 +889,7 @@ class AddSourceTests(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_add_conflicting_evidence_source(self):
-        """
-        Make sure we can add a conflicting source via the form
-        """
+        """Test that a conflicting source can be added via the form."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
             'evidence_url':  "https://google.com",
@@ -833,19 +908,17 @@ class ProfileTests(TestCase):
         self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
 
     def test_view_public_activity(self):
-        """
-        Any user should be able to view a public profile
-        """
+        """Test that any user can access a public profile."""
         response = self.client.get(reverse('profile', args=(self.user.id,)))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "User {}".format(self.user.username))
 
 
 def create_board(board_title, days):
-    """
-    Creates a board with the given `board_title` and published the
-    given number of `days` offset to now (negative for questions published
-    in the past, positive for questions that have yet to be published).
+    """Create a board with the given title and publishing date offset.
+
+    :param board_title: the board title
+    :param days: negative for boards published in the past, positive for boards that have yet to be published
     """
     time = timezone.now() + datetime.timedelta(days=days)
     return Board.objects.create(board_title=board_title, pub_date=time)
@@ -854,24 +927,18 @@ def create_board(board_title, days):
 class IndexViewTests(TestCase):
 
     def test_can_access_request_context(self):
-        """
-        Smoke test to make sure the test environment is set up properly.
-        """
+        """Test that the test environment is set up properly."""
         response = self.client.get(reverse('openach:index'))
         self.assertIsNotNone(response, msg="No response was generated for index view")
         self.assertIsNotNone(response.context, "Context was not returned with index view response")
 
     def test_can_show_index_no_news(self):
-        """
-        Show a reasonable message if there is no project news
-        """
+        """Test that a reasonable message is displayed if there is no project news."""
         response = self.client.get(reverse('openach:index'))
         self.assertContains(response, 'No project news.')
 
     def test_do_not_show_future_news(self):
-        """
-        Don't show project news that's scheduled to be released in the future
-        """
+        """Test that the project news doesn't show news that's scheduled for release in the future."""
         ProjectNews.objects.create(
             content='Test news',
             pub_date=timezone.now() + datetime.timedelta(days=5)
@@ -880,9 +947,7 @@ class IndexViewTests(TestCase):
         self.assertContains(response, 'No project news.')
 
     def test_show_published_news(self):
-        """
-        Show project news that has been published
-        """
+        """Test that the index view shows published project news."""
         ProjectNews.objects.create(
             content='Test news',
             pub_date=timezone.now() + datetime.timedelta(days=-1)
@@ -891,9 +956,7 @@ class IndexViewTests(TestCase):
         self.assertContains(response, 'Test news')
 
     def test_index_view_with_a_past_board(self):
-        """
-         Board with a pub_date in the past should be displayed on the index page.
-        """
+        """Test that board with a pub_date in the past should be displayed on the index page."""
         create_board(board_title="Past board.", days=-30)
         response = self.client.get(reverse('openach:index'))
         self.assertQuerysetEqual(
@@ -905,7 +968,7 @@ class IndexViewTests(TestCase):
 class RobotsViewTests(TestCase):
 
     def test_can_render_robots_page(self):
-        """Check that the robots.txt view returns a robots.txt that includes a sitemap."""
+        """Test that the robots.txt view returns a robots.txt that includes a sitemap."""
         response = self.client.get(reverse('robots'))
         self.assertTemplateUsed(response, 'robots.txt')
         self.assertContains(response, 'sitemap.xml', status_code=200)
@@ -915,9 +978,7 @@ class RobotsViewTests(TestCase):
 class AboutViewTests(TestCase):
 
     def test_can_render_about_page(self):
-        """
-        smoke test to make sure about route is working
-        """
+        """Test that any user can view the about page."""
         response = self.client.get(reverse('openach:about'))
         self.assertIsNotNone(response)
 
@@ -925,35 +986,25 @@ class AboutViewTests(TestCase):
 class ConsensusTests(TestCase):
 
     def test_no_votes_has_no_consensus(self):
-        """
-        consensus_vote() should return None if no votes have been cast
-        """
+        """Test that consensus_vote() returns None if no votes have been cast."""
         self.assertIsNone(consensus_vote([]))
 
     def test_na_consensus_for_single_vote(self):
-        """
-        consensus_vote() should return N/A if only a single N/A vote is cast
-        """
+        """Test that consensus_vote() returns N/A if only a single N/A vote is cast"""
         self.assertEqual(consensus_vote([Eval.not_applicable]), Eval.not_applicable)
 
     def test_none_na_consensus_for_single_vote(self):
-        """
-        consensus_vote() should return the evaluation if only a single vote is cast
-        """
+        """Test that consensus_vote() returns the evaluation if only a single vote is cast."""
         self.assertEqual(consensus_vote([Eval.consistent]), Eval.consistent)
 
     def test_equal_na_vs_non_na(self):
-        """
-        consensus_vote() should return an evaluation when an equal number of N/A and non-N/A votes have been cast
-        """
+        """Test that consensus_vote() returns an evaluation when an equal number of N/A and non-N/A votes have been cast."""
         for vote in [Eval.very_inconsistent, Eval.neutral, Eval.very_consistent]:
             self.assertEqual(consensus_vote([vote, Eval.not_applicable]), vote)
             self.assertEqual(consensus_vote([Eval.not_applicable, vote]), vote)
 
     def test_round_toward_neutral(self):
-        """
-        consensus_vote() should round the vote toward a neutral assessment
-        """
+        """Test that consensus_vote() rounds the vote toward a neutral assessment."""
         self.assertEqual(consensus_vote([Eval.consistent, Eval.very_consistent]), Eval.consistent)
         self.assertEqual(consensus_vote([Eval.inconsistent, Eval.very_inconsistent]), Eval.inconsistent)
 
@@ -961,26 +1012,26 @@ class ConsensusTests(TestCase):
 class DiagnosticityTests(TestCase):
 
     def test_mean_na_neutral_vote_maps_na_votes(self):
-        """mean_na_neutral_vote() maps N/A votes to neutral"""
+        """Test that mean_na_neutral_vote() maps N/A votes to neutral."""
         self.assertEqual(mean_na_neutral_vote([Eval.not_applicable]), Eval.neutral.value)
         self.assertEqual(mean_na_neutral_vote([Eval.not_applicable, Eval.very_inconsistent]), Eval.inconsistent.value)
 
     def test_mean_na_neutral_vote_only_maps_na_votes(self):
-        """mean_na_neutral_vote() does not map values other than N/A"""
+        """Test that mean_na_neutral_vote() does not map values other than N/A."""
         for x in Eval:
             if x is not Eval.not_applicable:
                 self.assertEqual(mean_na_neutral_vote([x]), x.value)
 
     def test_no_hypotheses_has_zero_diagnosticity(self):
-        """diagnosticity() should return 0.0 when there are no votes"""
+        """Test that diagnosticity() returns 0.0 when there are no votes."""
         self.assertEqual(diagnosticity([]), 0.0)
 
     def test_no_votes_has_zero_diagnosticity(self):
-        """diagnosticity() should return 0.0 when there are no votes"""
+        """Test that diagnosticity() returns 0.0 when there are no votes."""
         self.assertEqual(diagnosticity([[], []]), 0.0)
 
     def test_different_more_diagnostic_than_neutral(self):
-        """diagnosticity() should be higher for hypothesis with difference consensus than hypotheses with same consensus"""
+        """Test that diagnosticity() is bhigher for hypothesis with different consensus."""
         different = diagnosticity([[Eval.consistent], [Eval.inconsistent]])
         same = diagnosticity([[Eval.neutral], [Eval.neutral]])
         self.assertGreater(different, same)
@@ -989,38 +1040,33 @@ class DiagnosticityTests(TestCase):
 class InconsistencyTests(TestCase):
 
     def test_no_evidence_has_zero_inconsistency(self):
-        """
-        inconsistency() should return 0.0 when there is no evidence
-        """
+        """Test that inconsistency() returns 0.0 when there is no evidence."""
         self.assertEqual(inconsistency([]), 0.0)
 
     def test_consistent_evidence_has_zero_inconsistency(self):
-        """
-        inconsistency() should return 0.0 when a evaluation is neutral or more consistent
-        """
+        """Test that inconsistency() returns 0.0 when a evaluation is neutral or more consistent."""
         for vote in [Eval.neutral, Eval.consistent, Eval.very_consistent]:
             self.assertEqual(inconsistency([[vote]]), 0.0)
 
     def test_inconsistent_evidence_has_nonzero_inconsistency(self):
-        """
-        inconsistency() should return more than 0.0 when a evaluation is neutral or more consistent
-        """
+        """Test that inconsistency() returns more than 0.0 when a evaluation is neutral or more consistent."""
         for vote in [Eval.very_inconsistent, Eval.inconsistent]:
             self.assertGreater(inconsistency([[vote]]), 0.0)
 
     def test_very_inconsistent_implies_more_inconsistent(self):
-        """
-        inconsistency() should return higher value for hypothesis that has an inconsistent rating
-        """
+        """Test that inconsistency() returns a higher value for a hypothesis that has an inconsistent rating."""
         h1 = inconsistency([[Eval.consistent], [Eval.inconsistent]])
         h2 = inconsistency([[Eval.very_inconsistent], [Eval.inconsistent]])
         self.assertLess(h1, h2)
 
     def test_inconsistency_assumptions(self):
-        """
-        Test a couple things: (1) a hypothesis with 3 inconsistent ratings is less consistent than a hypothesis with
-        2 inconsistent ratings, regardless of whether N/A or Neutral is one of the other ratings. (2) a hypothesis with
-        a very inconsistent rating is more inconsistent than a hypothesis with not just inconsistent ratings
+        """Test basic inconsistency() behavior."
+
+        (1) a hypothesis with 3 inconsistent ratings is less consistent than a hypothesis with 2 inconsistent ratings,
+        regardless of whether N/A or Neutral is one of the other ratings.
+
+        (2) a hypothesis with a very inconsistent rating is more inconsistent than a hypothesis with not just
+        inconsistent ratings
         """
         h1 = inconsistency([[Eval.very_consistent], [Eval.not_applicable], [Eval.inconsistent], [Eval.inconsistent]])
         h2 = inconsistency([[Eval.inconsistent], [Eval.inconsistent], [Eval.neutral], [Eval.inconsistent]])
@@ -1032,52 +1078,38 @@ class InconsistencyTests(TestCase):
 class DisagreementTests(TestCase):
 
     def test_no_votes_returns_none(self):
-        """
-        calc_disagreement() should return None when there is no votes
-        """
+        """Test that calc_disagreement() returns None when there is no votes"""
         self.assertEqual(calc_disagreement([]), None)
 
     def test_single_vote_has_zero_disagreement(self):
-        """
-        calc_disagreement() should return 0.0 when there is a single vote
-        """
+        """Test that calc_disagreement() returns 0.0 when there is a single vote."""
         for vote in Eval:
             self.assertEqual(calc_disagreement([vote]), 0.0)
 
     def test_same_vote_has_zero_disagreement(self):
-        """
-        calc_disagreement() should return 0.0 when there are only votes of a single type
-        """
+        """Test that calc_disagreement() returns 0.0 when there are only votes of a single type."""
         for vote in Eval:
             self.assertEqual(calc_disagreement([vote, vote]), 0.0)
 
     def test_extreme_votes_have_greater_disagreement(self):
-        """
-        Test that votes that are further from neutral result in a larger disagreement score
-        """
+        """Test that votes that are further from neutral result in a larger disagreement score."""
         small = [Eval.consistent, Eval.inconsistent]
         large = [Eval.very_inconsistent, Eval.very_consistent]
         self.assertGreater(calc_disagreement(large), calc_disagreement(small))
 
 
 class AccountManagementTests(TestCase):
-    """
-    Project-specific account management tests. General tests should be in the django-allauth library
-    """
+    """Project-specific account management tests. General tests should be in the django-allauth library."""
 
     def test_can_show_signup_form(self):
-        """
-        Make sure we can render the basic signup form
-        """
+        """Test that a non-logged-in user can view the sign-up form."""
         response = self.client.get('/accounts/signup/')
         self.assertTemplateUsed('/account/email/signup.html')
         self.assertEqual(response.status_code, 200)
 
     @skipUnless(ACCOUNT_EMAIL_REQUIRED, reason="account email is not required.")
     def test_email_address_required(self):
-        """
-        Test that signup without email is rejected
-        """
+        """Test that signup without email is rejected."""
         response = self.client.post('/accounts/signup/', data={
             'username': 'testuser',
             'email': None,
@@ -1087,9 +1119,7 @@ class AccountManagementTests(TestCase):
         self.assertContains(response, "Enter a valid email address.", status_code=200)
 
     def test_account_signup_flow(self):
-        """
-        Test that the user receives a confirmation email when they signup for an account with an email address
-        """
+        """Test that the user receives a confirmation email when they signup for an account with an email address."""
         response = self.client.post('/accounts/signup/', data={
             'username': 'testuser',
             'email': 'testemail@google.com',
@@ -1102,4 +1132,3 @@ class AccountManagementTests(TestCase):
         self.assertEqual(mail.outbox[0].subject, '[example.com] Please Confirm Your E-mail Address')
         self.assertListEqual(mail.outbox[0].to, ['testemail@google.com'])
         self.assertEqual(mail.outbox[0].from_email, DEFAULT_FROM_EMAIL)
-
