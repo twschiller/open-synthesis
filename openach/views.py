@@ -31,6 +31,7 @@ from django.utils.translation import ugettext as _
 from slugify import slugify
 from field_history.models import FieldHistory
 from django.views.decorators.http import etag
+from django.views.decorators.cache import cache_page
 from io import BytesIO
 
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
@@ -699,8 +700,10 @@ def certbot(dummy_request, challenge_key):  # pragma: no cover
 
 @require_safe
 @etag(lambda r: getattr(settings, 'DONATE_BITCOIN_ADDRESS', ''))
+@cache_page(60 * 60)
 def bitcoin_qrcode(dummy_request):
     """Return a QR Code for donating via Bitcoin."""
+    # NOTE: if only etag is set, Django doesn't include cache headers
     address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', '')
     if address:
         # https://pypi.python.org/pypi/qrcode/5.3
