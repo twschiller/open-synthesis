@@ -64,7 +64,8 @@ env = environ.Env(  # pylint: disable=invalid-name
     SENDGRID_PASSWORD=(str, None),
     SLUG_MAX_LENGTH=(int, 72),
     TWITTER_ACCOUNT=(str, None),
-    DONATE_BITCOIN_ADDRESS=(str, None)
+    DONATE_BITCOIN_ADDRESS=(str, None),
+    INVITE_REQUEST_URL=(str, None),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -143,6 +144,7 @@ TEMPLATES = [
             'context_processors': [
                 'openach.context_processors.site',
                 'openach.context_processors.meta',
+                'openach.context_processors.invite',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -309,6 +311,7 @@ if _detect_command('createadmin'):  # pragma: no cover
     ADMIN_PASSWORD = env('ADMIN_PASSWORD')
 ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
 INVITE_REQUIRED = env('INVITE_REQUIRED')
+INVITE_REQUEST_URL = env('INVITE_REQUEST_URL')
 EVIDENCE_REQUIRE_SOURCE = env('EVIDENCE_REQUIRE_SOURCE')
 TWITTER_ACCOUNT = env('TWITTER_ACCOUNT')
 DONATE_BITCOIN_ADDRESS = env('DONATE_BITCOIN_ADDRESS')

@@ -19,3 +19,10 @@ def meta(dummy_request):
         'default_description': "{} is an open platform for intelligence analysis".format(site_name),
         'default_keywords': ["Analysis of Competing Hypothesis", "ACH", "intelligence analysis"]
     }
+
+
+def invite(dummy_request):
+    """Return a template context with the site's invitation configuration."""
+    return {
+        'invite_request_url': getattr(settings, 'INVITE_REQUEST_URL', None),
+    }
