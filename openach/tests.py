@@ -29,6 +29,12 @@ DEFAULT_FROM_EMAIL = getattr(settings, 'DEFAULT_FROM_EMAIL', "admin@localhost")
 SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH')
 
 
+def remove(model):
+    """Mark model as removed."""
+    model.removed = True
+    model.save()
+
+
 class BoardMethodTests(TestCase):
 
     def test_was_published_recently_with_future_board(self):
@@ -70,6 +76,21 @@ class BoardMethodTests(TestCase):
         """
         slug = 'test-slug'
         self.assertTrue(slug in Board(id=1, board_slug=slug).get_absolute_url())
+
+
+class RemovableModelManagerTests(TestCase):
+
+    def test_objects_does_not_include_removed(self):
+        """Test that after an object is marked as removed, it doesn't appear in the query set."""
+        board = Board.objects.create(
+            board_title="Title",
+            board_desc="Description",
+            pub_date=timezone.now()
+        )
+        self.assertEqual(Board.objects.count(), 1)
+        remove(board)
+        self.assertEqual(Board.objects.count(), 0)
+        self.assertEqual(Board.all_objects.count(), 1)
 
 
 class BoardFormTests(TestCase):
@@ -140,7 +161,8 @@ class BoardFormTests(TestCase):
     def test_can_submit_edit_form(self):
         board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
 
-        self.assertEqual(FieldHistory.objects.get_for_model(board).count(), 2)
+        # board initially has 3 changed fields: title, description, and if it has been removed
+        self.assertEqual(FieldHistory.objects.get_for_model(board).count(), 3)
 
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
@@ -194,7 +216,12 @@ class SitemapTests(TestCase):
     def test_can_get_items(self):
         """ Test that we can get all the board """
         sitemap = BoardSitemap()
-        self.assertEqual(len(sitemap.items()), 1)
+        self.assertEqual(len(sitemap.items()), 1, "Sitemap included removed board")
+
+    def test_cannot_get_removed_items(self):
+        remove(self.board)
+        sitemap = BoardSitemap()
+        self.assertEqual(len(sitemap.items()), 0)
 
     def test_can_get_last_update(self):
         """ Test that sitemap uses the latest change """
@@ -1102,4 +1129,3 @@ class AccountManagementTests(TestCase):
         self.assertEqual(mail.outbox[0].subject, '[example.com] Please Confirm Your E-mail Address')
         self.assertListEqual(mail.outbox[0].to, ['testemail@google.com'])
         self.assertEqual(mail.outbox[0].from_email, DEFAULT_FROM_EMAIL)
-

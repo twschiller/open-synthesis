@@ -65,26 +65,13 @@ def is_field_provided(form, field):
     return field in form.cleaned_data and form.cleaned_data[field] is not None
 
 
-def get_removable_object_or_404(klass, *args, **kwargs):
-    """Call get_object_or_404(), additionally raising a 404 if the object has been marked as removed."""
-    result = get_object_or_404(klass, *args, **kwargs)
-    if result.removed:
-        raise Http404("Object no longer exists")
-    return result
-
-
-def visible_objects(klass):
-    """Return query set of objects that have not been removed"""
-    return klass.objects.filter(removed=False)
-
-
 @require_safe
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
 def index(request):
     """Return a homepage view showing project information, news, and recent boards."""
     # Show all of the boards until we can implement tagging, search, etc.
-    latest_board_list = visible_objects(Board).order_by('-pub_date')
+    latest_board_list = Board.objects.order_by('-pub_date')
     latest_project_news = ProjectNews.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
     context = {
         'latest_board_list': latest_board_list,
@@ -115,7 +102,7 @@ def detail(request, board_id, dummy_board_slug=None):
     # NOTE: cannot cache page for logged in users b/c comments section contains CSRF and other protection mechanisms.
     view_type = 'average' if request.GET.get('view_type') is None else request.GET['view_type']
 
-    board = get_removable_object_or_404(Board, pk=board_id)
+    board = get_object_or_404(Board, pk=board_id)
     votes = Evaluation.objects.filter(board=board).select_related('user')
 
     participants = {vote.user for vote in votes}
@@ -170,8 +157,8 @@ def board_history(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
     history = [
         _get_history([board]),
-        _get_history(Evidence.objects.filter(board=board)),
-        _get_history(Hypothesis.objects.filter(board=board)),
+        _get_history(Evidence.all_objects.filter(board=board)),
+        _get_history(Hypothesis.all_objects.filter(board=board)),
     ]
     history = list(itertools.chain(*history))
     history.sort(key=lambda x: x.date_created, reverse=True)
@@ -230,7 +217,7 @@ class BoardEditForm(forms.Form):
 @login_required
 def edit_board(request, board_id):
     """Return a board edit view, or handle the form submission."""
-    board = get_removable_object_or_404(Board, pk=board_id)
+    board = get_object_or_404(Board, pk=board_id)
     check_owner_authorization(request, board)
     allow_remove = request.user.is_staff
 
@@ -322,7 +309,7 @@ class EvidenceForm(BaseSourceForm, EvidenceEditForm):
 @login_required
 def add_evidence(request, board_id):
     """Return a view of adding evidence (with a source), or handle the form submission."""
-    board = get_removable_object_or_404(Board, pk=board_id)
+    board = get_object_or_404(Board, pk=board_id)
 
     if request.method == 'POST':
         form = EvidenceForm(request.POST)
@@ -357,7 +344,7 @@ def add_evidence(request, board_id):
 @login_required
 def edit_evidence(request, evidence_id):
     """Return a view for editing a piece of evidence, or handle for submission."""
-    evidence = get_removable_object_or_404(Evidence, pk=evidence_id)
+    evidence = get_object_or_404(Evidence, pk=evidence_id)
     # don't care that the board might have been removed
     board = evidence.board
     check_owner_authorization(request, board=board, has_creator=evidence)
@@ -406,7 +393,7 @@ class EvidenceSourceForm(BaseSourceForm):
 @login_required
 def add_source(request, evidence_id):
     """Return a view for adding a corroborating/contradicting source, or handle form submission."""
-    evidence = get_removable_object_or_404(Evidence, pk=evidence_id)
+    evidence = get_object_or_404(Evidence, pk=evidence_id)
     if request.method == 'POST':
         form = EvidenceSourceForm(request.POST)
         if form.is_valid():
@@ -443,7 +430,7 @@ def toggle_source_tag(request, evidence_id, source_id):
     # whether or not they're adding/removing the tag
     if request.method == 'POST':
         with transaction.atomic():
-            source = get_removable_object_or_404(EvidenceSource, pk=source_id)
+            source = get_object_or_404(EvidenceSource, pk=source_id)
             tag = EvidenceSourceTag.objects.get(tag_name=request.POST['tag'])
             user_tag = AnalystSourceTag.objects.filter(source=source, tagger=request.user, tag=tag)
             if user_tag.count() > 0:
@@ -464,9 +451,9 @@ def toggle_source_tag(request, evidence_id, source_id):
 def evidence_detail(request, evidence_id):
     """Return a view displaying detailed information about a piece of evidence and its sources."""
     # NOTE: cannot cache page for logged in users b/c comments section contains CSRF and other protection mechanisms.
-    evidence = get_removable_object_or_404(Evidence, pk=evidence_id)
+    evidence = get_object_or_404(Evidence, pk=evidence_id)
     available_tags = EvidenceSourceTag.objects.all()
-    sources = visible_objects(EvidenceSource).filter(evidence=evidence).order_by('-source_date').select_related('uploader')
+    sources = EvidenceSource.objects.filter(evidence=evidence).order_by('-source_date').select_related('uploader')
     all_tags = AnalystSourceTag.objects.filter(source__in=sources)
 
     source_tags = defaultdict(list)
@@ -498,8 +485,8 @@ class HypothesisForm(forms.Form):
 @login_required
 def add_hypothesis(request, board_id):
     """Return a view for adding a hypothesis, or handle form submission."""
-    board = get_removable_object_or_404(Board, pk=board_id)
-    existing = visible_objects(Hypothesis).filter(board=board)
+    board = get_object_or_404(Board, pk=board_id)
+    existing = Hypothesis.objects.filter(board=board)
 
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
@@ -526,7 +513,7 @@ def add_hypothesis(request, board_id):
 @login_required
 def edit_hypothesis(request, hypothesis_id):
     """Return a view for editing a hypothesis, or handle board submission."""
-    hypothesis = get_removable_object_or_404(Hypothesis, pk=hypothesis_id)
+    hypothesis = get_object_or_404(Hypothesis, pk=hypothesis_id)
     # don't care if the board has been removed
     board = hypothesis.board
     check_owner_authorization(request, board, hypothesis)
@@ -572,9 +559,9 @@ def profile(request, account_id=None):
 
     # There's no real reason for these to be atomic
     user = get_object_or_404(User, pk=account_id)
-    boards = visible_objects(Board).filter(creator=user)
-    evidence = visible_objects(Evidence).filter(creator=user).select_related('board')
-    hypotheses = visible_objects(Evidence).filter(creator=user).select_related('board')
+    boards = Board.objects.filter(creator=user)
+    evidence = Evidence.objects.filter(creator=user).select_related('board')
+    hypotheses = Hypothesis.objects.filter(creator=user).select_related('board')
     votes = Evaluation.objects.filter(user=user).select_related('board')
     contributed = {e.board for e in evidence}.union({h.board for h in hypotheses})
     voted = {v.board for v in votes if not v.board.removed}
@@ -598,13 +585,13 @@ def evaluate(request, board_id, evidence_id):
     Take a couple measures to reduce bias: (1) do not show the analyst their previous assessment, and (2) show
     the hypotheses in a random order.
     """
-    board = get_removable_object_or_404(Board, pk=board_id)
-    evidence = get_removable_object_or_404(Evidence, pk=evidence_id)
+    board = get_object_or_404(Board, pk=board_id)
+    evidence = get_object_or_404(Evidence, pk=evidence_id)
 
     evaluations = {e.hypothesis_id: e for e in
                    Evaluation.objects.filter(board=board_id, evidence=evidence_id, user=request.user)}
 
-    hypotheses = [(h, evaluations.get(h.id, None)) for h in visible_objects(Hypothesis).filter(board=board_id)]
+    hypotheses = [(h, evaluations.get(h.id, None)) for h in Hypothesis.objects.filter(board=board_id)]
 
     if request.method == 'POST':
         with transaction.atomic():

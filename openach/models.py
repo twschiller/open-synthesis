@@ -28,6 +28,15 @@ SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH', 72)
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
+class RemovableModelManager(models.Manager):
+    """Query manager that excludes removed models."""
+    # https://docs.djangoproject.com/en/1.10/topics/db/managers/
+
+    def get_queryset(self):
+        """Return the queryset, excluding removed models"""
+        return super(RemovableModelManager, self).get_queryset().filter(removed=False)
+
+
 class Board(models.Model):
     """An ACH matrix with hypotheses, evidence, and evaluations."""
 
@@ -38,6 +47,9 @@ class Board(models.Model):
     pub_date = models.DateTimeField('date published')
     removed = models.BooleanField(default=False)
     field_history = FieldHistoryTracker(['board_title', 'board_desc', 'removed'])
+
+    objects = RemovableModelManager()
+    all_objects = models.Manager()
 
     def __str__(self):
         """Return a human-readable representation of the board."""
@@ -74,6 +86,9 @@ class Hypothesis(models.Model):
     removed = models.BooleanField(default=False)
     field_history = FieldHistoryTracker(['hypothesis_text', 'removed'])
 
+    objects = RemovableModelManager()
+    all_objects = models.Manager()
+
     class Meta:  # pylint: disable=too-few-public-methods
         """Hypothesis Model meta options.
 
@@ -98,6 +113,9 @@ class Evidence(models.Model):
     submit_date = models.DateTimeField('date added')
     removed = models.BooleanField(default=False)
     field_history = FieldHistoryTracker(['evidence_desc', 'event_date', 'removed'])
+
+    objects = RemovableModelManager()
+    all_objects = models.Manager()
 
     class Meta:  # pylint: disable=too-few-public-methods
         """Evidence Model meta options.
@@ -128,6 +146,9 @@ class EvidenceSource(models.Model):
     submit_date = models.DateTimeField('date added')
     corroborating = models.BooleanField()
     removed = models.BooleanField(default=False)
+
+    objects = RemovableModelManager()
+    all_objects = models.Manager()
 
 
 class EvidenceSourceTag(models.Model):
