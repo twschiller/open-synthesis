@@ -6,8 +6,12 @@
 {% load comments %}
 {% load bootstrap %}
 
-{% block content %}
+{% block opengraph %}
+    <meta property="og:title" content="{{ evidence.board.board_title }}" />
+    <meta property="og:url" content="{{ request|canonical_url:evidence }}" />
+{% endblock %}
 
+{% block content %}
     <h1>
         Evidence for {{ evidence.board.board_title }}
     </h1>

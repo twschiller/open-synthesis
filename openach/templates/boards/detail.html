@@ -7,6 +7,11 @@
 {% load bootstrap %}
 {% load static %}
 
+{% block opengraph %}
+    <meta property="og:title" content="{{ board.board_title }}" />
+    <meta property="og:url" content="{{ request|canonical_url:board }}" />
+{% endblock %}
+
 {% block content %}
     <h1>Intelligence Board: <i>{{ board.board_title }}</i></h1>
 

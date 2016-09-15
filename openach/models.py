@@ -56,7 +56,11 @@ class Board(models.Model):
                 logger.warning("Malformed SLUG for reverse URL match: %s", self.board_slug)
                 return reverse('openach:detail', args=(self.id,))
         else:
-            return reverse('openach:detail', args=(self.id,))
+            return self.get_canonical_url()
+
+    def get_canonical_url(self):
+        """Return the canonical URL for view board details, excluding the slug."""
+        return reverse('openach:detail', args=(self.id,))
 
 
 class Hypothesis(models.Model):
@@ -104,6 +108,10 @@ class Evidence(models.Model):
     def __str__(self):
         """Return a human-readable representation of the evidence."""
         return self.evidence_desc
+
+    def get_canonical_url(self):
+        """Return the canonical URL for view evidence details"""
+        return reverse('openach:evidence_detail', args=(self.id,))
 
 
 class EvidenceSource(models.Model):

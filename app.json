@@ -65,6 +65,10 @@
       "description": "Whether or not analysts must provide a corroborating source when adding a piece of evidence (default=True)",
       "required": false,
       "value": "True"
+    },
+    "TWITTER_ACCOUNT": {
+      "description": "Twitter handle associated with the instance (must include preceding '@')",
+      "required": false
     }
   },
   "scripts": {

@@ -1,0 +1,15 @@
+{% with description=meta_description|default:default_description %}
+    <meta property="og:type" content="website" />
+    <meta property="twitter:card" content="summary">
+
+    <meta name="description" content="{{ description }}">
+    <meta name="keywords" content="{% firstof meta_keywords default_keywords|join:", " %}">
+
+    <meta property="og:site_name" content="{{ site.name }}"/>
+    <meta property="og:locale" content="en_US"/>
+    <meta property="og:description" content="{{ description }}">
+
+    {% if twitter_account %}
+        <meta property="twitter:site" content="{{ twitter_account }}"/>
+    {% endif %}
+{% endwith %}
