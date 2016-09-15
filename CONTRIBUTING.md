@@ -79,4 +79,6 @@ We gratefully acknowledge this project's 3rd-party libraries and their contribut
 [Open Source Responsible Disclosure Framework](https://github.com/bugcrowd/disclosure-policy) under a
 [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/)
 * FavIcon designed by [Freepik](http://www.freepik.com) from [Flaticon](http://www.flaticon.com)
-and licensed by [Creative Commons BY 3.0](http://creativecommons.org/licenses/by/3.0/).
+and licensed under [Creative Commons BY 3.0](http://creativecommons.org/licenses/by/3.0/).
+* Dispute icon designed by [Icomoon](http://www.flaticon.com/authors/icomoon) from [Flaticon](http://www.flaticon.com)
+and licensed under [Creative Commons BY 3.0](http://creativecommons.org/licenses/by/3.0/).
