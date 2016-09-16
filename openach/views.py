@@ -203,10 +203,30 @@ class BoardForm(forms.Form):
     Users must specify at two competing hypotheses.
     """
 
-    board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
-    board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
-    hypothesis1 = forms.CharField(label='Hypothesis #1', max_length=HYPOTHESIS_MAX_LENGTH)
-    hypothesis2 = forms.CharField(label='Hypothesis #2', max_length=HYPOTHESIS_MAX_LENGTH)
+    board_title = forms.CharField(
+        label='Board Title',
+        max_length=BOARD_TITLE_MAX_LENGTH,
+        help_text="The board title (i.e., topic). Typically phrased as a question asking about " +
+                  "what happened in the past, what is happening currently, or what will happen in the future. " +
+                  "For example: 'who/what was behind event X?' or 'what are Y's current capabilities?'"
+    )
+    board_desc = forms.CharField(
+        label='Board Description',
+        max_length=BOARD_DESC_MAX_LENGTH,
+        widget=forms.Textarea,
+        help_text="A description providing context around the topic. Helps to clarify what hypotheses " +
+                  "and evidence are relevant."
+    )
+    hypothesis1 = forms.CharField(
+        label='Hypothesis #1',
+        max_length=HYPOTHESIS_MAX_LENGTH,
+        help_text="A hypothesis providing a potential answer to the topic question."
+    )
+    hypothesis2 = forms.CharField(
+        label='Hypothesis #2',
+        max_length=HYPOTHESIS_MAX_LENGTH,
+        help_text="An alternative hypothesis providing a potential answer to the topic question."
+    )
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
