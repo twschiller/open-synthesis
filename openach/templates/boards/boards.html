@@ -11,8 +11,11 @@
 {% endblock %}
 
 {% block content %}
-    <h1>Intelligence Boards</h1>
-
+    <h1>
+        Intelligence Boards
+        <a class="btn btn-primary" href="{% url 'openach:create_board' %}">Create Board</a>
+    </h1>
+    
     <table class="table table-hover">
         <thead>
             <tr>
