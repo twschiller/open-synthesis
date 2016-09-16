@@ -59,6 +59,8 @@ env = environ.Env(  # pylint: disable=invalid-name
     ACCOUNT_REQUIRED=(bool, False),
     ACCOUNT_EMAIL_REQUIRED=(bool, True),
     EVIDENCE_REQUIRE_SOURCE=(bool, True),
+    EDIT_REMOVE_ENABLED=(bool, True),
+    EDIT_AUTH_ANY=(bool, False),
     INVITE_REQUIRED=(bool, False),
     SENDGRID_USERNAME=(str, None),
     SENDGRID_PASSWORD=(str, None),
@@ -308,13 +310,15 @@ SITE_NAME = env('SITE_NAME')
 SITE_DOMAIN = env('SITE_DOMAIN')
 ACCOUNT_REQUIRED = env('ACCOUNT_REQUIRED')
 if _detect_command('createadmin'):  # pragma: no cover
-    # Load the admin credentials if the admin is creating a default account
+    # Load the admin credentials if the admin is creating a default account (e.g., when deploying with Heroku button)
     ADMIN_USERNAME = env('ADMIN_USERNAME')
     ADMIN_PASSWORD = env('ADMIN_PASSWORD')
 ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
 INVITE_REQUIRED = env('INVITE_REQUIRED')
 INVITE_REQUEST_URL = env('INVITE_REQUEST_URL')
 EVIDENCE_REQUIRE_SOURCE = env('EVIDENCE_REQUIRE_SOURCE')
+EDIT_REMOVE_ENABLED = env('EDIT_REMOVE_ENABLED')
+EDIT_AUTH_ANY = env('EDIT_AUTH_ANY')
 TWITTER_ACCOUNT = env('TWITTER_ACCOUNT')
 DONATE_BITCOIN_ADDRESS = env('DONATE_BITCOIN_ADDRESS')
 BANNER_MESSAGE = env('BANNER_MESSAGE')

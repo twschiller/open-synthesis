@@ -43,31 +43,19 @@ from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 from .metrics import consensus_vote, inconsistency, diagnosticity, calc_disagreement
 from .metrics import generate_contributor_count, generate_evaluator_count
 from .decorators import cache_if_anon, cache_on_auth, account_required
+from .auth import owner_or_staff, check_edit_authorization
 
+
+# XXX: allow_remove logic should probably be refactored to a template context processor
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 PAGE_CACHE_TIMEOUT_SECONDS = 60
 DEBUG = getattr(settings, 'DEBUG', False)
-ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
-EVIDENCE_REQUIRE_SOURCE = getattr(settings, 'EVIDENCE_REQUIRE_SOURCE', True)
 
 DEFAULT_EVAL = '------'
 KEEP_EVAL = '-- Keep Previous Assessment'
 REMOVE_EVAL = '-- Remove Assessment'
-
-
-def check_owner_authorization(request, board, has_creator=None):
-    """Raise a PermissionDenied exception if the authenticated user does not have edit rights for the resource."""
-    if not owner_or_staff(request, board, has_creator):
-        raise PermissionDenied()
-
-
-def owner_or_staff(request, board, has_creator=None):
-    """Return True if the authenticated user has ownership of the resource."""
-    return request.user.is_staff or \
-        request.user == board.creator or \
-        (has_creator and request.user == has_creator.creator)
 
 
 def is_field_provided(form, field):
@@ -77,12 +65,15 @@ def is_field_provided(form, field):
 
 def _remove_and_redirect(request, removable, message_detail):
     """Mark a model as removed and redirect the user to the associated board detail page."""
-    removable.removed = True
-    removable.save()
-    klass_name = removable._meta.verbose_name.title()  # pylint: disable=protected-access
-    klass = klass_name[:1].lower() + klass_name[1:] if klass_name else ''
-    messages.success(request, 'Removed {}: {}'.format(klass, message_detail))
-    return HttpResponseRedirect(reverse('openach:detail', args=(removable.board.id,)))
+    if getattr(settings, 'EDIT_REMOVE_ENABLED', True):
+        removable.removed = True
+        removable.save()
+        klass_name = removable._meta.verbose_name.title()  # pylint: disable=protected-access
+        klass = klass_name[:1].lower() + klass_name[1:] if klass_name else ''
+        messages.success(request, 'Removed {}: {}'.format(klass, message_detail))
+        return HttpResponseRedirect(reverse('openach:detail', args=(removable.board.id,)))
+    else:
+        raise PermissionDenied()
 
 
 def bitcoin_donation_url(address):
@@ -202,7 +193,7 @@ def detail(request, board_id, dummy_board_slug=None):
         'disagreement': disagreement,
         'participants': participants,
         'meta_description': board.board_desc,
-        'allow_share': not ACCOUNT_REQUIRED,
+        'allow_share': not getattr(settings, 'ACCOUNT_REQUIRED', False),
         'debug_stats': DEBUG
     }
     return render(request, 'boards/detail.html', context)
@@ -301,8 +292,8 @@ class BoardEditForm(forms.Form):
 def edit_board(request, board_id):
     """Return a board edit view, or handle the form submission."""
     board = get_object_or_404(Board, pk=board_id)
-    check_owner_authorization(request, board)
-    allow_remove = request.user.is_staff
+    check_edit_authorization(request, board)
+    allow_remove = request.user.is_staff and getattr(settings, 'EDIT_REMOVE_ENABLED', True)
 
     if request.method == 'POST':
         form = BoardEditForm(request.POST)
@@ -380,7 +371,7 @@ class EvidenceForm(BaseSourceForm, EvidenceEditForm):
         Require an initial corroborating source (and date) if EVIDENCE_REQUIRE_SOURCE is True.
         """
         super().__init__(*args, **kwargs)
-        if not EVIDENCE_REQUIRE_SOURCE:
+        if not getattr(settings, 'EVIDENCE_REQUIRE_SOURCE', True):
             self.fields['evidence_url'].required = False
             self.fields['evidence_url'].label += ' (Optional)'
             self.fields['evidence_date'].required = False
@@ -434,7 +425,7 @@ def edit_evidence(request, evidence_id):
     evidence = get_object_or_404(Evidence, pk=evidence_id)
     # don't care that the board might have been removed
     board = evidence.board
-    check_owner_authorization(request, board=board, has_creator=evidence)
+    check_edit_authorization(request, board=board, has_creator=evidence)
 
     if request.method == 'POST':
         form = EvidenceEditForm(request.POST)
@@ -445,8 +436,8 @@ def edit_evidence(request, evidence_id):
             evidence.evidence_desc = form.cleaned_data['evidence_desc']
             evidence.event_date = form.cleaned_data['event_date']
             evidence.save()
-            messages.success(request, 'Updated evidence description and/or date.')
-            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+            messages.success(request, 'Updated evidence description and date.')
+            return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence.id,)))
     else:
         form = EvidenceEditForm(initial={'evidence_desc': evidence.evidence_desc, 'event_date': evidence.event_date})
 
@@ -454,8 +445,7 @@ def edit_evidence(request, evidence_id):
         'form': form,
         'evidence': evidence,
         'board': board,
-        # allow anyone who can edit the evidence to also remove it
-        'allow_remove': True
+        'allow_remove': getattr(settings, 'EDIT_REMOVE_ENABLED', True),
     }
 
     return render(request, 'boards/edit_evidence.html', context)
@@ -600,7 +590,7 @@ def edit_hypothesis(request, hypothesis_id):
     hypothesis = get_object_or_404(Hypothesis, pk=hypothesis_id)
     # don't care if the board has been removed
     board = hypothesis.board
-    check_owner_authorization(request, board, hypothesis)
+    check_edit_authorization(request, board, hypothesis)
 
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
@@ -619,8 +609,7 @@ def edit_hypothesis(request, hypothesis_id):
         'form': form,
         'hypothesis': hypothesis,
         'board': board,
-        # allow anyone who an edit a hypothesis to remove it
-        'allow_remove': True,
+        'allow_remove': getattr(settings, 'EDIT_REMOVE_ENABLED', True),
     }
 
     return render(request, 'boards/edit_hypothesis.html', context)
@@ -720,13 +709,14 @@ def evaluate(request, board_id, evidence_id):
 @require_safe
 def robots(request):
     """Return the robots.txt including the sitemap location (using the site domain) if the site is public."""
+    private_intance = getattr(settings, 'ACCOUNT_REQUIRED', False)
     context = {
         'sitemap': (
             ''.join(['https://', get_current_site(request).domain, reverse('django.contrib.sitemaps.views.sitemap')])
-            if not ACCOUNT_REQUIRED
+            if not private_intance
             else None
         ),
-        'disallow_all': ACCOUNT_REQUIRED,
+        'disallow_all': private_intance,
     }
     return render(request, 'robots.txt', context, content_type='text/plain')
 

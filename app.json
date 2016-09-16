@@ -70,6 +70,16 @@
       "required": false,
       "value": "True"
     },
+    "EDIT_AUTH_ANY": {
+      "description": "If enabled, any authorized user can edit any board, evidence, or hypotheses (default=False)",
+      "required": false,
+      "value": "False"
+    },
+    "EDIT_REMOVE_ENABLED": {
+      "description": "Allow anyone with edit rights to remove a evidence or a hypothesis; only staff can remove boards (default=True)",
+      "required": false,
+      "value": "True"
+    },
     "TWITTER_ACCOUNT": {
       "description": "Twitter handle associated with the instance (must include preceding '@')",
       "required": false

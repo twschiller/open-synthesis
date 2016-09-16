@@ -151,6 +151,7 @@ class BoardFormTests(TestCase):
 
     def test_non_owner_cannot_edit(self):
         """Test that the form is not displayed to the user that did not create the board."""
+        setattr(settings, 'EDIT_AUTH_ANY', False)
         board = Board.objects.create(board_title="Board #1", creator=None, pub_date=timezone.now())
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
@@ -1106,7 +1107,7 @@ class DiagnosticityTests(TestCase):
         self.assertEqual(diagnosticity([[], []]), 0.0)
 
     def test_different_more_diagnostic_than_neutral(self):
-        """Test that diagnosticity() is bhigher for hypothesis with different consensus."""
+        """Test that diagnosticity() is higher for hypothesis with different consensus."""
         different = diagnosticity([[Eval.consistent], [Eval.inconsistent]])
         same = diagnosticity([[Eval.neutral], [Eval.neutral]])
         self.assertGreater(different, same)

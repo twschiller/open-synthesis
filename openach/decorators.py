@@ -8,17 +8,15 @@ from django.conf import settings
 from django.contrib import messages
 
 
-ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
-
-
 def account_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
     """Require that the (1) the user is logged in, or (2) that an account is not required to view the page.
 
     If the user fails the test, redirect the user to the log-in page. See also
     django.contrib.auth.decorators.login_required
     """
+    req = getattr(settings, 'ACCOUNT_REQUIRED', False)
     actual_decorator = user_passes_test(
-        lambda u: not ACCOUNT_REQUIRED or u.is_authenticated(),
+        lambda u: not req or u.is_authenticated(),
         login_url=login_url,
         redirect_field_name=redirect_field_name
     )

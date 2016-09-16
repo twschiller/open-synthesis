@@ -3,6 +3,7 @@
 {% block title %}Evidence Detail | {{ site.name }}{% endblock %}
 
 {% load board_extras %}
+{% load auth_extras %}
 {% load comments %}
 {% load bootstrap %}
 
@@ -28,7 +29,8 @@
     <div>
         <a class="btn btn-primary" href="{% url 'openach:add_source' evidence.id %}?kind=corroborate">Add Corroborating Source</a>&nbsp;
         <a class="btn btn-warning" href="{% url 'openach:add_source' evidence.id %}?kind=conflicting">Add Conflicting Source</a>&nbsp;
-        {% if request.user.is_staff or request.user == board.creator or request.user == evidence.creator %}
+        {% can_edit request evidence.board evidence as editable %}
+        {% if editable %}
             <a class="btn btn-default" href="{% url 'openach:edit_evidence' evidence.id %}">Edit Evidence</a>&nbsp;
         {% endif %}
         <a class="btn btn-default" href="{{ evidence.board|board_url }}">Return to Board</a>
