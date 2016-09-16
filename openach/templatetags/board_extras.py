@@ -17,6 +17,12 @@ from openach.models import Evaluation, Eval
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
+@register.filter
+def dict_get(dictionary, key):
+    """Return the value for key in dictionary or None."""
+    return dictionary.get(key, None)
+
+
 @register.simple_tag
 def get_detail(dictionary, evidence_id, hypothesis_id):
     """Return the evaluation Eval for a given hypothesis and piece of evidence."""
@@ -132,6 +138,13 @@ def board_url(board):
     # In the future, we might just want to directly use get_absolute_url in the template. However, this extra level
     # of indirection gives us some additional flexibility
     return board.get_absolute_url()
+
+
+@register.filter
+def canonical_reverse(request, url_name):
+    """Return the canonical URI for url_name."""
+    # this should probably be a tag that calls the url template method and then builds the absolute uri
+    return request.build_absolute_uri(reverse(url_name))
 
 
 @register.filter

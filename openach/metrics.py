@@ -1,8 +1,13 @@
 """Analysis of Competing Hypotheses Board Metrics."""
 import statistics
+import collections
+import logging
 
 from .util import partition
-from .models import Eval
+from .models import Eval, Hypothesis, Evidence, Evaluation
+
+
+logger = logging.getLogger(__name__)
 
 
 def mean_na_neutral_vote(evaluations):
@@ -99,3 +104,28 @@ def diagnosticity(evaluations):
         return statistics.pstdev(filter(None.__ne__, na_neutral))  # pylint: disable=bad-builtin
     except statistics.StatisticsError:
         return 0.0
+
+
+def generate_contributor_count():
+    """Return a dictionary mapping board ids to the contributor count.
+
+    Contributors are people that either added a hypothesis or piece of evidence. This does not currently take into
+    account people that modified the board.
+    """
+    contributor_count = collections.defaultdict(set)
+    for evidence in Evidence.objects.all():
+        contributor_count[evidence.board_id].add(evidence.creator_id)
+    for hypothesis in Hypothesis.objects.all():
+        contributor_count[hypothesis.board_id].add(hypothesis.creator_id)
+    return {k: len(v) for k, v in contributor_count.items()}
+
+
+def generate_evaluator_count():
+    """Return a dictionary mapping board ids to the voter user ids.
+
+    Does not consider whether or not the hypothesis or evidence has been removed.
+    """
+    voter_count = collections.defaultdict(set)
+    for evaluation in Evaluation.objects.all():
+        voter_count[evaluation.board_id].add(evaluation.user_id)
+    return {k: len(v) for k, v in voter_count.items()}

@@ -35,6 +35,7 @@
                 <ul class="nav navbar-nav">
                     <li><a href="{% url 'openach:index' %}">Home</a></li>
                     <li><a href="{% url 'openach:about' %}">About</a></li>
+                    <li><a href="{% url 'openach:boards' %}">Boards</a></li>
                     {% if request.user.is_authenticated %}
                         <li><a href="/accounts/profile">Profile</a></li>
                         <li><a href="/accounts/logout">Logout</a></li>

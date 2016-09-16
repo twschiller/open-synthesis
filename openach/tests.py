@@ -406,6 +406,38 @@ class AddEditHypothesisTests(TestCase):
         self.assertEqual(len(Hypothesis.all_objects.all()), 2)
 
 
+class BoardListingTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+
+    def test_can_show_board_listing_no_page(self):
+        """Test that board listing renders when no page number is provided."""
+        board = create_board('Test Board', days=0)
+        response = self.client.get(reverse('openach:boards'))
+        self.assertTemplateUsed(response, 'boards/boards.html')
+        self.assertContains(response, board.board_title, status_code=200)
+        self.assertContains(response, "1")
+
+    def test_can_show_board_listing_first_page(self):
+        """Test board listing for when the first page is provided."""
+        board = create_board('Test Board', days=0)
+        response = self.client.get(reverse('openach:boards') + "?page=1")
+        self.assertContains(response, board.board_title, status_code=200)
+        self.assertContains(response, "1")
+
+    def test_pagination(self):
+        """Test that the correct boards show up on each page."""
+        for x in range(1, 30):
+            # views shows boards in order descending publishing data; set data so board n is published after board n+1
+            create_board('Test Board {}'.format(x), days=100-x)
+        response = self.client.get(reverse('openach:boards') + "?page=1")
+        self.assertContains(response, 'Test Board 1', status_code=200)
+        response = self.client.get(reverse('openach:boards') + "?page=2")
+        self.assertContains(response, 'Test Board 15', status_code=200)
+
+
 class BoardDetailTests(TestCase):
 
     def setUp(self):
