@@ -40,6 +40,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 env = environ.Env(  # pylint: disable=invalid-name
     DEBUG=(bool, False),
     ENABLE_CACHE=(bool, True),
+    ENVIRONMENT_NAME=(str, None),
     DJANGO_LOG_LEVEL=(str, "ERROR"),
     APP_LOG_LEVEL=(str, "ERROR"),
     CERTBOT_PUBLIC_KEY=(str, None),
@@ -322,6 +323,12 @@ EDIT_AUTH_ANY = env('EDIT_AUTH_ANY')
 TWITTER_ACCOUNT = env('TWITTER_ACCOUNT')
 DONATE_BITCOIN_ADDRESS = env('DONATE_BITCOIN_ADDRESS')
 BANNER_MESSAGE = env('BANNER_MESSAGE')
+if env('ENVIRONMENT_NAME'):
+    ENVIRONMENT_NAME = env('ENVIRONMENT_NAME')
+elif DEBUG:
+    ENVIRONMENT_NAME = 'development'
+else:
+    ENVIRONMENT_NAME = 'production'
 
 # Authentication Options:
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
@@ -345,7 +352,7 @@ CERTBOT_SECRET_KEY = env('CERTBOT_SECRET_KEY')
 ROLLBAR = {
     'enabled': env('ROLLBAR_ENABLED') and not TESTING,
     'access_token': env('ROLLBAR_ACCESS_TOKEN'),
-    'environment': 'development' if DEBUG else 'production',
+    'environment': ENVIRONMENT_NAME,
     'root': PROJECT_ROOT,
     'branch': 'master',
 }
