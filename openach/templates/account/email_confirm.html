@@ -1,12 +1,10 @@
 {% extends "account/base.html" %}
 
-{% block title %}Confirm Email | {{ site.name }}{% endblock %}
-
 {% load i18n %}
 {% load account %}
 
+{% block title %}{% trans "Confirm E-mail Address" %} | {{ site.name }}{% endblock %}
 {% block head_title %}{% trans "Confirm E-mail Address" %}{% endblock %}
-
 
 {% block content %}
     <h1>{% trans "Confirm E-mail Address" %}</h1>

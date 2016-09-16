@@ -1,15 +1,13 @@
 {% extends "account/base.html" %}
 
-{% block title %}Sign In | {{ site.name }}{% endblock %}
-
 {% load i18n %}
 {% load bootstrap %}
 {% load account socialaccount %}
 
-{% block title %}{% trans "Sign In" %}{% endblock %}
+{% block title %}{% trans "Sign In" %} | {{ site.name }}{% endblock %}
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
 
 {% block content %}
-
     <h1>{% trans "Sign In" %}</h1>
 
     {% get_providers as socialaccount_providers %}
