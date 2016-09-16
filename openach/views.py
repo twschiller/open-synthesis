@@ -33,12 +33,15 @@ from field_history.models import FieldHistory
 from django.views.decorators.http import etag
 from django.views.decorators.cache import cache_page
 from io import BytesIO
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.cache import cache
 
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from .models import ProjectNews
 from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH, SLUG_MAX_LENGTH
 from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 from .metrics import consensus_vote, inconsistency, diagnosticity, calc_disagreement
+from .metrics import generate_contributor_count, generate_evaluator_count
 from .decorators import cache_if_anon, cache_on_auth, account_required
 
 
@@ -98,13 +101,41 @@ def bitcoin_donation_url(address):
 def index(request):
     """Return a homepage view showing project information, news, and recent boards."""
     # Show all of the boards until we can implement tagging, search, etc.
-    latest_board_list = Board.objects.order_by('-pub_date')
+    latest_board_list = Board.objects.order_by('-pub_date')[:5]
     latest_project_news = ProjectNews.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
     context = {
         'latest_board_list': latest_board_list,
         'latest_project_news': latest_project_news,
     }
     return render(request, 'boards/index.html', context)
+
+
+@require_safe
+@cache_page(PAGE_CACHE_TIMEOUT_SECONDS)
+def board_listing(request):
+    """Return a paginated board listing view showing all boards and their popularity."""
+    board_list = Board.objects.order_by('-pub_date')
+    paginator = Paginator(board_list, per_page=10, orphans=3)
+    metric_timeout_seconds = 60 * 2
+
+    page = request.GET.get('page')
+    try:
+        boards = paginator.page(page)
+    except PageNotAnInteger:
+        # if page is not an integer, deliver first page.
+        boards = paginator.page(1)
+    except EmptyPage:
+        # if page is out of range (e.g. 9999), deliver last page of results.
+        boards = paginator.page(paginator.num_pages)
+
+    desc = 'List of intelligence boards on {} and summary information'.format(Site.objects.get_current().name)
+    context = {
+        'boards': boards,
+        'contributors': cache.get_or_set('contributor_count', generate_contributor_count(), metric_timeout_seconds),
+        'evaluators': cache.get_or_set('evaluator_count', generate_evaluator_count(), metric_timeout_seconds),
+        'meta_description': desc,
+    }
+    return render(request, 'boards/boards.html', context)
 
 
 @require_safe
