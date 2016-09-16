@@ -66,6 +66,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     TWITTER_ACCOUNT=(str, None),
     DONATE_BITCOIN_ADDRESS=(str, None),
     INVITE_REQUEST_URL=(str, None),
+    BANNER_MESSAGE=(str, None)
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -145,6 +146,7 @@ TEMPLATES = [
                 'openach.context_processors.site',
                 'openach.context_processors.meta',
                 'openach.context_processors.invite',
+                'openach.context_processors.banner',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -315,6 +317,7 @@ INVITE_REQUEST_URL = env('INVITE_REQUEST_URL')
 EVIDENCE_REQUIRE_SOURCE = env('EVIDENCE_REQUIRE_SOURCE')
 TWITTER_ACCOUNT = env('TWITTER_ACCOUNT')
 DONATE_BITCOIN_ADDRESS = env('DONATE_BITCOIN_ADDRESS')
+BANNER_MESSAGE = env('BANNER_MESSAGE')
 
 # Authentication Options:
 # https://django-allauth.readthedocs.io/en/latest/configuration.html

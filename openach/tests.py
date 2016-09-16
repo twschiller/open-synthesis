@@ -438,6 +438,25 @@ class BoardListingTests(TestCase):
         self.assertContains(response, 'Test Board 15', status_code=200)
 
 
+class BannerTests(TestCase):
+
+    def test_show_banner(self):
+        """Test that the banner message shows on all pages."""
+        msg = 'Test banner message'
+        setattr(settings, 'BANNER_MESSAGE', msg)
+        for page in ['index', 'boards', 'about']:
+            response = self.client.get(reverse('openach:{}'.format(page)))
+            self.assertContains(response, msg, status_code=200)
+
+    def test_do_not_show_empty_banner(self):
+        """Test that the banner alert doesn't appear when a BANNER_MESSAGE is not set."""
+        # this test implementation actually just tests that we can render the page. there's no oracle for making sure
+        # an empty alert div is not being shown.
+        setattr(settings, 'BANNER_MESSAGE', None)
+        response = self.client.get(reverse('openach:index'))
+        self.assertEqual(response.status_code, 200)
+
+
 class BoardDetailTests(TestCase):
 
     def setUp(self):

@@ -77,6 +77,10 @@
     "DONATE_BITCOIN_ADDRESS": {
       "description": "Bitcoin address for accepting donations",
       "required": false
+    },
+    "BANNER_MESSAGE": {
+      "description": "An alert to show to all users. URLs in the message will be converted into links.",
+      "required": false
     }
   },
   "scripts": {

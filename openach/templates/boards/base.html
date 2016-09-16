@@ -49,7 +49,15 @@
 </div> <!-- /container -->
 
 <div class="container">
+    {% if banner %}
+        <div class="alert alert-warning">
+            {{ banner|urlize }}
+        </div>
+    {% endif %}
     {% include 'boards/_messages.html' %}
+</div>
+
+<div class="container">
 
     {% block content %}
     {% endblock %}

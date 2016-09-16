@@ -26,3 +26,10 @@ def invite(dummy_request):
     return {
         'invite_request_url': getattr(settings, 'INVITE_REQUEST_URL', None),
     }
+
+
+def banner(dummy_request):
+    """Return a template context with a the site's banner configuration."""
+    return {
+        'banner': getattr(settings, 'BANNER_MESSAGE', None),
+    }
