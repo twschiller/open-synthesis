@@ -2,9 +2,10 @@
 import statistics
 import collections
 import logging
+import itertools
 
-from .util import partition
 from .models import Eval, Hypothesis, Evidence, Evaluation, Board
+from .util import partition, first_occurrences
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -132,20 +133,29 @@ def generate_evaluator_count():
 
 
 def user_boards_created(user):
-    """Return queryset of boards created by user."""
+    """Return queryset of boards created by user in reverse creation order (most recently created first)."""
     return Board.objects.filter(creator=user).order_by('-pub_date')
 
 
 def user_boards_contributed(user, include_removed=False):
-    """Return set of boards contributed to by the user (superset of boards created)."""
-    evidence = Evidence.objects.filter(creator=user).select_related('board')
-    hypotheses = Hypothesis.objects.filter(creator=user).select_related('board')
-    evidence_boards = {e.board for e in evidence if include_removed or not e.board.removed}
-    hypothesis_boards = {h.board for h in hypotheses if include_removed or not h.board.removed}
-    return evidence_boards.union(hypothesis_boards)
+    """Return list of boards contributed to by the user in reverse order (most recent contributions first).
+
+    :param user: the user
+    :param include_removed: True iff boards that have been removed should be included in the result
+    """
+    # basic approach: (1) merge, (2) sort, and (3) add making sure there's no duplicate boards
+    def _boards(klass):
+        models = klass.objects.filter(creator=user).select_related('board')
+        return [(x.submit_date, x.board) for x in models if include_removed or not x.board.removed]
+    contributions = sorted(itertools.chain(_boards(Evidence), _boards(Hypothesis)), key=lambda x: x[0], reverse=True)
+    return first_occurrences(c[1] for c in contributions if include_removed or not c[1].removed)
 
 
 def user_boards_evaluated(user, include_removed=False):
-    """Return set of boards evaluated by user."""
-    votes = Evaluation.objects.filter(user=user).select_related('board')
-    return {v.board for v in votes if include_removed or not v.board.removed}
+    """Return list of boards evaluated by user in reverse order of evaluation (most recently evaluated first).
+
+    :param user: the user
+    :param include_removed: True iff boards that have been removed should be included in the result
+    """
+    evaluations = Evaluation.objects.filter(user=user).order_by('-timestamp').select_related('board')
+    return first_occurrences(e.board for e in evaluations if include_removed or not e.board.removed)

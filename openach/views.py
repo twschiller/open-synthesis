@@ -140,14 +140,12 @@ def user_board_listing(request, account_id):
     """Return a paginated board listing view for account with account_id."""
     metric_timeout_seconds = 60 * 2
 
-    def _reverse(iterable):
-        return sorted(iterable, key=lambda x: x.pub_date, reverse=True)
     queries = {
         # default to boards contributed to
-        None: lambda x: ('contributed to', _reverse(user_boards_contributed(x))),
-        'created': lambda x: ('created', user_boards_created(x).order_by('-pub_date')),
-        'evaluated': lambda x: ('evaluated', _reverse(user_boards_evaluated(x))),
-        'contribute': lambda x: ('contributed to', _reverse(user_boards_contributed(x))),
+        None: lambda x: ('contributed to', user_boards_contributed(x)),
+        'created': lambda x: ('created', user_boards_created(x)),
+        'evaluated': lambda x: ('evaluated', user_boards_evaluated(x)),
+        'contribute': lambda x: ('contributed to', user_boards_contributed(x)),
     }
 
     user = get_object_or_404(User, pk=account_id)
@@ -676,7 +674,6 @@ def profile(request, account_id=None):
     template = ('profile.html'
                 if request.user.id == int(account_id)
                 else 'public_profile.html')
-    logger.debug('account_id: %s, request user id: %s, template: %s', account_id, request.user.id, template)
     return render(request, 'boards/' + template, context)
 
 
@@ -705,7 +702,7 @@ def evaluate(request, board_id, evidence_id):
                         board=board_id,
                         evidence=evidence,
                         user=request.user,
-                        hypothesis_id=hypothesis.id
+                        hypothesis_id=hypothesis.id,
                     ).delete()
                 elif select != DEFAULT_EVAL and select != KEEP_EVAL:
                     Evaluation.objects.update_or_create(
@@ -714,7 +711,8 @@ def evaluate(request, board_id, evidence_id):
                         hypothesis=hypothesis,
                         user=request.user,
                         defaults={
-                            'value': select
+                            'value': select,
+                            'timestamp': timezone.now()
                         }
                     )
                 else:

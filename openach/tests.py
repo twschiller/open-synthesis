@@ -19,7 +19,7 @@ from .models import URL_MAX_LENGTH
 from .sitemap import BoardSitemap
 from .views import EvidenceSource, EvidenceSourceForm, EvidenceSourceTag, AnalystSourceTag
 from .views import BoardEditForm, EvidenceEditForm, HypothesisForm, bitcoin_donation_url
-
+from .util import first_occurrences
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,18 @@ def remove(model):
     """Mark model as removed."""
     model.removed = True
     model.save()
+
+
+class UtilMethodTests(TestCase):
+
+    def test_first_occurrences_empty(self):
+        """Test that first_instances() returns an empty list when an empty list is provided."""
+        self.assertEqual(first_occurrences([]), [])
+
+    def test_first_occurrences(self):
+        """Test that first_instances() only preserves the first occurrence in the list."""
+        self.assertEqual(first_occurrences(['a', 'a']), ['a'])
+        self.assertEqual(first_occurrences(['a', 'b', 'a']), ['a', 'b'])
 
 
 class BoardMethodTests(TestCase):
@@ -496,7 +508,8 @@ class BoardDetailTests(TestCase):
             hypothesis=hypothesis,
             evidence=self.evidence,
             user=user,
-            value=eval.value
+            value=eval.value,
+            timestamp=timezone.now()
         )
 
     def _add_evidence(self):
@@ -617,7 +630,7 @@ class BoardDetailTests(TestCase):
             return Evidence.objects.create(board=self.board, creator=self.user, evidence_desc=desc, event_date=None, submit_date=timezone.now())
 
         def mk_eval(hypothesis, evidence, eval_):
-            Evaluation.objects.create(board=self.board, hypothesis=hypothesis, evidence=evidence, user=self.user, value=eval_.value)
+            Evaluation.objects.create(board=self.board, hypothesis=hypothesis, evidence=evidence, user=self.user, timestamp=timezone.now(), value=eval_.value)
 
         # put neutral evidence first so it's PK will be lower (and will probably be returned first by the DB)
         neutral = mk_evidence("Neutral Evidence")
@@ -1000,7 +1013,8 @@ class ProfileTests(TestCase):
             evidence=self.evidence,
             hypothesis=self.hypothesis,
             user=user,
-            board=self.board
+            board=self.board,
+            timestamp=timezone.now()
         )
 
     def test_empty_public_activity(self):
@@ -1022,6 +1036,18 @@ class ProfileTests(TestCase):
         self.assertContains(response, "View All", count=1, status_code=200)
         self.assertContains(response, "has not contributed to any boards")
         self.assertContains(response, "has not evaluated any boards")
+
+    def test_public_activity_creator_max_display(self):
+        """Test that at most 3 boards are shown on the profile."""
+        for x in range(1, 10):
+            Board.objects.create(
+                board_title="Title #{}".format(x),
+                board_desc="Description",
+                creator=self.user,
+                pub_date=timezone.now(),
+            )
+        response = self.client.get(reverse('profile', args=(self.user.id,)))
+        self.assertContains(response, "Title #", count=3, status_code=200)
 
     def test_public_activity_contributor(self):
         """Test public profile of user that has contributed to a board."""

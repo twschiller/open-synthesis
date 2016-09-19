@@ -46,7 +46,7 @@
                 </div>
                 <ul class="list-group">
                     {% if boards_created %}
-                        {% for board in boards_created|slice:":4" %}
+                        {% for board in boards_created|slice:":3" %}
                             <li class="list-group-item">
                                 <a href="{{ board|board_url }}">{{ board.board_title }}</a>
                             </li>
@@ -68,7 +68,7 @@
                 </div>
                 <ul class="list-group">
                     {% if boards_contributed %}
-                        {% for board in boards_contributed|slice:":4" %}
+                        {% for board in boards_contributed|slice:":3" %}
                             <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
                         {% endfor %}
                     {% else %}
@@ -88,7 +88,7 @@
                 </div>
                 <ul class="list-group">
                     {% if board_voted %}
-                        {% for board in board_voted|slice:":4" %}
+                        {% for board in board_voted|slice:":3" %}
                             <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
                         {% endfor %}
                     {% else %}

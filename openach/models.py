@@ -203,6 +203,7 @@ class Evaluation(models.Model):
     hypothesis = models.ForeignKey(Hypothesis, on_delete=models.CASCADE)
     evidence = models.ForeignKey(Evidence, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField('date evaluated')
     value = models.PositiveSmallIntegerField(default=0, choices=EVALUATION_OPTIONS)
 
     def __str__(self):
