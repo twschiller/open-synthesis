@@ -26,37 +26,64 @@
 
         <div class="col-md-5">
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Boards Created</h3>
+                <div class="panel-heading button-panel-heading clearfix">
+                    <h3 class="panel-title pull-left">Recent Boards Created</h3>
+                    {% if boards_created %}
+                        <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=created">
+                            View All
+                        </a>
+                    {% endif %}
                 </div>
                 <ul class="list-group">
-                    {% for board in boards_created %}
-                        <li class="list-group-item">
-                            <a href="{{ board|board_url }}">{{ board.board_title }}</a> on {{ board.pub_date|date }}
-                        </li>
-                    {% endfor %}
+                    {% if boards_created %}
+                        {% for board in boards_created|slice:":4" %}
+                            <li class="list-group-item">
+                                <a href="{{ board|board_url }}">{{ board.board_title }}</a>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>User {{ user.username }} has not created any boards</li>
+                    {% endif %}
                 </ul>
             </div>
 
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Boards Contributed To</h3>
+                <div class="panel-heading button-panel-heading clearfix">
+                    <h3 class="panel-title pull-left">Recent Boards Contributed To</h3>
+                    {% if boards_contributed %}
+                        <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=contributed">
+                            View All
+                        </a>
+                    {% endif %}
                 </div>
                 <ul class="list-group">
-                    {% for board in boards_contributed %}
-                        <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
-                    {% endfor %}
+                    {% if boards_contributed %}
+                        {% for board in boards_contributed|slice:":4" %}
+                            <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
+                        {% endfor %}
+                    {% else %}
+                        <li>User {{ user.username }} has not contributed to any boards</li>
+                    {% endif %}
                 </ul>
             </div>
 
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Boards Analyzed</h3>
+                <div class="panel-heading button-panel-heading clearfix">
+                    <h3 class="panel-title pull-left">Recent Boards Analyzed</h3>
+                    {% if boards_contributed %}
+                        <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=evaluated">
+                            View All
+                        </a>
+                    {% endif %}
                 </div>
                 <ul class="list-group">
-                    {% for board in board_voted %}
-                        <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
-                    {% endfor %}
+                    {% if board_voted %}
+                        {% for board in board_voted|slice:":4" %}
+                            <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
+                        {% endfor %}
+                    {% else %}
+                        <li>User {{ user.username }} has not evaluated any boards</li>
+                    {% endif %}
                 </ul>
             </div>
         </div> <!-- col -->

@@ -134,3 +134,7 @@ footer.license {
 .dispute-icon {
     height: 1.5em;
 }
+
+.button-panel-heading > .panel-title {
+    padding-top: 6px;
+}

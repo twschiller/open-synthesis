@@ -4,7 +4,7 @@ import collections
 import logging
 
 from .util import partition
-from .models import Eval, Hypothesis, Evidence, Evaluation
+from .models import Eval, Hypothesis, Evidence, Evaluation, Board
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -129,3 +129,21 @@ def generate_evaluator_count():
     for evaluation in Evaluation.objects.all():
         voter_count[evaluation.board_id].add(evaluation.user_id)
     return {k: len(v) for k, v in voter_count.items()}
+
+
+def user_boards_created(user):
+    """Return queryset of boards created by user."""
+    return Board.objects.filter(creator=user).order_by('-pub_date')
+
+
+def user_boards_contributed(user):
+    """Return set of boards contributed to by the user (superset of boards created)."""
+    evidence = Evidence.objects.filter(creator=user).select_related('board')
+    hypotheses = Hypothesis.objects.filter(creator=user).select_related('board')
+    return {e.board for e in evidence}.union({h.board for h in hypotheses})
+
+
+def user_boards_evaluated(user):
+    """Return set of boards evaluated by user."""
+    votes = Evaluation.objects.filter(user=user).select_related('board')
+    return {v.board for v in votes if not v.board.removed}

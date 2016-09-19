@@ -33,41 +33,67 @@
         <div class="col-md-5">
 
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Boards You've Created</h3>
-                </div>
-                <div class="panel-body">
-                    Want help analyzing a question?
-                    <a href="{% url 'openach:create_board' %}">{% trans "Create a board." %}</a>
+                <div class="panel-heading button-panel-heading clearfix">
+                    <h3 class="panel-title pull-left">Recent Boards You've Created</h3>
+                    <div class="btn-group pull-right">
+                        {% if boards_created %}
+                            <a class="btn btn-default btn-sm" href="{% url 'openach:user_boards' request.user.id %}?query=created">
+                                View All
+                            </a>
+                        {% endif %}
+                        <a class="btn btn-primary btn-sm" href="{% url 'openach:create_board' %}">{% trans "Create" %}</a>
+                    </div>
                 </div>
                 <ul class="list-group">
-                    {% for board in boards_created %}
-                        <li class="list-group-item">
-                            <a href="{{ board|board_url }}">{{ board.board_title }}</a> on {{ board.pub_date }}
-                        </li>
-                    {% endfor %}
+                    {% if boards_created %}
+                        {% for board in boards_created|slice:":4" %}
+                            <li class="list-group-item">
+                                <a href="{{ board|board_url }}">{{ board.board_title }}</a>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>You have not created any boards. <a href="{% url 'openach:create_board' %}">Create a new board.</a></li>
+                    {% endif %}
                 </ul>
             </div>
 
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Boards You've Contributed To</h3>
+                <div class="panel-heading button-panel-heading clearfix">
+                    <h3 class="panel-title pull-left">Recent Boards You've Contributed To</h3>
+                    {% if boards_contributed %}
+                        <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' request.user.id %}?query=contributed">
+                            View All
+                        </a>
+                    {% endif %}
                 </div>
                 <ul class="list-group">
-                    {% for board in boards_contributed %}
-                        <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
-                    {% endfor %}
+                    {% if boards_contributed %}
+                        {% for board in boards_contributed|slice:":4" %}
+                            <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
+                        {% endfor %}
+                    {% else %}
+                        <li>You have not contributed to any boards. <a href="{% url 'openach:boards' %}">Find a board to contribute to.</a></li>
+                    {% endif %}
                 </ul>
             </div>
 
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Boards You've Analyzed</h3>
+                <div class="panel-heading button-panel-heading clearfix">
+                    <h3 class="panel-title pull-left">Recent Boards You've Analyzed</h3>
+                    {% if boards_contributed %}
+                        <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=evaluated">
+                            View All
+                        </a>
+                    {% endif %}
                 </div>
                 <ul class="list-group">
-                    {% for board in board_voted %}
-                        <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
-                    {% endfor %}
+                    {% if board_voted %}
+                        {% for board in board_voted|slice:":4" %}
+                            <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
+                        {% endfor %}
+                    {% else %}
+                        <li>You have not evaluated any boards. <a href="{% url 'openach:boards' %}">Find a board to evaluate.</a></li>
+                    {% endif %}
                 </ul>
             </div>
         </div> <!-- col -->
