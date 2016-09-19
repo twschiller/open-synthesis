@@ -87,6 +87,21 @@ def bitcoin_donation_url(address):
         return None
 
 
+def _make_board_paginator(request, board_list):
+    """Return a paginator for board_list from request."""
+    paginator = Paginator(board_list, per_page=10, orphans=3)
+    page = request.GET.get('page')
+    try:
+        boards = paginator.page(page)
+    except PageNotAnInteger:
+        # if page is not an integer, deliver first page.
+        boards = paginator.page(1)
+    except EmptyPage:
+        # if page is out of range (e.g. 9999), deliver last page of results.
+        boards = paginator.page(paginator.num_pages)
+    return boards
+
+
 @require_safe
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
@@ -107,22 +122,11 @@ def index(request):
 def board_listing(request):
     """Return a paginated board listing view showing all boards and their popularity."""
     board_list = Board.objects.order_by('-pub_date')
-    paginator = Paginator(board_list, per_page=10, orphans=3)
     metric_timeout_seconds = 60 * 2
-
-    page = request.GET.get('page')
-    try:
-        boards = paginator.page(page)
-    except PageNotAnInteger:
-        # if page is not an integer, deliver first page.
-        boards = paginator.page(1)
-    except EmptyPage:
-        # if page is out of range (e.g. 9999), deliver last page of results.
-        boards = paginator.page(paginator.num_pages)
 
     desc = 'List of intelligence boards on {} and summary information'.format(Site.objects.get_current().name)
     context = {
-        'boards': boards,
+        'boards': _make_board_paginator(request, board_list),
         'contributors': cache.get_or_set('contributor_count', generate_contributor_count(), metric_timeout_seconds),
         'evaluators': cache.get_or_set('evaluator_count', generate_evaluator_count(), metric_timeout_seconds),
         'meta_description': desc,
@@ -149,22 +153,10 @@ def user_board_listing(request, account_id):
     user = get_object_or_404(User, pk=account_id)
     query = request.GET.get('query')
     verb, board_list = queries.get(query, queries[None])(user)
-    paginator = Paginator(board_list, per_page=10, orphans=3)
-
-    page = request.GET.get('page')
-    try:
-        boards = paginator.page(page)
-    except PageNotAnInteger:
-        # if page is not an integer, deliver first page.
-        boards = paginator.page(1)
-    except EmptyPage:
-        # if page is out of range (e.g. 9999), deliver last page of results.
-        boards = paginator.page(paginator.num_pages)
-
     desc = 'List of intelligence boards user {} has {}'.format(user.username, verb)
     context = {
         'user': user,
-        'boards': boards,
+        'boards': _make_board_paginator(request, board_list),
         'contributors': cache.get_or_set('contributor_count', generate_contributor_count(), metric_timeout_seconds),
         'evaluators': cache.get_or_set('evaluator_count', generate_evaluator_count(), metric_timeout_seconds),
         'meta_description': desc,
@@ -671,7 +663,7 @@ def profile(request, account_id=None):
     logged in, raise a 404.
     """
     # TODO: cache the page based on whether user is viewing private profile or public profile
-    account_id = request.user.id if request.user and not account_id else account_id
+    account_id = request.user.id if request.user.is_authenticated and not account_id else account_id
 
     user = get_object_or_404(User, pk=account_id)
     context = {
@@ -681,8 +673,10 @@ def profile(request, account_id=None):
         'board_voted': user_boards_evaluated(user),
         'meta_description': "Account profile for user {}".format(user)
     }
-
-    template = 'profile.html' if request.user and request.user.id == account_id else 'public_profile.html'
+    template = ('profile.html'
+                if request.user.id == int(account_id)
+                else 'public_profile.html')
+    logger.debug('account_id: %s, request user id: %s, template: %s', account_id, request.user.id, template)
     return render(request, 'boards/' + template, context)
 
 

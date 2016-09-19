@@ -438,6 +438,17 @@ class BoardListingTests(TestCase):
         response = self.client.get(reverse('openach:boards') + "?page=2")
         self.assertContains(response, 'Test Board 15', status_code=200)
 
+    def test_user_board_view(self):
+        """Test board listing for user that created a board."""
+        Board.objects.create(
+            creator=self.user,
+            board_title="Board Title",
+            board_desc="Description",
+            pub_date=timezone.now()
+        )
+        response = self.client.get(reverse('openach:user_boards', args=(self.user.id, ))+"?query=created")
+        self.assertContains(response, 'Board Title', status_code=200)
+
 
 class BannerTests(TestCase):
 
@@ -959,11 +970,129 @@ class ProfileTests(TestCase):
         self.client = Client()
         self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
 
-    def test_view_public_activity(self):
-        """Test that any user can access a public profile."""
+    def _add_board(self, user=None):
+        self.board = Board.objects.create(
+            board_title="Title",
+            board_desc="Description",
+            creator=user,
+            pub_date=timezone.now(),
+        )
+
+    def _add_hypothesis(self, user=None):
+        self.hypothesis = Hypothesis.objects.create(
+            hypothesis_text="Hypothesis",
+            creator=user,
+            submit_date=timezone.now(),
+            board=self.board
+        )
+
+    def _add_evidence(self, user=None):
+        self.evidence = Evidence.objects.create(
+            evidence_desc="Evidence",
+            creator=user,
+            submit_date=timezone.now(),
+            board=self.board
+        )
+
+    def _add_eval(self, user=None):
+        self.eval_ = Evaluation.objects.create(
+            value=Eval.consistent.value,
+            evidence=self.evidence,
+            hypothesis=self.hypothesis,
+            user=user,
+            board=self.board
+        )
+
+    def test_empty_public_activity(self):
+        """Test that any user can access a public profile for user with no activity."""
         response = self.client.get(reverse('profile', args=(self.user.id,)))
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'boards/public_profile.html')
         self.assertContains(response, "User {}".format(self.user.username))
+        self.assertNotContains(response, "View All")
+        self.assertContains(response, "has not contributed to any boards")
+        self.assertContains(response, "has not evaluated any boards")
+        self.assertContains(response, "has not created any boards")
+
+    def test_public_activity_creator(self):
+        """Test public profile of user that has created a board."""
+        self._add_board(self.user)
+        response = self.client.get(reverse('profile', args=(self.user.id,)))
+        self.assertTemplateUsed(response, 'boards/public_profile.html')
+        self.assertContains(response, "View All", count=1, status_code=200)
+        self.assertContains(response, "has not contributed to any boards")
+        self.assertContains(response, "has not evaluated any boards")
+
+    def test_public_activity_contributor(self):
+        """Test public profile of user that has contributed to a board."""
+        self._add_board()
+        self._add_evidence(self.user)
+        self._add_hypothesis(self.user)
+        response = self.client.get(reverse('profile', args=(self.user.id,)))
+        self.assertTemplateUsed(response, 'boards/public_profile.html')
+        self.assertContains(response, "View All", count=1)
+        self.assertContains(response, "has not evaluated any boards")
+        self.assertContains(response, "has not created any boards")
+
+    def test_public_activity_evaluator(self):
+        """Test public profile of user that has evaluated a board."""
+        self._add_board()
+        self._add_evidence()
+        self._add_hypothesis()
+        self._add_eval(self.user)
+        response = self.client.get(reverse('profile', args=(self.user.id,)))
+        self.assertTemplateUsed(response, 'boards/public_profile.html')
+        self.assertContains(response, "View All", count=1)
+        self.assertContains(response, "has not contributed to any boards")
+        self.assertContains(response, "has not created any boards")
+
+    def test_empty_private_activity(self):
+        """Test that private profile for user with no activity."""
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('profile', args=(self.user.id,)))
+        self.assertTemplateUsed(response, 'boards/profile.html')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Welcome, {}".format(self.user.username))
+        self.assertNotContains(response, "View All")
+        self.assertContains(response, "Create")
+        self.assertContains(response, "You have not created any boards.")
+        self.assertContains(response, "You have not contributed to any boards.")
+        self.assertContains(response, "You have not evaluated any boards.")
+
+    def test_private_activity_creator(self):
+        """Test private profile of user that has created a board."""
+        self._add_board(self.user)
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('profile', args=(self.user.id,)))
+        self.assertTemplateUsed(response, 'boards/profile.html')
+        self.assertContains(response, "View All", count=1, status_code=200)
+        self.assertContains(response, "You have not contributed to any boards.")
+        self.assertContains(response, "You have not evaluated any boards.")
+
+    def test_private_activity_contributor(self):
+        """Test private profile of user that has contributed to a board."""
+        self._add_board()
+        self._add_evidence(self.user)
+        self._add_hypothesis(self.user)
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('profile', args=(self.user.id,)))
+        self.assertTemplateUsed(response, 'boards/profile.html')
+        self.assertContains(response, "View All", count=1)
+        self.assertContains(response, "You have not created any boards.")
+        self.assertContains(response, "You have not evaluated any boards.")
+
+    def test_private_activity_evaluator(self):
+        """Test private profile of user that has evaluated a board."""
+        self._add_board()
+        self._add_evidence()
+        self._add_hypothesis()
+        self._add_eval(self.user)
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('profile', args=(self.user.id,)))
+        self.assertTemplateUsed(response, 'boards/profile.html')
+        self.assertContains(response, "View All", count=1)
+        self.assertContains(response, "You have not created any boards.")
+        self.assertContains(response, "You have not contributed to any boards.")
 
 
 def create_board(board_title, days):

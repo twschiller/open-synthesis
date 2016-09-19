@@ -136,14 +136,16 @@ def user_boards_created(user):
     return Board.objects.filter(creator=user).order_by('-pub_date')
 
 
-def user_boards_contributed(user):
+def user_boards_contributed(user, include_removed=False):
     """Return set of boards contributed to by the user (superset of boards created)."""
     evidence = Evidence.objects.filter(creator=user).select_related('board')
     hypotheses = Hypothesis.objects.filter(creator=user).select_related('board')
-    return {e.board for e in evidence}.union({h.board for h in hypotheses})
+    evidence_boards = {e.board for e in evidence if include_removed or not e.board.removed}
+    hypothesis_boards = {h.board for h in hypotheses if include_removed or not h.board.removed}
+    return evidence_boards.union(hypothesis_boards)
 
 
-def user_boards_evaluated(user):
+def user_boards_evaluated(user, include_removed=False):
     """Return set of boards evaluated by user."""
     votes = Evaluation.objects.filter(user=user).select_related('board')
-    return {v.board for v in votes if not v.board.removed}
+    return {v.board for v in votes if include_removed or not v.board.removed}

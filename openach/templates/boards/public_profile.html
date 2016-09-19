@@ -70,7 +70,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading button-panel-heading clearfix">
                     <h3 class="panel-title pull-left">Recent Boards Analyzed</h3>
-                    {% if boards_contributed %}
+                    {% if board_voted %}
                         <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=evaluated">
                             View All
                         </a>
