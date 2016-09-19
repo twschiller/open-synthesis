@@ -147,6 +147,12 @@ def canonical_reverse(request, url_name):
     return request.build_absolute_uri(reverse(url_name))
 
 
+@register.simple_tag
+def canonical_reverse_arg(request, url_name, arg):
+    """Return the canonical URI for url_name with arg."""
+    return request.build_absolute_uri(reverse(url_name, args=(arg, )))
+
+
 @register.filter
 def full_url(request, model):
     """Return the URL of the model, including domain."""
@@ -171,3 +177,12 @@ def get_verbose_field_name(instance, field_name):
     # https://stackoverflow.com/questions/14496978/fields-verbose-name-in-templates
     # _meta is a standard API in Django: https://docs.djangoproject.com/en/1.10/ref/models/meta/
     return instance._meta.get_field(field_name).verbose_name.title()  # pylint: disable=protected-access
+
+
+@register.simple_tag
+def url_replace(request, field, value):
+    """Return a GET dictionary with field=value."""
+    # taken from: https://stackoverflow.com/questions/2047622/how-to-paginate-django-with-other-get-variables
+    dict_ = request.GET.copy()
+    dict_[field] = value
+    return dict_.urlencode()

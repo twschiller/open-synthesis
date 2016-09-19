@@ -1,0 +1,61 @@
+
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Posted</th>
+        <th>Description</th>
+        <th># Contributors</th>
+        <th># Evaluators</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for board in boards %}
+        <tr>
+            <td><a href="{{ board|board_url }}">{{ board.board_title }}</a></td>
+            <td>{{ board.pub_date|timesince }}</td>
+            <td>{{ board.board_desc }}</td>
+            <td>{{ contributors|dict_get:board.id|default_if_none:0 }}</td>
+            <td>{{ evaluators|dict_get:board.id|default_if_none:0 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<nav aria-label="Page navigation">
+    <ul class="pagination">
+        <li class="{% if not boards.has_previous %}disabled{% endif %}">
+            {% if boards.has_previous %}
+                <a href="?{% url_replace request 'page' boards.previous_page_number %}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            {% else %}
+                <a href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            {% endif %}
+        </li>
+        {% for page in boards.paginator.page_range %}
+            {% if page == boards.number %}
+                <li class="active">
+                    <a href="#">{{ page }} <span class="sr-only">(current)</span></a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="?page={{ page }}">{{ page }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        <li class="{% if not boards.has_next %}disabled{% endif %}">
+            {% if boards.has_next %}
+                <a href="?{% url_replace request 'page' boards.next_page_number %}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            {% else %}
+                <a href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            {% endif %}
+        </li>
+    </ul>
+</nav>

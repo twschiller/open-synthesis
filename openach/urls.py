@@ -25,6 +25,7 @@ urlpatterns = [  # pylint: disable=invalid-name
     url(r'^$', views.index, name='index'),
     url(r'^static/images/bitcoin\.svg$', views.bitcoin_qrcode, name='bitcoin_donate'),
     url(r'^boards/$', views.board_listing, name='boards'),
+    url(r'^accounts/(?P<account_id>[0-9]+)/boards/', views.user_board_listing, name='user_boards'),
     url(r'^boards/(?P<board_id>[0-9]+)/$', views.detail, name='detail'),
     url(r'^boards/create$', views.create_board, name='create_board'),
     url(r'^boards/(?P<board_id>[0-9]+)/history/', views.board_history, name='board_history'),
