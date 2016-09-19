@@ -145,7 +145,7 @@ def user_boards_contributed(user, include_removed=False):
     """
     # basic approach: (1) merge, (2) sort, and (3) add making sure there's no duplicate boards
     def _boards(klass):
-        models = klass.objects.filter(creator=user).select_related('board')
+        models = klass.objects.filter(creator=user).order_by('-submit_date').select_related('board')
         return [(x.submit_date, x.board) for x in models if include_removed or not x.board.removed]
     contributions = sorted(itertools.chain(_boards(Evidence), _boards(Hypothesis)), key=lambda x: x[0], reverse=True)
     return first_occurrences(c[1] for c in contributions if include_removed or not c[1].removed)
