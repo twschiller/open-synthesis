@@ -7,7 +7,7 @@ from .util import partition
 from .models import Eval, Hypothesis, Evidence, Evaluation
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def mean_na_neutral_vote(evaluations):

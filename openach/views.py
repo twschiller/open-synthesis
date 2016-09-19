@@ -7,9 +7,8 @@ from collections import defaultdict
 import logging
 import itertools
 import random
+from io import BytesIO
 
-import qrcode
-from qrcode.image.svg import SvgPathImage
 from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import transaction
@@ -28,13 +27,14 @@ from django.conf import settings
 from django.views.decorators.http import require_http_methods, require_safe
 from django.forms import ValidationError
 from django.utils.translation import ugettext as _
-from slugify import slugify
-from field_history.models import FieldHistory
 from django.views.decorators.http import etag
 from django.views.decorators.cache import cache_page
-from io import BytesIO
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.cache import cache
+from slugify import slugify
+from field_history.models import FieldHistory
+import qrcode
+from qrcode.image.svg import SvgPathImage
 
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from .models import ProjectNews
@@ -43,7 +43,7 @@ from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 from .metrics import consensus_vote, inconsistency, diagnosticity, calc_disagreement
 from .metrics import generate_contributor_count, generate_evaluator_count
 from .decorators import cache_if_anon, cache_on_auth, account_required
-from .auth import owner_or_staff, check_edit_authorization
+from .auth import check_edit_authorization
 
 
 # XXX: allow_remove logic should probably be refactored to a template context processor
@@ -219,25 +219,27 @@ def board_history(request, board_id):
     return render(request, 'boards/board_audit.html', {'board': board, 'history': history})
 
 
-class BoardForm(forms.Form):
+class BoardForm(forms.Form):  # pylint: disable=bad-continuation
     """Board creation form.
 
     Users must specify at two competing hypotheses.
     """
 
+    # NOTE: pylint and pep8 disagree about the hanging indents below in the help_text
+
     board_title = forms.CharField(
         label='Board Title',
         max_length=BOARD_TITLE_MAX_LENGTH,
         help_text="The board title (i.e., topic). Typically phrased as a question asking about " +
-                  "what happened in the past, what is happening currently, or what will happen in the future. " +
-                  "For example: 'who/what was behind event X?' or 'what are Y's current capabilities?'"
+                  "what happened in the past, what is happening currently, or what will happen in the future. " +  # nopep8
+                  "For example: 'who/what was behind event X?' or 'what are Y's current capabilities?'"  # nopep8
     )
     board_desc = forms.CharField(
         label='Board Description',
         max_length=BOARD_DESC_MAX_LENGTH,
         widget=forms.Textarea,
         help_text="A description providing context around the topic. Helps to clarify what hypotheses " +
-                  "and evidence are relevant."
+                  "and evidence are relevant."  # pylint: disable=bad-continuation
     )
     hypothesis1 = forms.CharField(
         label='Hypothesis #1',
@@ -749,16 +751,15 @@ def bitcoin_qrcode(dummy_request):
     if address:
         # https://pypi.python.org/pypi/qrcode/5.3
         logger.debug("Generating QR code for address %s", address)
-        qr = qrcode.QRCode(
+        code = qrcode.QRCode(
             version=1,
-            # about 15% or less errors can be corrected.
-            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,  # about 15% or less errors can be corrected.
             box_size=10,
             border=4,
         )
-        qr.add_data(bitcoin_donation_url(address))
-        qr.make(fit=True)
-        img = qr.make_image(image_factory=SvgPathImage)
+        code.add_data(bitcoin_donation_url(address))
+        code.make(fit=True)
+        img = code.make_image(image_factory=SvgPathImage)
         raw = BytesIO()
         img.save(raw)
         raw.flush()
