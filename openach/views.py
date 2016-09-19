@@ -219,7 +219,7 @@ def board_history(request, board_id):
     return render(request, 'boards/board_audit.html', {'board': board, 'history': history})
 
 
-class BoardForm(forms.Form):  # pylint: disable=bad-continuation
+class BoardForm(forms.Form):
     """Board creation form.
 
     Users must specify at two competing hypotheses.
