@@ -17,11 +17,12 @@
  */
 
 // Adapted from: https://github.com/django-notifications/django-notifications/blob/master/notifications/static/notifications/notify.js
+"use strict";
 
 var $ = require("jquery");
 
 // sessionStorage key for the last known number of unread notifications
-var NOTIFICATION_KEY = 'unread_notifications';
+var NOTIFICATION_KEY = "unread_notifications";
 var NOTIFY_REFRESH_PERIOD_MILLIS = 15 * 1000;
 var MAX_RETRIES = 5;
 
@@ -36,33 +37,33 @@ var MAX_RETRIES = 5;
  * @returns {Function} function that updates the unread notification count
  */
 function fetch_api_data(badge, url) {
-    var consecutive_misfires = 0;
+    var consecutiveMisfires = 0;
     return function() {
         $.get(url, function(data){
-            consecutive_misfires = 0;
+            consecutiveMisfires = 0;
             badge.text(data.unread_count);
             window.sessionStorage.setItem(NOTIFICATION_KEY, data.unread_count);
         })
         .fail(function(){
-            consecutive_misfires++;
+            consecutiveMisfires++;
         })
         .always(function(){
-            if (consecutive_misfires <= MAX_RETRIES) {
+            if (consecutiveMisfires <= MAX_RETRIES) {
                 setTimeout(fetch_api_data(badge, url), NOTIFY_REFRESH_PERIOD_MILLIS);
             } else {
-                badge.text('!');
-                badge.prop('title', 'No connection to server');
+                badge.text("!");
+                badge.prop("title", "No connection to server");
             }
         });
-    }
+    };
 }
 
 // NOTE: in practice, there will only be one element that has a data-notify-api-url attribute
 $("[data-notify-api-url]").each(function(index, badge){
-    elt = $(badge);
-    setTimeout(fetch_api_data(elt, elt.data('notify-api-url')), 1000);
+    var elt = $(badge);
+    setTimeout(fetch_api_data(elt, elt.data("notify-api-url")), 1000);
     var previous = window.sessionStorage.getItem(NOTIFICATION_KEY);
-    if (previous !== undefined) {
+    if (previous !== null) {
         elt.text(previous);
     }
 });
