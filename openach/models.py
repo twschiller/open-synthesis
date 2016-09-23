@@ -76,6 +76,17 @@ class Board(models.Model):
         return reverse('openach:detail', args=(self.id,))
 
 
+class BoardFollower(models.Model):
+    """Follower relationship between a user and a board."""
+
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='followers')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_creator = models.BooleanField(default=False)
+    is_contributor = models.BooleanField(default=False)
+    is_evaluator = models.BooleanField(default=False)
+    update_timestamp = models.DateTimeField()
+
+
 class Hypothesis(models.Model):
     """An ACH matrix hypothesis."""
 

@@ -132,11 +132,6 @@ def generate_evaluator_count():
     return {k: len(v) for k, v in voter_count.items()}
 
 
-def user_boards_created(user):
-    """Return queryset of boards created by user in reverse creation order (most recently created first)."""
-    return Board.objects.filter(creator=user).order_by('-pub_date')
-
-
 def user_boards_contributed(user, include_removed=False):
     """Return list of boards contributed to by the user in reverse order (most recent contributions first).
 

@@ -26,13 +26,13 @@
 
         <div class="col-md-5">
             <div class="panel panel-default">
-                <div class="panel-heading button-panel-heading clearfix">
-                    <h3 class="panel-title pull-left">Recent Boards Created</h3>
+                <div class="panel-heading clearfix">
                     {% if boards_created %}
                         <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=created">
                             View All
                         </a>
                     {% endif %}
+                    <h3 class="panel-title">Recent Boards Created</h3>
                 </div>
                 <ul class="list-group">
                     {% if boards_created %}
@@ -48,13 +48,13 @@
             </div>
 
             <div class="panel panel-default">
-                <div class="panel-heading button-panel-heading clearfix">
-                    <h3 class="panel-title pull-left">Recent Boards Contributed To</h3>
+                <div class="panel-heading clearfix">
                     {% if boards_contributed %}
                         <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=contributed">
                             View All
                         </a>
                     {% endif %}
+                    <h3 class="panel-title">Recent Boards Contributed To</h3>
                 </div>
                 <ul class="list-group">
                     {% if boards_contributed %}
@@ -68,13 +68,13 @@
             </div>
 
             <div class="panel panel-default">
-                <div class="panel-heading button-panel-heading clearfix">
-                    <h3 class="panel-title pull-left">Recent Boards Analyzed</h3>
+                <div class="panel-heading clearfix">
                     {% if board_voted %}
                         <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=evaluated">
                             View All
                         </a>
                     {% endif %}
+                    <h3 class="panel-title">Recent Boards Analyzed</h3>
                 </div>
                 <ul class="list-group">
                     {% if board_voted %}

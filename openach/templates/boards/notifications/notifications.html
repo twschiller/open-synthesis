@@ -1,0 +1,22 @@
+{% extends 'boards/base.html' %}
+
+{% block title %}Notifications | {{ site.name }}{% endblock %}
+
+{% load notifications_tags %}
+{% load board_extras %}
+{% load static %}
+
+{% block content %}
+    <h1>Notifications</h1>
+
+    <ul class="list-group">
+        {% for notification in notifications %}
+            <li class="list-group-item">
+                {% include 'boards/notifications/_notification.html' %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% include 'boards/common/_pagenav.html' with paged=notifications %}
+
+{% endblock %}

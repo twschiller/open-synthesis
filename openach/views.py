@@ -35,14 +35,16 @@ from slugify import slugify
 from field_history.models import FieldHistory
 import qrcode
 from qrcode.image.svg import SvgPathImage
+from notifications.signals import notify
 
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
-from .models import ProjectNews
+from .models import ProjectNews, BoardFollower
 from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH, SLUG_MAX_LENGTH
 from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 from .metrics import consensus_vote, inconsistency, diagnosticity, calc_disagreement
 from .metrics import generate_contributor_count, generate_evaluator_count
 from .metrics import user_boards_contributed, user_boards_created, user_boards_evaluated
+from .metrics import board_contributors, board_evaluators
 from .decorators import cache_if_anon, cache_on_auth, account_required
 from .auth import check_edit_authorization
 
@@ -87,19 +89,37 @@ def bitcoin_donation_url(address):
         return None
 
 
-def _make_board_paginator(request, board_list):
-    """Return a paginator for board_list from request."""
-    paginator = Paginator(board_list, per_page=10, orphans=3)
+def make_paginator(request, object_list, per_page=10, orphans=3):
+    """Return a paginator for object_list from request."""
+    paginator = Paginator(object_list, per_page=per_page, orphans=orphans)
     page = request.GET.get('page')
     try:
-        boards = paginator.page(page)
+        objects = paginator.page(page)
     except PageNotAnInteger:
         # if page is not an integer, deliver first page.
-        boards = paginator.page(1)
+        objects = paginator.page(1)
     except EmptyPage:
         # if page is out of range (e.g. 9999), deliver last page of results.
-        boards = paginator.page(paginator.num_pages)
-    return boards
+        objects = paginator.page(paginator.num_pages)
+    return objects
+
+
+def notify_followers(board, actor, verb, action_object):
+    """Notify board followers of an action."""
+    for follow in board.followers.all().select_related('user'):
+        if follow.user != actor:
+            notify.send(actor, recipient=follow.user, actor=actor, verb=verb,
+                        action_object=action_object, target=board)
+
+
+def notify_add(board, actor, action_object):
+    """Notify board followers of an addition."""
+    notify_followers(board, actor, 'added', action_object)
+
+
+def notify_edit(board, actor, action_object):
+    """Notify board followers of an edit."""
+    notify_followers(board, actor, 'edited', action_object)
 
 
 @require_safe
@@ -126,7 +146,7 @@ def board_listing(request):
 
     desc = 'List of intelligence boards on {} and summary information'.format(Site.objects.get_current().name)
     context = {
-        'boards': _make_board_paginator(request, board_list),
+        'boards': make_paginator(request, board_list),
         'contributors': cache.get_or_set('contributor_count', generate_contributor_count(), metric_timeout_seconds),
         'evaluators': cache.get_or_set('evaluator_count', generate_evaluator_count(), metric_timeout_seconds),
         'meta_description': desc,
@@ -154,13 +174,24 @@ def user_board_listing(request, account_id):
     desc = 'List of intelligence boards user {} has {}'.format(user.username, verb)
     context = {
         'user': user,
-        'boards': _make_board_paginator(request, board_list),
+        'boards': make_paginator(request, board_list),
         'contributors': cache.get_or_set('contributor_count', generate_contributor_count(), metric_timeout_seconds),
         'evaluators': cache.get_or_set('evaluator_count', generate_evaluator_count(), metric_timeout_seconds),
         'meta_description': desc,
         'verb': verb
     }
     return render(request, 'boards/user_boards.html', context)
+
+
+@require_safe
+@login_required
+def notifications(request):
+    """Return a paginated list of notifications for the user."""
+    notification_list = request.user.notifications.unread()
+    context = {
+        'notifications': make_paginator(request, notification_list),
+    }
+    return render(request, 'boards/notifications/notifications.html', context)
 
 
 @require_safe
@@ -294,21 +325,25 @@ def create_board(request):
     if request.method == 'POST':
         form = BoardForm(request.POST)
         if form.is_valid():
-            time = timezone.now()
+            timestamp = timezone.now()
             with transaction.atomic():
                 board = Board.objects.create(
                     board_title=form.cleaned_data['board_title'],
                     board_slug=slugify(form.cleaned_data['board_title'], max_length=SLUG_MAX_LENGTH),
                     board_desc=form.cleaned_data['board_desc'],
                     creator=request.user,
-                    pub_date=time
+                    pub_date=timestamp
                 )
                 for hypothesis_key in ['hypothesis1', 'hypothesis2']:
                     Hypothesis.objects.create(
                         board=board,
                         hypothesis_text=form.cleaned_data[hypothesis_key],
-                        submit_date=time,
+                        submit_date=timestamp,
                     )
+                BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
+                    'is_creator': True,
+                    'update_timestamp': timestamp
+                })
 
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
@@ -446,7 +481,12 @@ def add_evidence(request, board_id):
                         corroborating=True,
                         submit_date=submit_date
                     )
+                BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
+                    'is_contributor': True,
+                    'update_timestamp': submit_date
+                })
 
+            notify_add(board, actor=request.user, action_object=evidence)
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = EvidenceForm()
@@ -473,7 +513,9 @@ def edit_evidence(request, evidence_id):
             evidence.event_date = form.cleaned_data['event_date']
             evidence.save()
             messages.success(request, 'Updated evidence description and date.')
+            notify_edit(board, actor=request.user, action_object= evidence)
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence.id,)))
+
     else:
         form = EvidenceEditForm(initial={'evidence_desc': evidence.evidence_desc, 'event_date': evidence.event_date})
 
@@ -555,6 +597,17 @@ def toggle_source_tag(request, evidence_id, source_id):
         return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
 
 
+@require_http_methods(["HEAD", "GET", "POST"])
+@login_required
+def clear_notifications(request):
+    """Handle POST request to clear notifications and redirect user to their profile."""
+    if request.method == 'POST':
+        if 'clear' in request.POST:
+            request.user.notifications.mark_all_as_read()
+            messages.success(request, 'Cleared all notifications.')
+    return HttpResponseRedirect('/accounts/profile')
+
+
 @require_safe
 @account_required
 @cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
@@ -601,12 +654,18 @@ def add_hypothesis(request, board_id):
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
         if form.is_valid():
-            Hypothesis.objects.create(
+            timestamp = timezone.now()
+            hypothesis = Hypothesis.objects.create(
                 hypothesis_text=form.cleaned_data['hypothesis_text'],
                 board=board,
                 creator=request.user,
-                submit_date=timezone.now(),
+                submit_date=timestamp,
             )
+            BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
+                'is_contributor': True,
+                'update_timestamp': timestamp
+            })
+            notify_add(board, actor=request.user, action_object=hypothesis)
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = HypothesisForm()
@@ -637,6 +696,7 @@ def edit_hypothesis(request, hypothesis_id):
             hypothesis.hypothesis_text = form.cleaned_data['hypothesis_text']
             hypothesis.save()
             messages.success(request, 'Updated hypothesis.')
+            notify_edit(board, actor=request.user, action_object=hypothesis)
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = HypothesisForm(initial={'hypothesis_text': hypothesis.hypothesis_text})
@@ -662,18 +722,17 @@ def profile(request, account_id=None):
     """
     # TODO: cache the page based on whether user is viewing private profile or public profile
     account_id = request.user.id if request.user.is_authenticated and not account_id else account_id
-
+    is_owner = request.user.id == int(account_id)
     user = get_object_or_404(User, pk=account_id)
     context = {
         'user': user,
         'boards_created': user_boards_created(user)[:5],
         'boards_contributed': user_boards_contributed(user),
         'board_voted': user_boards_evaluated(user),
-        'meta_description': "Account profile for user {}".format(user)
+        'meta_description': "Account profile for user {}".format(user),
+        'notifications': request.user.notifications.unread() if is_owner else None,
     }
-    template = ('profile.html'
-                if request.user.id == int(account_id)
-                else 'public_profile.html')
+    template = 'profile.html' if is_owner else 'public_profile.html'
     return render(request, 'boards/' + template, context)
 
 
@@ -695,6 +754,7 @@ def evaluate(request, board_id, evidence_id):
 
     if request.method == 'POST':
         with transaction.atomic():
+            timestamp = timezone.now()
             for hypothesis, dummy_evaluation in hypotheses:
                 select = request.POST['hypothesis-{}'.format(hypothesis.id)]
                 if select == REMOVE_EVAL:
@@ -712,12 +772,17 @@ def evaluate(request, board_id, evidence_id):
                         user=request.user,
                         defaults={
                             'value': select,
-                            'timestamp': timezone.now()
+                            'timestamp': timestamp
                         }
                     )
                 else:
                     # don't add/update the evaluation
                     pass
+            BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
+                'is_evaluator': True,
+                'update_timestamp': timestamp
+            })
+
         messages.success(request, "Recorded evaluations for evidence: {}".format(evidence.evidence_desc))
         return HttpResponseRedirect(reverse('openach:detail', args=(board_id,)))
     else:

@@ -18,6 +18,12 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 @register.filter
+def get_class(obj):
+    """Return the class name of obj."""
+    return obj.__class__.__name__
+
+
+@register.filter
 def dict_get(dictionary, key):
     """Return the value for key in dictionary or None."""
     return dictionary.get(key, None)
@@ -137,7 +143,7 @@ def board_url(board):
     """Return the URL for the board, including the slug if available."""
     # In the future, we might just want to directly use get_absolute_url in the template. However, this extra level
     # of indirection gives us some additional flexibility
-    return board.get_absolute_url()
+    return board.get_absolute_url() if board is not None else None
 
 
 @register.filter

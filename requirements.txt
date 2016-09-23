@@ -33,3 +33,4 @@ django-invitations~=1.7
 django-webpack-loader~=0.3.3
 qrcode~=5.3
 pillow~=3.3.1
+django-notifications-hq~=1.2
