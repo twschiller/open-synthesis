@@ -1,0 +1,16 @@
+{
+  "env": {
+    "browser": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 5,
+    "sourceType": "script",
+    "ecmaFeatures": {
+      "jsx": false
+    }
+  },
+  "rules": {
+    "semi": ["error",  "always"],
+    "quotes": ["error", "double"]
+  }
+}

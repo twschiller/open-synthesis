@@ -135,6 +135,13 @@ footer.license {
     height: 1.5em;
 }
 
-.button-panel-heading > .panel-title {
-    padding-top: 6px;
+.panel-heading .btn {
+    margin-top: -7px;
+    margin-bottom: -7px;
+}
+
+
+h1>.badge, h2>.badge, h3>.badge {
+    vertical-align:middle;
+    margin-top: -0.3em;
 }

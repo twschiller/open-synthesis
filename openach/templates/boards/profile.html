@@ -2,6 +2,7 @@
 
 {% load board_extras %}
 {% load i18n %}
+{% load notifications_tags %}
 
 {% block title %}Profile | {{ site.name }}{% endblock %}
 
@@ -20,6 +21,34 @@
             </div>
 
             <div class="panel panel-info">
+                <div class="panel-heading clearfix">
+                    {% if notifications|length > 0 %}
+                        <div class="btn-group pull-right">
+                            <form method="post" action="{% url 'openach:clear_notifications' %}">
+                                {% csrf_token %}
+                                <a class="btn btn-default btn-sm" href="{% url 'openach:notifications' %}">View All</a>
+                                <input class="btn btn-default btn-sm" name="clear" type="submit" value="Clear"/>
+                            </form>
+                        </div>
+                    {% endif %}
+                    <h3 class="panel-title">Notifications
+                        <span class="badge">{{ notifications|length }}</span>
+                    </h3>
+                </div>
+                <ul class="list-group">
+                    {% if notifications|length > 0 %}
+                        {% for notification in notifications|slice:":5" %}
+                            <li class="list-group-item">
+                                {% include 'boards/notifications/_notification.html' %}
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item">You have no unread notifications.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="panel panel-info">
                 <div class="panel-heading">
                     <h3 class="panel-title">Settings</h3>
                 </div>
@@ -33,8 +62,7 @@
         <div class="col-md-5">
 
             <div class="panel panel-default">
-                <div class="panel-heading button-panel-heading clearfix">
-                    <h3 class="panel-title pull-left">Recent Boards You've Created</h3>
+                <div class="panel-heading clearfix">
                     <div class="btn-group pull-right">
                         {% if boards_created %}
                             <a class="btn btn-default btn-sm" href="{% url 'openach:user_boards' request.user.id %}?query=created">
@@ -43,6 +71,7 @@
                         {% endif %}
                         <a class="btn btn-primary btn-sm" href="{% url 'openach:create_board' %}">{% trans "Create" %}</a>
                     </div>
+                    <h3 class="panel-title">Recent Boards You've Created</h3>
                 </div>
                 <ul class="list-group">
                     {% if boards_created %}
@@ -52,19 +81,19 @@
                             </li>
                         {% endfor %}
                     {% else %}
-                        <li>You have not created any boards. <a href="{% url 'openach:create_board' %}">Create a new board.</a></li>
+                        <li class="list-group-item">You have not created any boards. <a href="{% url 'openach:create_board' %}">Create a new board.</a></li>
                     {% endif %}
                 </ul>
             </div>
 
             <div class="panel panel-default">
-                <div class="panel-heading button-panel-heading clearfix">
-                    <h3 class="panel-title pull-left">Recent Boards You've Contributed To</h3>
+                <div class="panel-heading clearfix">
                     {% if boards_contributed %}
                         <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' request.user.id %}?query=contributed">
                             View All
                         </a>
                     {% endif %}
+                    <h3 class="panel-title">Recent Boards You've Contributed To</h3>
                 </div>
                 <ul class="list-group">
                     {% if boards_contributed %}
@@ -72,19 +101,19 @@
                             <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
                         {% endfor %}
                     {% else %}
-                        <li>You have not contributed to any boards. <a href="{% url 'openach:boards' %}">Find a board to contribute to.</a></li>
+                        <li class="list-group-item">You have not contributed to any boards. <a href="{% url 'openach:boards' %}">Find a board to contribute to.</a></li>
                     {% endif %}
                 </ul>
             </div>
 
             <div class="panel panel-default">
-                <div class="panel-heading button-panel-heading clearfix">
-                    <h3 class="panel-title pull-left">Recent Boards You've Analyzed</h3>
+                <div class="panel-heading clearfix">
                     {% if board_voted %}
                         <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=evaluated">
                             View All
                         </a>
                     {% endif %}
+                    <h3 class="panel-title">Recent Boards You've Analyzed</h3>
                 </div>
                 <ul class="list-group">
                     {% if board_voted %}
@@ -92,7 +121,7 @@
                             <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
                         {% endfor %}
                     {% else %}
-                        <li>You have not evaluated any boards. <a href="{% url 'openach:boards' %}">Find a board to evaluate.</a></li>
+                        <li class="list-group-item">You have not evaluated any boards. <a href="{% url 'openach:boards' %}">Find a board to evaluate.</a></li>
                     {% endif %}
                 </ul>
             </div>

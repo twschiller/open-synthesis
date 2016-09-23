@@ -1,5 +1,6 @@
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% load notifications_tags %}
 <!DOCTYPE html>
 <html lang="en-US">
 <head prefix="og: http://ogp.me/ns# profile: http://ogp.me/ns/profile# website: http://ogp.me/ns/website# ">
@@ -37,7 +38,13 @@
                     <li><a href="{% url 'openach:about' %}">About</a></li>
                     <li><a href="{% url 'openach:boards' %}">Boards</a></li>
                     {% if request.user.is_authenticated %}
-                        <li><a href="/accounts/profile">Profile</a></li>
+                        <li>
+                            <a href="/accounts/profile">Profile
+                                <span class='badge'
+                                      data-notify-api-url="{% url 'notifications:live_unread_notification_count' %}">0
+                                </span>
+                            </a>
+                        </li>
                         <li><a href="/accounts/logout">Logout</a></li>
                     {% else %}
                         <li><a href="/accounts/login">Login</a></li>

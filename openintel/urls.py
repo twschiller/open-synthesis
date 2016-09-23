@@ -20,6 +20,8 @@ from django.contrib.sitemaps.views import sitemap
 from django.conf import settings
 from openach import views
 from openach.sitemap import BoardSitemap
+import notifications.urls
+
 
 ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
 
@@ -38,9 +40,10 @@ urlpatterns = [  # pylint: disable=invalid-name
     url(r'^accounts/profile/', views.profile),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^comments/', include('django_comments.urls')),
+    url('^inbox/notifications/', include(notifications.urls, namespace='notifications')),
     url(r'^invitations/', include('invitations.urls', namespace='invitations')),
     url(r'', include('openach.urls')),
-    url(r'\.well-known/acme-challenge/(?P<challenge_key>[a-zA-Z0-9\-]+)$', views.certbot)
+    url(r'\.well-known/acme-challenge/(?P<challenge_key>[a-zA-Z0-9\-]+)$', views.certbot),
 ]
 
 if not ACCOUNT_REQUIRED:  # pylint: disable=invalid-name

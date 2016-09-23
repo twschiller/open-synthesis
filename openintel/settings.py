@@ -105,6 +105,8 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    # notifications must appear after applications generating notifications
+    'notifications',
     # invitations must appear after allauth: https://github.com/bee-keeper/django-invitations#allauth-integration
     'invitations',
 ]
