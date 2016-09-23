@@ -711,17 +711,24 @@ def edit_hypothesis(request, hypothesis_id):
 
 
 @require_safe
-@account_required
-@cache_if_anon(PAGE_CACHE_TIMEOUT_SECONDS)
-def profile(request, account_id=None):
-    """Return a view of the private or public profile associated with account_id.
+@login_required
+def private_profile(request):
+    """Return a view of the private profile associated with the authenticated user."""
+    user = request.user
+    context = {
+        'user': user,
+        'boards_created': user_boards_created(user)[:5],
+        'boards_contributed': user_boards_contributed(user),
+        'board_voted': user_boards_evaluated(user),
+        'meta_description': "Account profile for user {}".format(user),
+        'notifications': request.user.notifications.unread(),
+    }
+    return render(request, 'boards/profile.html', context)
 
-    If account_id is None, show the private profile for the logged in user. If account is specified and the user is not
-    logged in, raise a 404.
-    """
-    # TODO: cache the page based on whether user is viewing private profile or public profile
-    account_id = request.user.id if request.user.is_authenticated and not account_id else account_id
-    is_owner = request.user.id == int(account_id)
+
+@require_safe
+@cache_page(PAGE_CACHE_TIMEOUT_SECONDS)
+def public_profile(request, account_id):
     user = get_object_or_404(User, pk=account_id)
     context = {
         'user': user,
@@ -729,10 +736,18 @@ def profile(request, account_id=None):
         'boards_contributed': user_boards_contributed(user),
         'board_voted': user_boards_evaluated(user),
         'meta_description': "Account profile for user {}".format(user),
-        'notifications': request.user.notifications.unread() if is_owner else None,
     }
-    template = 'profile.html' if is_owner else 'public_profile.html'
-    return render(request, 'boards/' + template, context)
+    return render(request, 'boards/public_profile.html', context)
+
+
+@require_safe
+@account_required
+def profile(request, account_id):
+    """Return a view of the profile associated with account_id.
+
+    If account_id corresponds to the authenticated user, returns the private profile view.
+    """
+    return private_profile(request) if request.user.id == int(account_id) else public_profile(request, account_id)
 
 
 @require_http_methods(["HEAD", "GET", "POST"])

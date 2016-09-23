@@ -37,7 +37,7 @@ urlpatterns = [  # pylint: disable=invalid-name
     url(r'robots\.txt', views.robots, name='robots'),
     url(r'contribute\.json', TemplateView.as_view(template_name='contribute.json', content_type='application/json')),
     url(r'^accounts/(?P<account_id>[0-9]+)/$', views.profile, name='profile'),
-    url(r'^accounts/profile/', views.profile),
+    url(r'^accounts/profile/', views.private_profile, name='private_profile'),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^comments/', include('django_comments.urls')),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications')),

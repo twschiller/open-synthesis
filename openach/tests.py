@@ -1081,6 +1081,11 @@ class ProfileTests(TestCase):
         response = self.client.get(reverse('profile', args=(self.user.id,)))
         self.assertContains(response, "Title #", count=3, status_code=200)
 
+    def test_private_profile_require_login(self):
+        """Test that an anonymous user is redirected to the login page when attempting to view their private profile."""
+        response = self.client.get(reverse('private_profile'))
+        self.assertEqual(response.status_code, 302)
+
     def test_public_activity_contributor(self):
         """Test public profile of user that has contributed to a board."""
         self._add_board()
