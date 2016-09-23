@@ -12,13 +12,14 @@ from django_comments.models import Comment
 from unittest import skipUnless
 from django.conf import settings
 from field_history.models import FieldHistory
+from notifications.signals import notify
 
 from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, inconsistency, calc_disagreement
-from .models import Board, Eval, Evidence, Hypothesis, Evaluation, ProjectNews
+from .models import Board, Eval, Evidence, Hypothesis, Evaluation, ProjectNews, BoardFollower
 from .models import URL_MAX_LENGTH
 from .sitemap import BoardSitemap
 from .views import EvidenceSource, EvidenceSourceForm, EvidenceSourceTag, AnalystSourceTag
-from .views import BoardEditForm, EvidenceEditForm, HypothesisForm, bitcoin_donation_url
+from .views import BoardEditForm, EvidenceEditForm, HypothesisForm, bitcoin_donation_url, notify_edit, notify_add
 from .util import first_occurrences
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,21 @@ def remove(model):
     """Mark model as removed."""
     model.removed = True
     model.save()
+
+
+def follows(user, board):
+    """Return True iff user follows board."""
+    return BoardFollower.objects.filter(user=user, board=board).exists()
+
+
+def add_follower(board):
+    follower = User.objects.create_user('bob', 'bob@thebeatles.com', 'bobpassword')
+    BoardFollower.objects.create(
+        user=follower,
+        board=board,
+        update_timestamp=timezone.now()
+    )
+    return follower
 
 
 class UtilMethodTests(TestCase):
@@ -113,15 +129,18 @@ class BoardFormTests(TestCase):
     def test_submit_valid_create_board(self):
         """Test that a logged in user can create a board via the form creation."""
         self.client.login(username='john', password='johnpassword')
+        title = 'Test Board Title'
         response = self.client.post(reverse('openach:create_board'), data={
-            'board_title': 'Test Board Title',
+            'board_title': title,
             'board_desc': 'Test Board Description',
             'hypothesis1': 'Test Hypotheses #1',
             'hypothesis2': 'Test Hypotheses #2',
         })
         self.assertEqual(response.status_code, 302)
-        self.assertGreater(len(Board.objects.filter(board_title='Test Board Title')), 0)
+        self.assertGreater(len(Board.objects.filter(board_title=title)), 0)
         self.assertGreater(len(Board.objects.filter(board_slug='test-board-title')), 0)
+        board = Board.objects.filter(board_title=title).first()
+        self.assertTrue(follows(self.user, board))
 
     def test_submit_valid_create_board_long_title(self):
         """Test that a user can create a board with a long name and that the slug will be truncated."""
@@ -332,6 +351,7 @@ class EvidenceAssessmentTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Evaluation.objects.count(), 2, msg="Expecting 2 evaluation objects")
+        self.assertTrue(follows(self.user, self.board))
 
 
 class AddEditHypothesisTests(TestCase):
@@ -354,6 +374,7 @@ class AddEditHypothesisTests(TestCase):
                 submit_date=timezone.now()
             )
         ]
+        self.follower = add_follower(self.board)
 
     def test_require_login_for_add_hypothesis(self):
         """Test that a user must be logged in  to access the add hypothesis form."""
@@ -384,6 +405,8 @@ class AddEditHypothesisTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Hypothesis.objects.filter(hypothesis_text=text)), 0)
+        self.assertTrue(follows(self.user, self.board))
+        self.assertGreater(self.follower.notifications.unread().count(), 0)
 
     def test_hypothesis_edit_form(self):
         """Test that the form validation passes for valid input."""
@@ -407,6 +430,8 @@ class AddEditHypothesisTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreaterEqual(len(Hypothesis.objects.filter(hypothesis_text='Updated Hypothesis')), 1)
+        self.assertFalse(follows(self.user, self.board))
+        self.assertGreater(self.follower.notifications.unread().count(), 0)
 
     def test_can_remove_hypothesis(self):
         """Test that the hypothesis is removed when the user clicks the remove button."""
@@ -775,6 +800,7 @@ class AddEvidenceTests(TestCase):
             event_date=None,
             submit_date=timezone.now()
         )
+        self.follower = add_follower(self.board)
 
     def test_require_login_for_add_evidence(self):
         """Test that the user must be logged in to access the add evidence form."""
@@ -805,6 +831,9 @@ class AddEvidenceTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Evidence.objects.filter(evidence_desc=text)), 0)
+
+        self.assertTrue(follows(self.user, self.board))
+        self.assertGreater(self.follower.notifications.unread().count(), 0)
 
     def test_validate_url_length(self):
         """Test that the form rejects long URLs (issue #58)."""
@@ -869,6 +898,8 @@ class AddEvidenceTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreaterEqual(len(Evidence.objects.filter(evidence_desc='Updated Evidence Description')), 1)
+        self.assertFalse(follows(self.user, self.board))
+        self.assertGreater(self.follower.notifications.unread().count(), 0)
 
     def test_can_remove_evidence(self):
         """Test that evidence can be marked as removed via the form."""
@@ -982,6 +1013,7 @@ class ProfileTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.other = User.objects.create_user('paul', 'mccartney@thebeatles.com', 'pualpassword')
 
     def _add_board(self, user=None):
         self.board = Board.objects.create(
@@ -1119,6 +1151,14 @@ class ProfileTests(TestCase):
         self.assertContains(response, "View All", count=1)
         self.assertContains(response, "You have not created any boards.")
         self.assertContains(response, "You have not contributed to any boards.")
+
+    def test_private_notifications(self):
+        """Test that the profile page shows up to 5 notifications."""
+        for x in range(0, 10):
+            notify.send(self.other, recipient=self.user, actor=self.other, verb='said hello {}'.format(x))
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('profile', args=(self.user.id,)))
+        self.assertContains(response, 'said hello', status_code=200, count=5)
 
 
 def create_board(board_title, days):
@@ -1373,3 +1413,89 @@ class AccountManagementTests(TestCase):
         self.assertEqual(mail.outbox[0].subject, '[example.com] Please Confirm Your E-mail Address')
         self.assertListEqual(mail.outbox[0].to, ['testemail@google.com'])
         self.assertEqual(mail.outbox[0].from_email, DEFAULT_FROM_EMAIL)
+
+
+class NotificationTests(TestCase):
+    """Basic tests for notifications."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.other = User.objects.create_user('paul', 'mccartney@thebeatles.com', 'pualpassword')
+        self.board = Board.objects.create(
+            board_title="Board Title",
+            board_desc="Description",
+            creator=self.user,
+            pub_date=timezone.now(),
+        )
+        BoardFollower.objects.create(
+            board=self.board,
+            user=self.user,
+            update_timestamp=timezone.now()
+        )
+
+    def test_public_cannot_get_notifications(self):
+        """Test that users that are not logged in cannot access the notifications list."""
+        response = self.client.get(reverse('openach:notifications'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_can_view_empty_notifications(self):
+        """Test that a logged in user can view an empty notifications list."""
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:notifications'))
+        self.assertContains(response, 'Notifications', status_code=200)
+
+    def test_can_view_notifications(self):
+        """Test that a logged in user can view one or more notifications."""
+        notify.send(self.other, recipient=self.user, actor=self.other, verb='said hello!')
+        notify.send(self.other, recipient=self.user, actor=self.other, verb='said hello again!')
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:notifications'))
+        self.assertContains(response, 'paul said hello!', status_code=200)
+        self.assertContains(response, 'paul said hello again!', status_code=200)
+
+    def test_board_hypothesis_notifications(self):
+        """Test the add/edit hypothesis notifications work render reasonably."""
+        hypothesis = Hypothesis.objects.create(
+            board=self.board,
+            hypothesis_text='Hypothesis',
+            submit_date=timezone.now()
+        )
+        notify_add(self.board, self.other, hypothesis)
+        notify_edit(self.board, self.other, hypothesis)
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:notifications'))
+        self.assertContains(response, self.other.username, count=2)
+        self.assertContains(response, self.board.board_title, count=2)
+        self.assertContains(response, 'edited hypothesis', count=1)
+        self.assertContains(response, 'added hypothesis', count=1)
+
+    def test_board_evidence_notifications(self):
+        """Test the add/edit evidence notifications work render reasonably."""
+        evidence = Evidence.objects.create(
+            board=self.board,
+            evidence_desc='Evidence',
+            submit_date=timezone.now()
+        )
+        notify_add(self.board, self.other, evidence)
+        notify_edit(self.board, self.other, evidence)
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('openach:notifications'))
+        self.assertContains(response, self.other.username, count=2)
+        self.assertContains(response, self.board.board_title, count=2)
+        self.assertContains(response, 'edited evidence', count=1)
+        self.assertContains(response, 'added evidence', count=1)
+
+    def test_can_clear_notifications(self):
+        """Test that a user can clear notifications via POST request."""
+        notify.send(self.other, recipient=self.user, actor=self.other, verb='said hello!')
+        notify.send(self.user, recipient=self.other, actor=self.user, verb='said hello!')
+        self.assertGreater(self.user.notifications.unread().count(), 0)
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post(reverse('openach:clear_notifications'), data={
+            'clear': 'clear',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.user.notifications.unread().count(), 0)
+        # make sure we didn't clear someone else's notifications
+        self.assertGreater(self.other.notifications.unread().count(), 0)
