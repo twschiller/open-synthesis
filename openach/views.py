@@ -44,7 +44,6 @@ from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 from .metrics import consensus_vote, inconsistency, diagnosticity, calc_disagreement
 from .metrics import generate_contributor_count, generate_evaluator_count
 from .metrics import user_boards_contributed, user_boards_created, user_boards_evaluated
-from .metrics import board_contributors, board_evaluators
 from .decorators import cache_if_anon, cache_on_auth, account_required
 from .auth import check_edit_authorization
 
