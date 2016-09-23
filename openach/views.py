@@ -512,7 +512,7 @@ def edit_evidence(request, evidence_id):
             evidence.event_date = form.cleaned_data['event_date']
             evidence.save()
             messages.success(request, 'Updated evidence description and date.')
-            notify_edit(board, actor=request.user, action_object= evidence)
+            notify_edit(board, actor=request.user, action_object=evidence)
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence.id,)))
 
     else:
