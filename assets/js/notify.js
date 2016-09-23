@@ -25,34 +25,44 @@ var NOTIFICATION_KEY = 'unread_notifications';
 var NOTIFY_REFRESH_PERIOD_MILLIS = 15 * 1000;
 var MAX_RETRIES = 5;
 
-function fetch_api_data(badge) {
+/**
+ * Returns a function that queries the number of unread notifications and sets the text of badge to the number.
+ *
+ * Re-queries the server every NOTIFY_REFRESH_PERIOD_MILLIS milliseconds. Stops querying the server if more than
+ * MAX_RETRIES consecutive requests fail.
+ *
+ * @param badge the badge JQuery selector
+ * @param {string} url the url to request
+ * @returns {Function} function that updates the unread notification count
+ */
+function fetch_api_data(badge, url) {
     var consecutive_misfires = 0;
     return function() {
-        var elt = $(badge);
-        $.get(elt.data('notify-api-url'), function(data){
+        $.get(url, function(data){
             consecutive_misfires = 0;
-            elt.text(data.unread_count);
+            badge.text(data.unread_count);
             window.sessionStorage.setItem(NOTIFICATION_KEY, data.unread_count);
         })
         .fail(function(){
             consecutive_misfires++;
         })
         .always(function(){
-            if (consecutive_misfires < MAX_RETRIES) {
-                setTimeout(fetch_api_data(badge), NOTIFY_REFRESH_PERIOD_MILLIS);
+            if (consecutive_misfires <= MAX_RETRIES) {
+                setTimeout(fetch_api_data(badge, url), NOTIFY_REFRESH_PERIOD_MILLIS);
             } else {
-                elt.text('!');
-                elt.prop('title', 'No connection to server');
+                badge.text('!');
+                badge.prop('title', 'No connection to server');
             }
         });
     }
 }
 
-// NOTE: in reality, there will only be one element that has a data-notify-api-url attribute
+// NOTE: in practice, there will only be one element that has a data-notify-api-url attribute
 $("[data-notify-api-url]").each(function(index, badge){
-    setTimeout(fetch_api_data(badge), 1000);
+    elt = $(badge);
+    setTimeout(fetch_api_data(elt, elt.data('notify-api-url')), 1000);
     var previous = window.sessionStorage.getItem(NOTIFICATION_KEY);
     if (previous !== undefined) {
-        $(badge).text(previous);
+        elt.text(previous);
     }
 });
