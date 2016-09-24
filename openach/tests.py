@@ -15,12 +15,13 @@ from field_history.models import FieldHistory
 from notifications.signals import notify
 
 from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, inconsistency, calc_disagreement
-from .models import Board, Eval, Evidence, Hypothesis, Evaluation, ProjectNews, BoardFollower
-from .models import URL_MAX_LENGTH
+from .models import Board, Evidence, Hypothesis, Evaluation, ProjectNews, BoardFollower, UserSettings
+from .models import URL_MAX_LENGTH, Eval, DigestFrequency
 from .sitemap import BoardSitemap
 from .views import EvidenceSource, EvidenceSourceForm, EvidenceSourceTag, AnalystSourceTag
 from .views import BoardEditForm, EvidenceEditForm, HypothesisForm, bitcoin_donation_url, notify_edit, notify_add
 from .util import first_occurrences
+from .digest import create_digest_email, send_digest_emails
 
 logger = logging.getLogger(__name__)
 
@@ -1013,6 +1014,7 @@ class ProfileTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        UserSettings.objects.create(user=self.user)
         self.other = User.objects.create_user('paul', 'mccartney@thebeatles.com', 'pualpassword')
 
     def _add_board(self, user=None):
@@ -1517,3 +1519,34 @@ class NotificationTests(TestCase):
         self.assertEqual(self.user.notifications.unread().count(), 0)
         # make sure we didn't clear someone else's notifications
         self.assertGreater(self.other.notifications.unread().count(), 0)
+
+
+class DigestTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.daily = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.daily.date_joined = timezone.now() + datetime.timedelta(days=-2)
+        self.daily.save()
+        self.weekly = User.objects.create_user('paul', 'paul@thebeatles.com', 'paulpassword')
+        UserSettings.objects.create(user=self.daily, digest_frequency=DigestFrequency.daily.value)
+        UserSettings.objects.create(user=self.weekly, digest_frequency=DigestFrequency.weekly.value)
+
+    def test_can_create_first_digest(self):
+        """Test that we can create a digest if the user hasn't received a digest before."""
+        run_timestamp = timezone.now()
+        create_board(board_title='New Board', days=-1)
+        email = create_digest_email(self.daily, DigestFrequency.daily, run_timestamp)
+        self.assertListEqual(email.to, [self.daily.email])
+        logger.debug(email.subject)
+
+        self.assertTrue('Daily' in email.subject, 'No digest frequency in subject: {}'.format(email.subject))
+        self.assertTrue('daily' in email.body)
+
+    def test_can_email_daily_digest(self):
+        """Test that we can email a digest if the user hasn't received a daily digest before."""
+        create_board(board_title='New Board', days=-1)
+        send_digest_emails(DigestFrequency.daily)
+        self.assertEqual(len(mail.outbox), 1, "No digest email sent")
+        self.assertListEqual(mail.outbox[0].to, [self.daily.email])
+        self.assertEqual(mail.outbox[0].from_email, DEFAULT_FROM_EMAIL)

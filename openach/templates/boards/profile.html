@@ -3,6 +3,7 @@
 {% load board_extras %}
 {% load i18n %}
 {% load notifications_tags %}
+{% load bootstrap %}
 
 {% block title %}Profile | {{ site.name }}{% endblock %}
 
@@ -53,7 +54,11 @@
                     <h3 class="panel-title">Settings</h3>
                 </div>
                 <div class="panel-body">
-                    In the future, you will be able to manage your account settings here.
+                    <form method="post" action="/accounts/profile/">
+                        {% csrf_token %}
+                        {{ settings_form|bootstrap }}
+                        <input class="btn btn-default" type="submit" value="Update Settings"/>
+                    </form>
                 </div>
             </div>
 

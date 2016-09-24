@@ -1,0 +1,4 @@
+{% load i18n %}
+{% autoescape off %}
+{{site.name}} {{ digest_frequency }} digest for {{ timestamp|date }}
+{% endautoescape %}

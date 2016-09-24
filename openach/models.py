@@ -229,3 +229,38 @@ class ProjectNews(models.Model):
     content = models.CharField(max_length=1024)
     pub_date = models.DateTimeField('date published')
     author = models.ForeignKey(User, null=True)
+
+
+@unique
+class DigestFrequency(Enum):
+    """Possible choices for receiving email digests."""
+
+    never = 0
+    daily = 1
+    weekly = 2
+
+    @staticmethod
+    def for_value(val):
+        """Return the Enum entry associated with val, or None."""
+        return next(e for e in Eval if e.value == val)
+
+
+class UserSettings(models.Model):
+    """User account preferences."""
+
+    DIGEST_FREQUENCY = (
+        (DigestFrequency.never.value, 'Never'),
+        (DigestFrequency.daily.value, 'Daily'),
+        (DigestFrequency.weekly.value, 'Weekly'),
+    )
+    user = models.OneToOneField(User)
+    digest_frequency = models.PositiveSmallIntegerField(
+        'email digest frequency', default=DigestFrequency.daily.value, choices=DIGEST_FREQUENCY)
+
+
+class DigestStatus(models.Model):
+    """Email digest status."""
+
+    user = models.OneToOneField(User)
+    last_success = models.DateTimeField(null=True, default=None)
+    last_attempt = models.DateTimeField(null=True, default=None)
