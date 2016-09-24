@@ -91,4 +91,4 @@ Your continued use of Open Synthesis after any change in this Privacy Policy wil
 such change.
 
 - - -
-Adapted from the [Automattic's privacy policy](https://automattic.com/privacy/) under a [Creative Commons Sharealike 4.0](Creative Commons Sharealike) license.
+Adapted from [Automattic's privacy policy](https://automattic.com/privacy/) under a [Creative Commons Sharealike 4.0](http://creativecommons.org/licenses/by-sa/4.0/) license.
