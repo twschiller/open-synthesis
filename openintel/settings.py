@@ -69,7 +69,8 @@ env = environ.Env(  # pylint: disable=invalid-name
     TWITTER_ACCOUNT=(str, None),
     DONATE_BITCOIN_ADDRESS=(str, None),
     INVITE_REQUEST_URL=(str, None),
-    BANNER_MESSAGE=(str, None)
+    BANNER_MESSAGE=(str, None),
+    PRIVACY_URL=(str, None),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -317,6 +318,7 @@ if _detect_command('createadmin'):  # pragma: no cover
     ADMIN_USERNAME = env('ADMIN_USERNAME')
     ADMIN_PASSWORD = env('ADMIN_PASSWORD')
 ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
+PRIVACY_URL = env('PRIVACY_URL')
 INVITE_REQUIRED = env('INVITE_REQUIRED')
 INVITE_REQUEST_URL = env('INVITE_REQUEST_URL')
 EVIDENCE_REQUIRE_SOURCE = env('EVIDENCE_REQUIRE_SOURCE')

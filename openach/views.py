@@ -199,9 +199,11 @@ def notifications(request):
 def about(request):
     """Return an about view showing contribution, licensing, contact, and other information."""
     address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
+    privacy_url = getattr(settings, 'PRIVACY_URL', None)
     context = {
         'bitcoin_address': address,
         'bitcoin_donate_url': bitcoin_donation_url(address),
+        'privacy_url': privacy_url,
     }
     return render(request, 'boards/about.html', context=context)
 

@@ -1258,6 +1258,19 @@ class AboutViewTests(TestCase):
         self.assertContains(response, 'Donate', status_code=200)
         self.assertContains(response, self.address, status_code=200)
 
+    def test_no_privacy_policy(self):
+        """Test that the privacy policy panel is not displayed if a URL is not set."""
+        setattr(settings, 'PRIVACY_URL', None)
+        response = self.client.get(reverse('openach:about'))
+        self.assertNotContains(response, "Privacy Policy", status_code=200)
+
+    def test_privacy_policy(self):
+        """Test that the privacy policy panel is displayed if a URL is set."""
+        url = "https://github.com/twschiller/open-synthesis/blob/master/PRIVACY.md"
+        setattr(settings, 'PRIVACY_URL', url)
+        response = self.client.get(reverse('openach:about'))
+        self.assertContains(response, "Privacy Policy", status_code=200)
+
 
 class ConsensusTests(TestCase):
 

@@ -96,6 +96,10 @@
     "BANNER_MESSAGE": {
       "description": "An alert to show to all users. URLs in the message will be converted into links.",
       "required": false
+    },
+    "PRIVACY_URL": {
+      "description": "The URL for the deployment's privacy policy",
+      "required": false
     }
   },
   "scripts": {

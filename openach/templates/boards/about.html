@@ -15,8 +15,8 @@
                 </div>
                 <div class="panel-body">
                     <p>
-                        The Open Synthesis Project is available open-source under the GNU Public License Version 3 at
-                        <a href="https://github.com/twschiller/open-synthesis">https://github.com/twschiller/open-synthesis</a>
+                        The Open Synthesis Project is available open-source under the GNU Public License Version 3 on
+                        <a href="https://github.com/twschiller/open-synthesis">GitHub</a>.
                     </p>
 
                     <p>
@@ -45,7 +45,7 @@
                 </div>
                 <div class="panel-body">
                     <p>
-                        Content on Open Synthesis is licensed under a
+                        Content on {{ site.name }} is licensed under a
                         <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
                             Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)</a>.
                         Comments should be attributed to their respective authors.
@@ -56,6 +56,20 @@
                     </a>
                 </div>
             </div>
+
+            {% if privacy_url %}
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Privacy Policy</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p>
+                            The {{ site.name }} privacy policy is available at
+                            <a rel="external" href="{{ privacy_url }}">{{ privacy_url }}</a>
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
         </div>
 
         <div class="col-md-5">
