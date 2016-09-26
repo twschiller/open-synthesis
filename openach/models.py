@@ -248,11 +248,6 @@ class DigestFrequency(Enum):
         self.key = key
         self.delta = delta
 
-    @staticmethod
-    def for_value(val):
-        """Return the Enum entry associated with val, or None."""
-        return next(e for e in Eval if e.value == val)
-
 
 class UserSettings(models.Model):
     """User account preferences."""
