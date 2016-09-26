@@ -1,0 +1,29 @@
+{% load board_extras %}
+
+{% if notification.verb == 'added' %}
+    {% if notification.action_object|get_class == 'Hypothesis' %}
+        <a href="https://{{ site.domain }}/accounts/{{ notification.actor.id }}/">{{ notification.actor.username }}</a> added hypothesis '{{ notification.action_object }}'
+    {% elif  notification.action_object|get_class == 'Evidence' %}
+        <a href="https://{{ site.domain }}/accounts/{{ notification.actor.id }}/">{{ notification.actor.username }}</a>
+        added evidence
+        <a href="https://{{ site.domain }}/{% url 'openach:evidence_detail' notification.action_object.id %}">
+            '{{ notification.action_object }}'
+        </a>
+    {% else %}
+        {{ notification }}
+    {% endif %}
+{% elif notification.verb == 'edited' %}
+    {% if notification.action_object|get_class == 'Hypothesis' %}
+        <a href="https://{{ site.domain }}/accounts/{{ notification.actor.id }}/">{{ notification.actor.username }}</a> edited hypothesis '{{ notification.action_object }}'
+    {% elif  notification.action_object|get_class == 'Evidence' %}
+        <a href="https://{{ site.domain }}/accounts/{{ notification.actor.id }}/">{{ notification.actor.username }}</a>
+        edited evidence
+        <a href="https://{{ site.domain }}/{% url 'openach:evidence_detail' notification.action_object.id %}">
+            '{{ notification.action_object }}'
+        </a>
+    {% else %}
+        {{ notification }}
+    {% endif %}
+{% else %}
+    {{ notification }}
+{% endif %}

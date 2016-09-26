@@ -1,9 +1,10 @@
 """Methods for creating/sending notification digests."""
 import logging
+import collections
 
 from django.utils import timezone
 from django.template.loader import render_to_string
-from django.core.mail import EmailMessage, get_connection
+from django.core.mail import EmailMultiAlternatives, get_connection
 from django.contrib.sites.models import Site
 
 from .models import DigestStatus, Board, UserSettings, DigestFrequency
@@ -12,37 +13,59 @@ from .models import DigestStatus, Board, UserSettings, DigestFrequency
 logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
 
-def notification_digest(user, since):
-    """Return digest for user with content/notifications occurring after since.
+def notification_digest(user, start, end):
+    """Return digest for user with content/notifications occurring after start.
+
+    Notifications are grouped by target, e.g., board.
 
     :param user: the user
-    :param since: the base timestamp or None, for example, the last time a digest was sent
+    :param start: the start datetime for the the digest
+    :param end: the end datetime for the digest
     """
-    notifications = user.notifications.unread().filter(timestamp__gt=since)
-    new_boards = Board.objects.all().filter(pub_date__gt=since).exclude(creator_id=user.id)
+    notifications = user.notifications.unread().filter(timestamp__gt=start, timestamp__lt=end)
+    by_target = collections.defaultdict(list)
+    for notification in notifications:
+        if notification.target and notification.actor.id != user.id:
+            by_target[notification.target].append(notification)
+
+    new_boards = Board.objects.all().filter(pub_date__gt=start, pub_date__lt=end).exclude(creator_id=user.id)
     if notifications.exists() or new_boards.exists():
         return {
             'new_boards': new_boards,
-            'notifications': notifications
+            # https://code.djangoproject.com/ticket/16335
+            'notifications': dict(by_target)
         }
     else:
         return None
 
 
-def user_digest_base_datetime(user):
-    """Return the timestamp of the user's last digest, or the date the joined."""
+def user_digest_start(user, digest_frequency, as_of):
+    """Return the starting datetime for a digest for user.
+
+    :param user: the user to create the digest for
+    :param digest_frequency: the DigestFrequency for the digest
+    :param as_of: the datetime to generate the digest for
+    """
     # NOTE: this is inefficient for multiple users because we have to hit the DB for each one
+    if digest_frequency == DigestFrequency.never:
+        raise ValueError('Digest frequency cannot be "never"')
+
+    digest = as_of - digest_frequency.delta
+    join = user.date_joined
     status = DigestStatus.objects.filter(user=user).first()
-    return status.last_success if (status and status.last_success) else user.date_joined
+    previous = status.last_success if (status and status.last_success) else join
+    return max([digest, join, previous])
 
 
-def create_digest_email(user, digest_frequency, run_timestamp):
+def create_digest_email(user, digest_frequency, as_of):
     """Return the digest email message for user based on when they last received a digest message."""
-    timestamp = user_digest_base_datetime(user)
-    context = notification_digest(user, timestamp)
+    start = user_digest_start(user, digest_frequency, as_of)
+    context = notification_digest(user, start, as_of)
+
+    logger.debug('Digest as of %s: %s', start, context)
 
     if context:
-        context['timestamp'] = run_timestamp
+        context['timestamp'] = as_of
         context['site'] = Site.objects.get_current()
         context['digest_frequency'] = digest_frequency.name
 
@@ -50,9 +73,12 @@ def create_digest_email(user, digest_frequency, run_timestamp):
         # remove superfluous line breaks
         subject = " ".join(subject.splitlines()).strip()
 
-        body = render_to_string('boards/email/email_digest_message.txt', context=context)
+        text_body = render_to_string('boards/email/email_digest_message.txt', context=context)
+        html_body = render_to_string('boards/email/email_digest_message.html', context=context)
 
-        return EmailMessage(subject=subject, body=body, to=[user.email])
+        email = EmailMultiAlternatives(subject=subject, body=text_body, to=[user.email])
+        email.attach_alternative(html_body, "text/html")
+        return email
     else:
         return None
 
@@ -68,7 +94,7 @@ def send_digest_emails(digest_frequency):
     timestamp = timezone.now()
     subscribers = [
         u.user for u in
-        UserSettings.objects.filter(digest_frequency=digest_frequency.value).select_related('user')
+        UserSettings.objects.filter(digest_frequency=digest_frequency.key).select_related('user')
     ]
     emails = [(u, create_digest_email(u, digest_frequency, timestamp)) for u in subscribers]
 

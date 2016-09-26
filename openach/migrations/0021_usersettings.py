@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             name='UserSettings',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('digest_frequency', models.PositiveSmallIntegerField(choices=[(openach.models.DigestFrequency(0), 'Never'), (openach.models.DigestFrequency(1), 'Daily'), (openach.models.DigestFrequency(2), 'Weekly')], default=openach.models.DigestFrequency(0), verbose_name='email digest frequency')),
+                ('digest_frequency', models.PositiveSmallIntegerField(choices=[(openach.models.DigestFrequency.never.key, 'Never'), (openach.models.DigestFrequency.daily.key, 'Daily'), (openach.models.DigestFrequency.weekly.key, 'Weekly')], default=openach.models.DigestFrequency.daily.key, verbose_name='email digest frequency')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),

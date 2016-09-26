@@ -1,25 +1,12 @@
-{% load account %}
-{% load i18n %}
-{% load board_extras %}
+{% load account %}{% load i18n %}{% load board_extras %}
 {% autoescape off %}
-
 {{ site.name }} {{ digest_frequency }} digest for {{ timestamp|date }}
-
 {% if new_boards %}
-New Boards:
-{% for board in new_boards %}
-- {{ board.board_title }}: https://{{ site.domain }}{{ board|board_url }}
-{% endfor %}
-{% endif %}
-
-{% if notifications %}
-Notifications:
-{% for notification in notifications %}
-- {% include 'boards/email/_notification.txt' %}
-{% endfor %}
-{% endif %}
-
-You are receiving this e-mail because you're subscribed to receive {{ digest_frequency }} updates. To modify your
-email settings, visit your profile at https://{{ site.domain }}/accounts/profile/
-
+New Boards:{% for board in new_boards %}
+- {{ board.board_title }}: https://{{ site.domain }}/{{ board|board_url }}{% endfor %}
+{% endif %}{% if notifications %}{% for target, for_target in notifications.items %}
+Updates for {{ target }}: https://{{ site.domain }}/{{ target|board_url }}{% for notification in for_target %}
+- {% include 'boards/email/_notification.txt' %}{% endfor %}
+{% endfor %}{% endif %}
+You are receiving this e-mail because you're subscribed to receive {{ digest_frequency }} updates from https://{{ site.domain }}/. To modify your email settings, visit your profile at https://{{ site.domain }}/accounts/profile/
 {% endautoescape %}

@@ -235,9 +235,18 @@ class ProjectNews(models.Model):
 class DigestFrequency(Enum):
     """Possible choices for receiving email digests."""
 
-    never = 0
-    daily = 1
-    weekly = 2
+    never = (0, None)
+    daily = (1, timezone.timedelta(days=1))
+    weekly = (2, timezone.timedelta(days=7))
+
+    def __init__(self, key, delta):
+        """Initialize Digest Frequency.
+
+        :param key: unique identifier, used in database
+        :param delta: timedelta covered by the frequency, or None (e.g., 7 days)
+        """
+        self.key = key
+        self.delta = delta
 
     @staticmethod
     def for_value(val):
@@ -249,13 +258,13 @@ class UserSettings(models.Model):
     """User account preferences."""
 
     DIGEST_FREQUENCY = (
-        (DigestFrequency.never.value, 'Never'),
-        (DigestFrequency.daily.value, 'Daily'),
-        (DigestFrequency.weekly.value, 'Weekly'),
+        (DigestFrequency.never.key, 'Never'),
+        (DigestFrequency.daily.key, 'Daily'),
+        (DigestFrequency.weekly.key, 'Weekly'),
     )
     user = models.OneToOneField(User)
     digest_frequency = models.PositiveSmallIntegerField(
-        'email digest frequency', default=DigestFrequency.daily.value, choices=DIGEST_FREQUENCY)
+        'email digest frequency', default=DigestFrequency.daily.key, choices=DIGEST_FREQUENCY)
 
 
 class DigestStatus(models.Model):
