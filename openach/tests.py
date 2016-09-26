@@ -3,6 +3,7 @@ import logging
 
 from django.utils import timezone
 from django.test import TestCase, Client
+from unittest.mock import patch, Mock
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -1625,6 +1626,48 @@ class DigestTests(TestCase):
             self.assertTrue('Evidence #{}'.format(x) in txt_body)
 
     def test_email_digest_command(self):
-        """Test that admin can send mail from a manage command."""
+        """Test that admin can send digest from a manage command."""
+        create_board(board_title='New Board', days=0)
         call_command('senddigest', 'daily')
-        call_command('senddigest', 'weekly')
+        self.assertEqual(len(mail.outbox), 1, 'No weekly digest email sent')
+
+    def test_email_weekly_command_digest_day(self):
+        """Test that admin can send digest on the weekly digest day."""
+        setattr(settings, 'DIGEST_WEEKLY_DAY', 0)
+
+        previous = timezone.now()
+        static = previous
+        # find the next scheduled digest day
+        while static.weekday() != 0:
+            static += timezone.timedelta(days=1)
+
+        with patch('openach.management.commands.senddigest.timezone.now') as timezone_mock:
+            timezone_mock.return_value = static
+            logger.debug('Shifted timezone.now() from weekday %s to %s', previous.weekday(), static.weekday())
+
+            create_board(board_title='New Board', days=-1)
+            call_command('senddigest', 'weekly')
+
+            self.assertEqual(len(mail.outbox), 1, 'No weekly digest email sent')
+
+    def test_email_weekly_command_other_day(self):
+        """Test that admin cannot digest email not on weekly digest day unless forced."""
+        setattr(settings, 'DIGEST_WEEKLY_DAY', 0)
+
+        previous = timezone.now()
+        static = previous
+        # make sure we're not on a scheduled digest day
+        while static.weekday() == 0:
+            static += timezone.timedelta(days=1)
+
+        with patch('openach.management.commands.senddigest.timezone.now') as timezone_mock:
+            timezone_mock.return_value = static
+            logger.debug('Shifted timezone.now() from weekday %s to %s', previous.weekday(), static.weekday())
+
+            create_board(board_title='New Board', days=-1)
+            call_command('senddigest', 'weekly')
+
+            self.assertEqual(len(mail.outbox), 0, 'Weekly digest email sent on wrong day')
+
+            call_command('senddigest', 'weekly', '--force')
+            self.assertEqual(len(mail.outbox), 1, 'Weekly digest email not sent when forced')

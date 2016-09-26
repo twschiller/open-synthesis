@@ -71,6 +71,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     INVITE_REQUEST_URL=(str, None),
     BANNER_MESSAGE=(str, None),
     PRIVACY_URL=(str, None),
+    DIGEST_WEEKLY_DAY=(int, 0),  # default to Monday
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -327,6 +328,7 @@ EDIT_AUTH_ANY = env('EDIT_AUTH_ANY')
 TWITTER_ACCOUNT = env('TWITTER_ACCOUNT')
 DONATE_BITCOIN_ADDRESS = env('DONATE_BITCOIN_ADDRESS')
 BANNER_MESSAGE = env('BANNER_MESSAGE')
+DIGEST_WEEKLY_DAY = env('DIGEST_WEEKLY_DAY')
 if env('ENVIRONMENT_NAME'):
     ENVIRONMENT_NAME = env('ENVIRONMENT_NAME')
 elif DEBUG:

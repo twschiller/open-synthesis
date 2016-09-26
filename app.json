@@ -100,6 +100,11 @@
     "PRIVACY_URL": {
       "description": "The URL for the deployment's privacy policy",
       "required": false
+    },
+    "DIGEST_WEEKLY_DAY": {
+      "description": "Week day to send weekly digest email where Monday=0, ..., Sunday=6 (default=0)",
+      "required": false,
+      "value": "0"
     }
   },
   "scripts": {
