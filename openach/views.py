@@ -743,8 +743,6 @@ def private_profile(request):
                 'digest_frequency': form.cleaned_data['digest_frequency']
             })
             messages.success(request, "Updated account settings.")
-        else:
-            logger.warning('POSTed settings form not valid', form.errors)
     else:
         form = SettingsForm(instance=user.usersettings)
 
