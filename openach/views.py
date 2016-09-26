@@ -736,12 +736,15 @@ def private_profile(request):
     user = request.user
 
     if request.method == 'POST':
+        logger.debug('POST user settings for user %s', user)
         form = SettingsForm(request.POST)
         if form.is_valid():
             UserSettings.objects.update_or_create(user=user, defaults={
                 'digest_frequency': form.cleaned_data['digest_frequency']
             })
             messages.success(request, "Updated account settings.")
+        else:
+            logger.warning('POSTed settings form not valid', form.errors)
     else:
         form = SettingsForm(instance=user.usersettings)
 

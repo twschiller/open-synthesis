@@ -9,7 +9,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import mail
 from django_comments.models import Comment
-from unittest import skipUnless
 from django.conf import settings
 from django.core.management import call_command
 from field_history.models import FieldHistory
@@ -19,8 +18,9 @@ from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, incons
 from .models import Board, Evidence, Hypothesis, Evaluation, ProjectNews, BoardFollower, UserSettings
 from .models import URL_MAX_LENGTH, Eval, DigestFrequency
 from .sitemap import BoardSitemap
-from .views import EvidenceSource, EvidenceSourceForm, EvidenceSourceTag, AnalystSourceTag
-from .views import BoardEditForm, EvidenceEditForm, HypothesisForm, bitcoin_donation_url, notify_edit, notify_add
+from .views import EvidenceSource, EvidenceSourceTag, AnalystSourceTag
+from .views import bitcoin_donation_url, notify_edit, notify_add
+from .views import SettingsForm, BoardEditForm, EvidenceSourceForm, HypothesisForm, EvidenceEditForm
 from .util import first_occurrences
 from .digest import create_digest_email, send_digest_emails
 
@@ -1166,6 +1166,24 @@ class ProfileTests(TestCase):
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('profile', args=(self.user.id,)))
         self.assertContains(response, 'said hello', status_code=200, count=5)
+
+    def test_update_settings_form(self):
+        """Test that settings form accepts a reasonable input."""
+        for frequency in DigestFrequency:
+            form = SettingsForm({'digest_frequency': frequency.key})
+            self.assertTrue(form.is_valid())
+
+    def test_update_settings(self):
+        """Test that the user can update their digest frequency."""
+        self.user.usersettings.digest_frequency = DigestFrequency.never.key
+        self.user.usersettings.save()
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post('/accounts/profile/', data={
+            'digest_frequency':  str(DigestFrequency.weekly.key),
+        })
+        self.assertEqual(response.status_code, 200)
+        self.user.usersettings.refresh_from_db()
+        self.assertEqual(self.user.usersettings.digest_frequency, DigestFrequency.weekly.key)
 
 
 def create_board(board_title, days):
