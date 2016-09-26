@@ -340,7 +340,7 @@ ACCOUNT_EMAIL_REQUIRED = env('ACCOUNT_EMAIL_REQUIRED')
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 # https://stackoverflow.com/questions/22700041/django-allauth-sends-verification-emails-from-webmasterservername
 DEFAULT_FROM_EMAIL = env.get_value('DEFAULT_FROM_EMAIL', default=ADMIN_EMAIL_ADDRESS)
-ACCOUNT_ADAPTER = 'invitations.models.InvitationsAdapter'
+ACCOUNT_ADAPTER = 'openach.account_adapters.AccountAdapter'
 
 # Invitations Options:
 # https://github.com/bee-keeper/django-invitations#additional-configuration

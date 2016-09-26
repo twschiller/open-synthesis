@@ -38,7 +38,7 @@ from qrcode.image.svg import SvgPathImage
 from notifications.signals import notify
 
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
-from .models import ProjectNews, BoardFollower
+from .models import ProjectNews, BoardFollower, UserSettings
 from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH, SLUG_MAX_LENGTH
 from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
 from .metrics import consensus_vote, inconsistency, diagnosticity, calc_disagreement
@@ -712,11 +712,40 @@ def edit_hypothesis(request, hypothesis_id):
     return render(request, 'boards/edit_hypothesis.html', context)
 
 
-@require_safe
+class SettingsForm(forms.ModelForm):
+    """User account settings form."""
+
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Form meta options.
+
+        See https://docs.djangoproject.com/en/1.10/topics/forms/modelforms/
+        """
+
+        model = UserSettings
+        fields = ['digest_frequency']
+        help_texts = {
+            'digest_frequency':
+                _('How frequently you want to receive email updates containing notifications you\'ve missed.'),
+        }
+
+
+@require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def private_profile(request):
-    """Return a view of the private profile associated with the authenticated user."""
+    """Return a view of the private profile associated with the authenticated user and handle settings."""
     user = request.user
+
+    if request.method == 'POST':
+        logger.debug('POST user settings for user %s', user)
+        form = SettingsForm(request.POST)
+        if form.is_valid():
+            UserSettings.objects.update_or_create(user=user, defaults={
+                'digest_frequency': form.cleaned_data['digest_frequency']
+            })
+            messages.success(request, "Updated account settings.")
+    else:
+        form = SettingsForm(instance=user.usersettings)
+
     context = {
         'user': user,
         'boards_created': user_boards_created(user)[:5],
@@ -724,6 +753,7 @@ def private_profile(request):
         'board_voted': user_boards_evaluated(user),
         'meta_description': "Account profile for user {}".format(user),
         'notifications': request.user.notifications.unread(),
+        'settings_form': form,
     }
     return render(request, 'boards/profile.html', context)
 
@@ -731,6 +761,7 @@ def private_profile(request):
 @require_safe
 @cache_page(PAGE_CACHE_TIMEOUT_SECONDS)
 def public_profile(request, account_id):
+    """Return a view of the public profile associated with account_id."""
     user = get_object_or_404(User, pk=account_id)
     context = {
         'user': user,
@@ -742,12 +773,13 @@ def public_profile(request, account_id):
     return render(request, 'boards/public_profile.html', context)
 
 
-@require_safe
+@require_http_methods(["HEAD", "GET", "POST"])
 @account_required
 def profile(request, account_id):
     """Return a view of the profile associated with account_id.
 
-    If account_id corresponds to the authenticated user, returns the private profile view.
+    If account_id corresponds to the authenticated user, return the private profile view. Otherwise return the public
+    profile.
     """
     return private_profile(request) if request.user.id == int(account_id) else public_profile(request, account_id)
 

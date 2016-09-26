@@ -9,23 +9,24 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import mail
 from django_comments.models import Comment
-from unittest import skipUnless
 from django.conf import settings
+from django.core.management import call_command
 from field_history.models import FieldHistory
 from notifications.signals import notify
 
 from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, inconsistency, calc_disagreement
-from .models import Board, Eval, Evidence, Hypothesis, Evaluation, ProjectNews, BoardFollower
-from .models import URL_MAX_LENGTH
+from .models import Board, Evidence, Hypothesis, Evaluation, ProjectNews, BoardFollower, UserSettings
+from .models import URL_MAX_LENGTH, Eval, DigestFrequency
 from .sitemap import BoardSitemap
-from .views import EvidenceSource, EvidenceSourceForm, EvidenceSourceTag, AnalystSourceTag
-from .views import BoardEditForm, EvidenceEditForm, HypothesisForm, bitcoin_donation_url, notify_edit, notify_add
+from .views import EvidenceSource, EvidenceSourceTag, AnalystSourceTag
+from .views import bitcoin_donation_url, notify_edit, notify_add
+from .views import SettingsForm, BoardEditForm, EvidenceSourceForm, HypothesisForm, EvidenceEditForm
 from .util import first_occurrences
+from .digest import create_digest_email, send_digest_emails
 
 logger = logging.getLogger(__name__)
 
 
-ACCOUNT_EMAIL_REQUIRED = getattr(settings, 'ACCOUNT_EMAIL_REQUIRED', True)
 DEFAULT_FROM_EMAIL = getattr(settings, 'DEFAULT_FROM_EMAIL', "admin@localhost")
 SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH')
 
@@ -1013,6 +1014,7 @@ class ProfileTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        UserSettings.objects.create(user=self.user)
         self.other = User.objects.create_user('paul', 'mccartney@thebeatles.com', 'pualpassword')
 
     def _add_board(self, user=None):
@@ -1164,6 +1166,24 @@ class ProfileTests(TestCase):
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('profile', args=(self.user.id,)))
         self.assertContains(response, 'said hello', status_code=200, count=5)
+
+    def test_update_settings_form(self):
+        """Test that settings form accepts a reasonable input."""
+        for frequency in DigestFrequency:
+            form = SettingsForm({'digest_frequency': frequency.key})
+            self.assertTrue(form.is_valid())
+
+    def test_update_settings(self):
+        """Test that the user can update their digest frequency."""
+        self.user.usersettings.digest_frequency = DigestFrequency.never.key
+        self.user.usersettings.save()
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.post('/accounts/profile/', data={
+            'digest_frequency':  str(DigestFrequency.weekly.key),
+        })
+        self.assertEqual(response.status_code, 200)
+        self.user.usersettings.refresh_from_db()
+        self.assertEqual(self.user.usersettings.digest_frequency, DigestFrequency.weekly.key)
 
 
 def create_board(board_title, days):
@@ -1406,9 +1426,9 @@ class AccountManagementTests(TestCase):
         response = self.client.get('/accounts/signup/')
         self.assertContains(response, "invitation")
 
-    @skipUnless(ACCOUNT_EMAIL_REQUIRED, reason="account email is not required.")
     def test_email_address_required(self):
         """Test that signup without email is rejected."""
+        setattr(settings, 'ACCOUNT_EMAIL_REQUIRED', True)
         response = self.client.post('/accounts/signup/', data={
             'username': 'testuser',
             'email': None,
@@ -1418,6 +1438,7 @@ class AccountManagementTests(TestCase):
         self.assertContains(response, "Enter a valid email address.", status_code=200)
 
     def test_account_signup_flow(self):
+        setattr(settings, 'ACCOUNT_EMAIL_REQUIRED', True)
         """Test that the user receives a confirmation email when they signup for an account with an email address."""
         response = self.client.post('/accounts/signup/', data={
             'username': 'testuser',
@@ -1431,6 +1452,18 @@ class AccountManagementTests(TestCase):
         self.assertEqual(mail.outbox[0].subject, '[example.com] Please Confirm Your E-mail Address')
         self.assertListEqual(mail.outbox[0].to, ['testemail@google.com'])
         self.assertEqual(mail.outbox[0].from_email, DEFAULT_FROM_EMAIL)
+
+    def test_settings_created(self):
+        """Test that a settings object is created when the user is created."""
+        setattr(settings, 'ACCOUNT_EMAIL_REQUIRED', False)
+        self.client.post('/accounts/signup/', data={
+            'username': 'testuser',
+            'email': 'testemail@google.com',
+            'password1': 'testpassword1!',
+            'password2': 'testpassword1!',
+        })
+        user = User.objects.filter(username='testuser').first()
+        self.assertIsNotNone(user.usersettings, 'User settings object not created')
 
 
 class NotificationTests(TestCase):
@@ -1517,3 +1550,81 @@ class NotificationTests(TestCase):
         self.assertEqual(self.user.notifications.unread().count(), 0)
         # make sure we didn't clear someone else's notifications
         self.assertGreater(self.other.notifications.unread().count(), 0)
+
+
+class DigestTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.daily = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.daily.date_joined = timezone.now() + datetime.timedelta(days=-2)
+        self.daily.save()
+        self.weekly = User.objects.create_user('paul', 'paul@thebeatles.com', 'paulpassword')
+        self.weekly.date_joined = timezone.now() + datetime.timedelta(days=-2)
+        self.weekly.save()
+        UserSettings.objects.create(user=self.daily, digest_frequency=DigestFrequency.daily.key)
+        UserSettings.objects.create(user=self.weekly, digest_frequency=DigestFrequency.weekly.key)
+
+    def test_can_create_first_digest(self):
+        """Test that we can create a digest if the user hasn't received a digest before."""
+        run_timestamp = timezone.now()
+        create_board(board_title='New Board', days=-1)
+        email = create_digest_email(self.daily, DigestFrequency.daily, run_timestamp)
+        self.assertListEqual(email.to, [self.daily.email])
+        logger.debug(email.subject)
+
+        self.assertGreater(len(email.alternatives), 0, 'No HTML body attached to digest email')
+        self.assertTrue('daily' in email.subject, 'No digest frequency in subject: {}'.format(email.subject))
+        self.assertTrue('daily' in email.body)
+
+    def test_can_email_first_daily_digest(self):
+        """Test that we can email a digest if the user hasn't received a daily digest before."""
+        create_board(board_title='New Board', days=0)
+        succeeded, passed, failed = send_digest_emails(DigestFrequency.daily)
+        self.assertEqual(succeeded, 1)
+        self.assertEqual(passed, 0)
+        self.assertEqual(failed, 0)
+        self.assertEqual(len(mail.outbox), 1, "No digest email sent")
+        self.assertGreater(len(mail.outbox[0].alternatives), 0, 'No HTML body attached to digest email')
+        self.assertListEqual(mail.outbox[0].to, [self.daily.email])
+        self.assertEqual(mail.outbox[0].from_email, DEFAULT_FROM_EMAIL)
+
+    def test_can_email_hypothesis_evidence_digest(self):
+        """Test that we can email a digest containing new hypotheses and evidence."""
+        for x in [1, 2]:
+            board = create_board(board_title='Board #{}'.format(x), days=0)
+            BoardFollower.objects.create(
+                board=board,
+                user=self.daily,
+                update_timestamp=timezone.now()
+            )
+            hypothesis = Hypothesis.objects.create(
+                board=board,
+                hypothesis_text='Hypothesis #{}'.format(x),
+                creator=self.weekly,
+                submit_date=timezone.now()
+            )
+            evidence = Evidence.objects.create(
+                board=board,
+                evidence_desc='Evidence #{}'.format(x),
+                creator=self.weekly,
+                submit_date=timezone.now()
+            )
+            notify_add(board, self.weekly, hypothesis)
+            notify_add(board, self.weekly, evidence)
+
+        succeeded, passed, failed = send_digest_emails(DigestFrequency.daily)
+        self.assertEqual(succeeded, 1)
+        self.assertEqual(len(mail.outbox), 1, 'No digest email sent')
+        txt_body = mail.outbox[0].body
+        logger.info(txt_body)
+
+        for x in [1, 2]:
+            self.assertTrue('Board #{}'.format(x) in txt_body)
+            self.assertTrue('Hypothesis #{}'.format(x) in txt_body)
+            self.assertTrue('Evidence #{}'.format(x) in txt_body)
+
+    def test_email_digest_command(self):
+        """Test that admin can send mail from a manage command."""
+        call_command('senddigest', 'daily')
+        call_command('senddigest', 'weekly')
