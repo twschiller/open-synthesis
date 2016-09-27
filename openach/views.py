@@ -41,7 +41,7 @@ from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eva
 from .models import ProjectNews, BoardFollower, UserSettings
 from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH, SLUG_MAX_LENGTH
 from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
-from .metrics import consensus_vote, hypothesis_sort_key, diagnosticity, calc_disagreement
+from .metrics import consensus_vote, hypothesis_sort_key, evidence_sort_key, calc_disagreement
 from .metrics import generate_contributor_count, generate_evaluator_count
 from .metrics import user_boards_contributed, user_boards_created, user_boards_evaluated
 from .decorators import cache_if_anon, cache_on_auth, account_required
@@ -247,11 +247,11 @@ def detail(request, board_id, dummy_board_slug=None):
     hypotheses = list(board.hypothesis_set.filter(removed=False))
     evidence = list(board.evidence_set.filter(removed=False))
     hypothesis_consistency = _group(hypotheses, evidence, hypothesis_sort_key, key=lambda h, e: (e.id, h.id))
-    evidence_diagnosticity = _group(evidence, hypotheses, diagnosticity, key=lambda e, h: (e.id, h.id))
+    evidence_diagnosticity = _group(evidence, hypotheses, evidence_sort_key, key=lambda e, h: (e.id, h.id))
 
     context = {
         'board': board,
-        'evidences': sorted(evidence_diagnosticity, key=lambda e: e[1], reverse=True),
+        'evidences': sorted(evidence_diagnosticity, key=lambda e: e[1]),
         'hypotheses': sorted(hypothesis_consistency, key=lambda h: h[1]),
         'view_type': view_type,
         'votes': consensus,

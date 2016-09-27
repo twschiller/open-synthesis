@@ -95,32 +95,32 @@ def consistency(evaluations):
     return sum((val - Eval.neutral.value)**2 for val in na_neutral if val is not None and val > Eval.neutral.value)
 
 
-def proportion_na(evaluations):
-    """Return the proportion of non-None evaluations that are N/A, or 0.0 if no evaluations."""
+def _proportion_value(evaluations, eval_):
+    """Return proportion of evaluations where consensus is eval_."""
     consensuses = map(consensus_vote, evaluations)   # pylint: disable=bad-builtin
-    na, other = partition(Eval.not_applicable.__ne__, filter(None.__ne__, consensuses))
+    na, other = partition(eval_.__ne__, consensuses)
     na = list(na)
     other = list(other)
     total = len(na) + len(other)
     return len(na) / float(total) if total > 0 else 0.0
 
 
+def proportion_na(evaluations):
+    """Return the proportion of non-None evaluations that are N/A, or 0.0 if no evaluations."""
+    return _proportion_value(evaluations, Eval.not_applicable)
+
+
 def proportion_unevaluated(evaluations):
     """Return the proportion of missing evaluations."""
-    consensuses = map(consensus_vote, evaluations)   # pylint: disable=bad-builtin
-    none, other = partition(None.__ne__, consensuses)
-    none = list(none)
-    other = list(other)
-    total = len(none) + len(other)
-    return len(none) / float(total) if total > 0 else 1.0
+    return _proportion_value(evaluations, None)
 
 
 def hypothesis_sort_key(evaluations):
     """Return a key for sorting hypotheses.
 
-    Ordering (1) inconsistency, (2) consistency, (3) proportion N/A, and (4) proportion unevaluated.
+    Ordering is (1) inconsistency, (2) consistency, (3) proportion N/A, and (4) proportion unevaluated.
     """
-    # could be made more efficient by not having to re-calculate mean_na_neutral vote
+    # could be made more efficient by not having to re-calculate mean_na_neutral and consensus vote
     return (
         inconsistency(evaluations),
         -consistency(evaluations),
@@ -148,6 +148,19 @@ def diagnosticity(evaluations):
         return statistics.pstdev(filter(None.__ne__, na_neutral))  # pylint: disable=bad-builtin
     except statistics.StatisticsError:
         return 0.0
+
+
+def evidence_sort_key(evaluations):
+    """Return a key for sorting evidence.
+
+    Ordering is (1) diagnosticity, (2) proportion N/A, and (3) proportion unevaluated.
+    """
+    # could be made more efficient by not having to re-calculate mean_na_neutral and consensus vote
+    return (
+        -diagnosticity(evaluations),
+        proportion_na(evaluations),
+        proportion_unevaluated(evaluations)
+    )
 
 
 def generate_contributor_count():

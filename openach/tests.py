@@ -16,7 +16,8 @@ from field_history.models import FieldHistory
 from notifications.signals import notify
 
 from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, calc_disagreement
-from .metrics import inconsistency, consistency, proportion_na, proportion_unevaluated, hypothesis_sort_key
+from .metrics import inconsistency, consistency, proportion_na, proportion_unevaluated
+from .metrics import hypothesis_sort_key, evidence_sort_key
 from .models import Board, Evidence, Hypothesis, Evaluation, ProjectNews, BoardFollower, UserSettings
 from .models import URL_MAX_LENGTH, Eval, DigestFrequency
 from .sitemap import BoardSitemap
@@ -673,7 +674,7 @@ class BoardDetailTests(TestCase):
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
 
-        self.assertGreater(len([scored for scored in response.context['evidences'] if scored[1] > 0.0]), 0,
+        self.assertGreater(len([scored for scored in response.context['evidences'] if scored[1][0] < 0.0]), 0,
                            msg="No evidence marked as diagnostic")
         self.assertGreater(len([scored for scored in response.context['hypotheses'] if scored[1][0] > 0.0]), 0,
                            msg="No evidence marked as inconsistent")
@@ -1320,7 +1321,7 @@ class ConsensusTests(TestCase):
         self.assertEqual(consensus_vote([Eval.inconsistent, Eval.very_inconsistent]), Eval.inconsistent)
 
 
-class DiagnosticityTests(TestCase):
+class EvidenceOrderingTests(TestCase):
 
     def test_mean_na_neutral_vote_maps_na_votes(self):
         """Test that mean_na_neutral_vote() maps N/A votes to neutral."""
@@ -1346,6 +1347,21 @@ class DiagnosticityTests(TestCase):
         different = diagnosticity([[Eval.consistent], [Eval.inconsistent]])
         same = diagnosticity([[Eval.neutral], [Eval.neutral]])
         self.assertGreater(different, same)
+
+    def test_evidence_sorting(self):
+        """Test evidence sorting."""
+        evidence_reverse = [
+            [[Eval.not_applicable], [Eval.not_applicable]],  # n/a: 1.0, none: 0.0
+            [[Eval.not_applicable], []],  # n/a: 0.5, none: 0.5
+            [[Eval.neutral], [Eval.not_applicable]],  # n/a: 0.5, none: 0.0
+            [[], []],
+            [[Eval.neutral], []],
+            [[Eval.neutral], [Eval.neutral]],
+            [[Eval.very_consistent], [Eval.very_inconsistent]]
+        ]
+        in_order = sorted(evidence_reverse, key=evidence_sort_key)
+        evidence_reverse.reverse()  # reverse in place
+        self.assertListEqual(in_order, evidence_reverse)
 
 
 class HypothesisOrderingTests(TestCase):
@@ -1390,11 +1406,14 @@ class HypothesisOrderingTests(TestCase):
         self.assertEqual(proportion_na([]), 0.0)
         self.assertEqual(proportion_na([[Eval.not_applicable]]), 1.0)
         self.assertEqual(proportion_na([[Eval.neutral]]), 0.0)
+        self.assertEqual(proportion_na([[Eval.not_applicable], [Eval.not_applicable]]), 1.0)
+        self.assertEqual(proportion_na([[Eval.not_applicable], []]), 0.5)
         self.assertEqual(proportion_na([[Eval.neutral], [Eval.not_applicable]]), 0.5)
 
     def test_calculate_unevaluated_proportion(self):
         """Test basic behavior of proportion_unevaluated()."""
-        self.assertEqual(proportion_unevaluated([]), 1.0)
+        self.assertEqual(proportion_unevaluated([]), 0.0)
+        self.assertEqual(proportion_unevaluated([[]]), 1.0)
         self.assertEqual(proportion_unevaluated([[Eval.not_applicable]]), 0.0)
         self.assertEqual(proportion_unevaluated([[]]), 1.0)
         self.assertEqual(proportion_unevaluated([[], [Eval.not_applicable]]), 0.5)
@@ -1410,7 +1429,7 @@ class HypothesisOrderingTests(TestCase):
             [[Eval.very_inconsistent]],
             [[Eval.inconsistent]],
             [[Eval.not_applicable]],
-            [],
+            [[]],
             [[Eval.neutral]],
             [[Eval.consistent]],
             [[Eval.very_consistent]],
