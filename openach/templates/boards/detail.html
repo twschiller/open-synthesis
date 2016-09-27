@@ -76,7 +76,7 @@
                 <th class="hypothesis">
                     <div>{{ hypothesis.hypothesis_text }}</div>
                     {% if debug_stats %}
-                        <span class="label label-info">{{ inconsistency|floatformat:2 }}</span>
+                        <span class="label label-info">{{ inconsistency.0|floatformat:2 }}</span>
                     {% endif %}
                     {% can_edit request board hypothesis as editable %}
                     {% if editable %}
@@ -99,15 +99,21 @@
                         <a class="btn btn-default" href="{% url 'openach:evaluate' board.id evidence.id %}">Evaluate</a>
                     </div>
                     {% if debug_stats %}
-                        <span class="label label-info">{{ diagnosticity|floatformat:2 }}</span>
+                        <span class="label label-info">{{ diagnosticity.0|floatformat:2 }}</span>
                     {% endif %}
                 </td>
                 {% for hypothesis, inconsistency in hypotheses %}
                     {% get_detail votes evidence.id hypothesis.id as detail %}
                     {% get_detail disagreement evidence.id hypothesis.id as detail_disagreement %}
 
+                    {% if request.user.is_authenticated %}
+                        {% get_detail user_votes evidence.id hypothesis.id as user_detail %}
+                    {% endif %}
+
+                    {% anon_or_voted request user_detail as voted %}
+
                     {% if view_type == 'disagreement' %}
-                        <td class="assessment {{ detail_disagreement|disagreement_style }}">
+                        <td class="assessment {{ detail_disagreement|disagreement_style }} {% if not voted %}corner-cut{% endif %}">
                             {% if detail_disagreement < 0.5 %}
                                 {{ detail_disagreement|disagreement_category }}:
                                 <span class="{{ detail|detail_classname }}">{{ detail|detail_name }}</span>
@@ -116,30 +122,29 @@
                             {% endif %}
                         </td>
                     {% elif view_type == 'comparison' and request.user.is_authenticated %}
-                        {% get_detail user_votes evidence.id hypothesis.id as user_detail %}
-
                         {% if user_detail == detail %}
-                            <td class="assessment {{ user_detail|detail_classname }}">
+                            <td class="assessment {{ user_detail|detail_classname }} {% if not voted %}corner-cut{% endif %}">
                                 {{ user_detail|detail_name }}
                                 {% include 'boards/_detail_icons.html' %}
                             </td>
                         {% elif user_detail %}
-                            <td class="assessment {% comparison_style user_detail detail %}">
+                            <td class="assessment {% comparison_style user_detail detail %} {% if not voted %}corner-cut{% endif %}">
                                 {{ user_detail|detail_name }} vs. {{ detail|detail_name }}
                                 {% include 'boards/_detail_icons.html' %}
                             </td>
                         {% else %}
-                            <td class="assessment {{ user_detail|detail_classname }}">
+                            <td class="assessment {{ user_detail|detail_classname }} {% if not voted %}corner-cut{% endif %}">
                                 Consensus: {{ detail|detail_name }}
                                 {% include 'boards/_detail_icons.html' %}
                             </td>
                         {% endif %}
                     {% else %}
-                        <td class="assessment {{ detail|detail_classname }}">
+                        <td class="assessment {{ detail|detail_classname }} {% if not voted %}corner-cut{% endif %}">
                             {{ detail|detail_name }}
                             {% include 'boards/_detail_icons.html' %}
                         </td>
                     {% endif %}
+
                 {% endfor %}
             </tr>
         {% empty %}

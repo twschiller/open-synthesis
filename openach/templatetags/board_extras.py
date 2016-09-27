@@ -35,6 +35,12 @@ def get_detail(dictionary, evidence_id, hypothesis_id):
     return dictionary.get((evidence_id, hypothesis_id))
 
 
+@register.simple_tag
+def anon_or_voted(request, vote):
+    """Return true if user is not authenticated, or they have voted."""
+    return not request.user.is_authenticated or vote
+
+
 @register.filter
 def detail_name(eval_):
     """Return the human-readable name for the given evaluation."""
