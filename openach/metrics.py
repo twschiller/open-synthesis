@@ -56,7 +56,7 @@ def consensus_vote(evaluations):
     the evidence is with the hypothesis. The calculation is conservative, rounding the result toward Eval.neutral
     if there is a tie.
     """
-    na_it, rated_it = partition(lambda x: x is not Eval.not_applicable, evaluations)
+    na_it, rated_it = partition(Eval.not_applicable.__ne__, evaluations)
     na_votes = list(na_it)
     rated_votes = list(rated_it)
 
@@ -84,6 +84,49 @@ def inconsistency(evaluations):
     # NOTE: could potentially speed up calculation be eliminating list comprehension before the sum
     na_neutral = map(mean_na_neutral_vote, evaluations)  # pylint: disable=bad-builtin
     return sum((Eval.neutral.value - val)**2 for val in na_neutral if val is not None and val < Eval.neutral.value)
+
+
+def consistency(evaluations):
+    """Return the consistency of a hypothesis with respect to a set of evidence. Ignore 'inconsistent' evaluations.
+
+    Calculation does not account for the reliability of the evidence (e.g., due to deception).
+    """
+    na_neutral = map(mean_na_neutral_vote, evaluations)  # pylint: disable=bad-builtin
+    return sum((val - Eval.neutral.value)**2 for val in na_neutral if val is not None and val > Eval.neutral.value)
+
+
+def proportion_na(evaluations):
+    """Return the proportion of non-None evaluations that are N/A, or 0.0 if no evaluations."""
+    consensuses = map(consensus_vote, evaluations)   # pylint: disable=bad-builtin
+    na, other = partition(Eval.not_applicable.__ne__, filter(None.__ne__, consensuses))
+    na = list(na)
+    other = list(other)
+    total = len(na) + len(other)
+    return len(na) / float(total) if total > 0 else 0.0
+
+
+def proportion_unevaluated(evaluations):
+    """Return the proportion of missing evaluations."""
+    consensuses = map(consensus_vote, evaluations)   # pylint: disable=bad-builtin
+    none, other = partition(None.__ne__, consensuses)
+    none = list(none)
+    other = list(other)
+    total = len(none) + len(other)
+    return len(none) / float(total) if total > 0 else 1.0
+
+
+def hypothesis_sort_key(evaluations):
+    """Return a key for sorting hypotheses.
+
+    Ordering (1) inconsistency, (2) consistency, (3) proportion N/A, and (4) proportion unevaluated.
+    """
+    # could be made more efficient by not having to re-calculate mean_na_neutral vote
+    return (
+        inconsistency(evaluations),
+        -consistency(evaluations),
+        proportion_na(evaluations),
+        proportion_unevaluated(evaluations),
+    )
 
 
 def diagnosticity(evaluations):

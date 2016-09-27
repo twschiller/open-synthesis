@@ -15,7 +15,8 @@ from django.core.management import call_command
 from field_history.models import FieldHistory
 from notifications.signals import notify
 
-from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, inconsistency, calc_disagreement
+from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, calc_disagreement
+from .metrics import inconsistency, consistency, proportion_na, proportion_unevaluated, hypothesis_sort_key
 from .models import Board, Evidence, Hypothesis, Evaluation, ProjectNews, BoardFollower, UserSettings
 from .models import URL_MAX_LENGTH, Eval, DigestFrequency
 from .sitemap import BoardSitemap
@@ -674,7 +675,7 @@ class BoardDetailTests(TestCase):
 
         self.assertGreater(len([scored for scored in response.context['evidences'] if scored[1] > 0.0]), 0,
                            msg="No evidence marked as diagnostic")
-        self.assertGreater(len([scored for scored in response.context['hypotheses'] if scored[1] > 0.0]), 0,
+        self.assertGreater(len([scored for scored in response.context['hypotheses'] if scored[1][0] > 0.0]), 0,
                            msg="No evidence marked as inconsistent")
 
         self.assertEqual(response.context['evidences'][0][0], diagnostic,
@@ -1347,7 +1348,7 @@ class DiagnosticityTests(TestCase):
         self.assertGreater(different, same)
 
 
-class InconsistencyTests(TestCase):
+class HypothesisOrderingTests(TestCase):
 
     def test_no_evidence_has_zero_inconsistency(self):
         """Test that inconsistency() returns 0.0 when there is no evidence."""
@@ -1383,6 +1384,40 @@ class InconsistencyTests(TestCase):
         h3 = inconsistency([[Eval.neutral], [Eval.not_applicable], [Eval.very_consistent], [Eval.very_inconsistent]])
         self.assertLess(h1, h2)
         self.assertLess(h2, h3)
+
+    def test_calculate_na_proportion(self):
+        """Test basic behavior of proportion_na()."""
+        self.assertEqual(proportion_na([]), 0.0)
+        self.assertEqual(proportion_na([[Eval.not_applicable]]), 1.0)
+        self.assertEqual(proportion_na([[Eval.neutral]]), 0.0)
+        self.assertEqual(proportion_na([[Eval.neutral], [Eval.not_applicable]]), 0.5)
+
+    def test_calculate_unevaluated_proportion(self):
+        """Test basic behavior of proportion_unevaluated()."""
+        self.assertEqual(proportion_unevaluated([]), 1.0)
+        self.assertEqual(proportion_unevaluated([[Eval.not_applicable]]), 0.0)
+        self.assertEqual(proportion_unevaluated([[]]), 1.0)
+        self.assertEqual(proportion_unevaluated([[], [Eval.not_applicable]]), 0.5)
+
+    def test_calculate_consistency(self):
+        """Test basic behavior of consistency()."""
+        self.assertEqual(consistency([]), 0.0)
+        self.assertGreater(consistency([[Eval.very_consistent]]), consistency([[Eval.consistent]]))
+
+    def test_hypothesis_sorting(self):
+        """Test that we can sort hypotheses."""
+        hypotheses_reverse = [
+            [[Eval.very_inconsistent]],
+            [[Eval.inconsistent]],
+            [[Eval.not_applicable]],
+            [],
+            [[Eval.neutral]],
+            [[Eval.consistent]],
+            [[Eval.very_consistent]],
+        ]
+        in_order = sorted(hypotheses_reverse, key=hypothesis_sort_key)
+        hypotheses_reverse.reverse()  # reverse in place
+        self.assertListEqual(in_order, hypotheses_reverse)
 
 
 class DisagreementTests(TestCase):
