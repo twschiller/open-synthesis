@@ -12,7 +12,6 @@ python-http-client~=2.2.1
 python-slugify~=1.2.1
 python3-openid~=3.0.10
 PyYAML~=3.12
-pytz~=2016.7
 requests~=2.11.1
 requests-oauthlib~=0.7.0
 rollbar~=0.13.5
@@ -35,3 +34,4 @@ django-webpack-loader~=0.3.3
 qrcode~=5.3
 pillow~=3.3.1
 django-notifications-hq~=1.2
+pytz==2016.7
