@@ -418,6 +418,11 @@ def _get_cache():
 # https://docs.djangoproject.com/en/1.10/topics/cache/
 CACHES = _get_cache()
 
+# http://docs.celeryproject.org/en/latest/configuration.html
+# XXX: not sure why these have to be declared globally in addition to the celery app setup
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']  # set globally for safety
+CELERY_RESULT_SERIALIZER = 'json'
 if TESTING:
     logger.info('Enabling CELERY_ALWAYS_EAGER for testing')
     CELERY_ALWAYS_EAGER = True

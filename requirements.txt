@@ -36,3 +36,4 @@ pillow~=3.3.1
 django-notifications-hq~=1.2
 pytz==2016.7
 celery~=3.1.24
+redis~=2.10.5

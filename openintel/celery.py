@@ -20,6 +20,8 @@ app = Celery('openintel')  # pylint: disable=invalid-name
 
 app.conf.update(
     CELERY_TASK_SERIALIZER='json',
+    CELERY_ACCEPT_CONTENT=['json'],  # Ignore other content
+    CELERY_RESULT_SERIALIZER='json',
     # synchronously execute tasks, so you don't need to run a celery server
     # http://docs.celeryproject.org/en/latest/configuration.html#celery-always-eager
     CELERY_ALWAYS_EAGER=getattr(settings, 'CELERY_ALWAYS_EAGER', False),
