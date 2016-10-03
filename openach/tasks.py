@@ -9,7 +9,7 @@ from celery import shared_task  # noqa
 
 
 @shared_task
-def example_task(x, y):
+def example_task(x, y):  # pragma: no cover
     """Add two numbers together.
 
     An example for reference.
