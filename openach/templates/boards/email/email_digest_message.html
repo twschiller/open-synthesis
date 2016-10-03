@@ -17,7 +17,7 @@
     <h2>Board Updates</h2>
 
     {% for target, for_target in notifications.items %}
-        <h3>Board <a href="https://{{ target|board_url }}">{{ target.board_title }}</a></h3>
+        <h3>Board <a href="https://{{ site.domain }}{{ target|board_url }}">{{ target.board_title }}</a></h3>
         <ul>
             {% for notification in for_target %}
                 <li>{% include 'boards/email/_notification.html' %}</li>
