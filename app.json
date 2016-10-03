@@ -1,6 +1,6 @@
 {
   "name": "Open Synthesis",
-  "description": "Open platform for intelligence analysis",
+  "description": "Open platform for CIA-style intelligence analysis",
   "image": "heroku/python",
   "website": "https://www.opensynthesis.org",
   "repository": "https://github.com/twschiller/open-synthesis",
