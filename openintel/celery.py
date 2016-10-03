@@ -36,9 +36,11 @@ _BACKEND_URL = getattr(settings, 'CELERY_RESULT_BACKEND', _BROKER_URL)
 
 if app.conf.CELERY_ALWAYS_EAGER:
     logger.warning('Running Celery tasks eagerly/synchronously; may impact performance')
+    if _BROKER_URL or _BACKEND_URL:
+        logger.warning('Ignoring Celery broker and result backend settings')
 elif _BROKER_URL and _BACKEND_URL:
     logger.info('Celery Broker: %s', _BROKER_URL)
     logger.info('Celery Result Backend: %s', _BACKEND_URL)
     app.conf.update(BROKER_URL=_BROKER_URL, CELERY_RESULT_BACKEND=_BACKEND_URL)
 else:
-    raise Exception('No broker url/backend supplied for Celery; enable CELERY_ALWAYS_EAGER to run without a server')
+    logger.warning('No broker url/backend supplied for Celery; enable CELERY_ALWAYS_EAGER to run without a server')
