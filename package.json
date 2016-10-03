@@ -1,7 +1,7 @@
 {
   "name": "open-synthesis",
   "version": "0.0.1",
-  "description": "Open platform for intelligence analysis",
+  "description": "Open platform for CIA-style intelligence analysis",
   "private": true,
   "main": "index.js",
   "scripts": {

@@ -6,6 +6,7 @@
 [![Code Health](https://landscape.io/github/twschiller/open-synthesis/master/landscape.svg?style=flat)](https://landscape.io/github/twschiller/open-synthesis/master)
 [![Requirements Status](https://requires.io/github/twschiller/open-synthesis/requirements.svg?branch=master)](https://requires.io/github/twschiller/open-synthesis/requirements/?branch=master)
 [![License Status](https://img.shields.io/badge/license-GPL-brightgreen.svg)](LICENSE.md)
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/open-synthesis/Lobby)
 
 The purpose of the Open Synthesis project is to empower the public to synthesize vast amounts of information into actionable conclusions.
 
