@@ -26,15 +26,16 @@ make a code or configuration change based on the issue.
 
 **Scope**  
 * https://www.opensynthesis.org
+* https://open-synthesis-sandbox.herokuapp.com/
 
 
 **Out of scope**  
 Any services hosted by 3rd party providers and services are excluded from scope. These services include, but are not 
 limited to:
 * GitHub
+* Gitter
 * Rollbar
 * SendGrid
-* CDNs, e.g., BootstrapCDN, CDNJS
 
 
 In the interest of the safety of our users, staff, the Internet at large and you as a security researcher, the 
