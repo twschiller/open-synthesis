@@ -4,8 +4,19 @@
   "image": "heroku/python",
   "website": "https://www.opensynthesis.org",
   "repository": "https://github.com/twschiller/open-synthesis",
-  "keywords": ["python", "django", "analysis of competing hypotheses", "ACH" ],
-  "addons": [ "heroku-postgresql:hobby-dev", "rollbar:free", "sendgrid:starter", "memcachier:dev" ],
+  "keywords": [
+    "python",
+    "django",
+    "analysis of competing hypotheses",
+    "ACH"
+  ],
+  "addons": [
+    "heroku-postgresql:hobby-dev",
+    "rollbar:free",
+    "sendgrid:starter",
+    "memcachier:dev",
+    "heroku-redis:hobby-dev"
+  ],
   "env": {
     "SITE_NAME": {
       "description": "The name of your deployment, e.g., Open Synthesis. If you are planning on running a public instance, please do not use the name 'Open Synthesis' because may it cause confusion between your deployment and the official website.",
