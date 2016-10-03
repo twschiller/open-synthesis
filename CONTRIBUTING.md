@@ -36,7 +36,7 @@ Install the project requirements:
 Create a local environment configuration by copying the defaults in `env.sample`:
 
     cp env.sample .env
-    
+        
 Package the static files for the project:
     
     webpack --config webpack.config.js
@@ -50,14 +50,37 @@ Create the database schema, and load the initial application data:
 
     python manage.py migrate
     python manage.py loaddata source_tags 
-    
-Serve the Django application using [Gunicorn](http://gunicorn.org/):
+   
+### Web Server
+   
+To run the Django development server, which automatically reloads modules when you
+edit a file:
+
+    python manage.py runserver
+   
+To serve the Django application using [Gunicorn](http://gunicorn.org/):
 
     gunicorn -c conf.py openintel.wsgi --log-file -
     
-If you are using Heroku, you can run the project with:    
+If you are using Heroku, you can also run the Gunicorn server with:    
     
     heroku local web
+    
+### Celery Task Runner
+    
+If you have a local instance of [Redis](http://redis.io/), you can configure Celery to use
+it as broker/result store by setting `REDIS_URL` and `CELERY_ALWAYS_EAGER` in the `.env` file:
+
+    REDIS_URL=redis://localhost:6379
+    CELERY_ALWAYS_EAGER=False
+    
+Then run the Celery worker:
+
+    celery worker --app=openintel.celery.app
+    
+If you are using Heroku, you can also run the worker with:
+
+    heroku local worker
     
 ## Code Style and Testing
 
