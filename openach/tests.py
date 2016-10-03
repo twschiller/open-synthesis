@@ -26,6 +26,7 @@ from .views import bitcoin_donation_url, notify_edit, notify_add
 from .views import SettingsForm, BoardEditForm, EvidenceSourceForm, HypothesisForm, EvidenceEditForm
 from .util import first_occurrences
 from .digest import create_digest_email, send_digest_emails
+from .tasks import example_task
 
 logger = logging.getLogger(__name__)
 
@@ -1725,3 +1726,13 @@ class DigestTests(TestCase):
 
             call_command('senddigest', 'weekly', '--force')
             self.assertEqual(len(mail.outbox), 1, 'Weekly digest email not sent when forced')
+
+
+class CeleryTestCase(TestCase):
+
+    def testNoError(self):
+        """Test that the ``add`` task runs with no errors, and returns the correct result."""
+        result = example_task.delay(8, 8)
+
+        self.assertEquals(result.get(), 16)
+        self.assertTrue(result.successful())
