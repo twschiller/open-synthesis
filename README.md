@@ -1,4 +1,4 @@
-# OPEN-SYNTHESIS
+# Open Synthesis
 
 [![Build Status](https://travis-ci.org/twschiller/open-synthesis.svg?branch=master)](https://travis-ci.org/twschiller/open-synthesis)
 [![Coverage Status](https://coveralls.io/repos/github/twschiller/open-synthesis/badge.svg?branch=master)](https://coveralls.io/github/twschiller/open-synthesis?branch=master)
@@ -7,7 +7,7 @@
 [![Requirements Status](https://requires.io/github/twschiller/open-synthesis/requirements.svg?branch=master)](https://requires.io/github/twschiller/open-synthesis/requirements/?branch=master)
 [![License Status](https://img.shields.io/badge/license-GPL-brightgreen.svg)](LICENSE.md)
 
-The purpose of the OPEN-SYNTHESIS project is to empower the public to synthesize vast amounts of information into actionable conclusions.
+The purpose of the Open Synthesis project is to empower the public to synthesize vast amounts of information into actionable conclusions.
 
 To this end, the platform and its governance aims to be:
 

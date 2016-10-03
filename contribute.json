@@ -1,10 +1,12 @@
 {
   "name": "Open Synthesis",
-  "description": "Open platform for intelligence analysis",
+  "description": "Open platform for CIA-style intelligence analysis",
   "repository": {
     "url": "https://github.com/twschiller/open-synthesis",
+    "type": "git",
     "license": "GPL3",
-    "tests": "https://travis-ci.org/twschiller/open-synthesis"
+    "tests": "https://travis-ci.org/twschiller/open-synthesis",
+    "clone": "https://github.com/twschiller/open-synthesis.git"
   },
   "keywords": [
     "python",
@@ -22,6 +24,7 @@
     "report": "https://github.com/twschiller/open-synthesis/issues"
   },
   "urls": {
-    "prod": "https://www.opensynthesis.org"
+    "prod": "https://www.opensynthesis.org",
+    "sandbox": "https://open-synthesis-sandbox.herokuapp.com/"
   }
 }
