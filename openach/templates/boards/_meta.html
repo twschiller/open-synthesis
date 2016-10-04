@@ -1,5 +1,4 @@
-{% load i18n %}
-{% get_current_language as LANGUAGE_CODE %}
+{% load translation %}
 {% with description=meta_description|default:default_description %}
     <meta property="og:type" content="website" />
     <meta property="twitter:card" content="summary">
@@ -8,7 +7,7 @@
     <meta name="keywords" content="{% firstof meta_keywords default_keywords|join:", " %}">
 
     <meta property="og:site_name" content="{{ site.name }}"/>
-    <meta property="og:locale" content="{{ LANGUAGE_CODE }}"/>
+    <meta property="og:locale" content="{% get_current_locale %}"/>
     <meta property="og:description" content="{{ description }}">
 
     {% if twitter_account %}

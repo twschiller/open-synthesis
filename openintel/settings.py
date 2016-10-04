@@ -16,6 +16,7 @@ import os
 import logging
 import sys
 
+from django.utils.translation import ugettext_lazy as _
 import dj_database_url
 import environ
 
@@ -121,6 +122,9 @@ INSTALLED_APPS = [
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # LocaleMiddleware must come after SessionMiddleware and before CommonMiddleware
+    # see: https://docs.djangoproject.com/en/1.10/topics/i18n/translation/#how-django-discovers-language-preference
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -128,7 +132,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.gzip.GZipMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
     'csp.middleware.CSPMiddleware',
     # MinifyHTMLMiddleware needs to be after all middleware that may modify the HTML
     'pipeline.middleware.MinifyHTMLMiddleware',
@@ -222,8 +225,8 @@ SECURE_HSTS_SECONDS = env('SECURE_HSTS_SECONDS')
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 gettext = lambda s: s  # noqa
 LANGUAGES = (
-    # Add new locales in LANGUAGES variable, e.g., ('az', gettext('Azerbaijani'))
-    ('en-us', gettext('English (United States)')),
+    # Add new locales in LANGUAGES variable, e.g., ('az', _('Azerbaijani'))
+    ('en-us', _('English (United States)')),
 )
 LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'locale'),
