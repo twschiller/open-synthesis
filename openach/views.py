@@ -599,7 +599,7 @@ def toggle_source_tag(request, evidence_id, source_id):
                 messages.success(request, _('Removed "{name}" tag from source.').format(name=tag.tag_name))
             else:
                 AnalystSourceTag.objects.create(source=source, tagger=request.user, tag=tag, tag_date=timezone.now())
-                messages.success(request, _('Added "{name}" tag to source.').format(tag.tag_name))
+                messages.success(request, _('Added "{name}" tag to source.').format(name=tag.tag_name))
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
     else:
         # Redirect to the form where the user can toggle a source tag

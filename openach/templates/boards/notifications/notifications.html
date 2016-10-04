@@ -1,13 +1,14 @@
 {% extends 'boards/base.html' %}
+{% load i18n %}
 
-{% block title %}Notifications | {{ site.name }}{% endblock %}
+{% block title %}{% trans "Notifications" %} | {{ site.name }}{% endblock %}
 
 {% load notifications_tags %}
 {% load board_extras %}
 {% load static %}
 
 {% block content %}
-    <h1>Notifications</h1>
+    <h1>{% trans "Notifications" %}</h1>
 
     <ul class="list-group">
         {% for notification in notifications %}

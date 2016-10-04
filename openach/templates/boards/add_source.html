@@ -1,9 +1,8 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}Add Source | {{ site.name }}{% endblock %}
-
 {% load bootstrap %}
 {% load i18n %}
+
+{% block title %}{% trans "Add Source" %} | {{ site.name }}{% endblock %}
 
 {% block content %}
 
@@ -20,7 +19,7 @@
         {{ form|bootstrap }}
         <div class="form-group">
             <div>
-                <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">Return to Evidence</a>
+                <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">{% trans "Return to Evidence" %}</a>
                 <button type="submit" class="btn btn-primary">{% trans "Add Source" %}</button>
             </div>
         </div>

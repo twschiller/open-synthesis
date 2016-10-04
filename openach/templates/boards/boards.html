@@ -1,19 +1,19 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}Boards | {{ site.name }}{% endblock %}
-
 {% load board_extras %}
+{% load i18n %}
 {% load static %}
 
+{% block title %}{% trans "Boards" %} | {{ site.name }}{% endblock %}
+
 {% block opengraph %}
-    <meta property="og:title" content="{{ site.name }} Intelligence Boards" />
-    <meta property="og:url" content="{{ request|canonical_reverse:'openach:boards' }}" />
+  <meta property="og:title" content="{{ site.name }} {% trans "Intelligence Boards" %}" />
+  <meta property="og:url" content="{{ request|canonical_reverse:'openach:boards' }}" />
 {% endblock %}
 
 {% block content %}
     <h1>
-        Intelligence Boards
-        <a class="btn btn-primary" href="{% url 'openach:create_board' %}">Create Board</a>
+      {% trans "Intelligence Boards" %}
+      <a class="btn btn-primary" href="{% url 'openach:create_board' %}">{% trans "Create Board" %}</a>
     </h1>
 
     {% include 'boards/_board_table.html' %}

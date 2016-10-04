@@ -1,13 +1,16 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}Add Evidence | {{ site.name }}{% endblock %}
-
+{% load i18n %}
 {% load board_extras %}
 {% load bootstrap %}
-{% load i18n %}
+
+{% block title %}{% trans "Add Evidence" %} | {{ site.name }}{% endblock %}
 
 {% block content %}
-    <h1>{% trans "Add Evidence for " %} <i>{{ board.board_title }}</i></h1>
+    <h1>
+      {% blocktrans trimmed with board_title=board.board_title %}
+        Add Evidence for <i>{{ board_title }}</i>
+      {% endblocktrans %}
+    </h1>
 
     <div class="well">{{ board.board_desc }}</div>
 
@@ -16,7 +19,7 @@
         {{ form|bootstrap }}
         <div class="form-group">
             <div>
-                <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>
+                <a class="btn btn-default" href="{{ board|board_url }}">{% trans "Return to Board" %}</a>
                 <button type="submit" class="btn btn-primary">{% trans "Add Evidence" %}</button>
             </div>
         </div>

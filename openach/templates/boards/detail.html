@@ -1,12 +1,12 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}{{ board.board_title }} | {{ site.name }}{% endblock %}
-
 {% load board_extras %}
 {% load auth_extras %}
+{% load i18n %}
 {% load comments %}
 {% load bootstrap %}
 {% load static %}
+
+{% block title %}{{ board.board_title }} | {{ site.name }}{% endblock %}
 
 {% block opengraph %}
     <meta property="og:title" content="{{ board.board_title }}" />
@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block content %}
-    <h1>Intelligence Board: <i>{{ board.board_title }}</i></h1>
+    <h1>{% trans "Intelligence Board:"%} <i>{{ board.board_title }}</i></h1>
 
     {% if allow_share %}
         {% include 'boards/_sharing.html' with title=board.board_title url=request|full_url:board only %}
@@ -22,51 +22,59 @@
 
     <div>
         {% if board.creator %}
-            Board created by <a href="{% url 'profile' board.creator_id %}">{{ board.creator }}</a>
-            on {{ board.pub_date|date }}.
+          {% url 'profile' board.creator_id as profile_url %}
+          {% blocktrans trimmed with board.creator as creator and board.pub_date|date as pub_date %}
+            Board created by <a href="{{ profile_url }}">{{ creator }}</a>
+            on {{ pub_date }}.
+          {% endblocktrans %}
         {% else %}
-            Board created on {{ board.pub_date|date }}.
+          {% blocktrans trimmed with board.pub_date|date as pub_date %}
+            Board created on {{ pub_date }}.
+          {% endblocktrans %}
         {% endif %}
     </div>
     <div class="well">{{ board.board_desc }}</div>
 
     <p>
-        <b>Instructions:</b> The following table collects the possible hypotheses and relevant evidence. The evidence
+      <b>{% trans "Instructions:" %}</b>
+      {% blocktrans trimmed %}
+        The following table collects the possible hypotheses and relevant evidence. The evidence
         that best distinguishes the hypotheses are shown first. Hypotheses that are most consistent are shown first.
         To evaluate the hypotheses against a piece of evidence, click the "Evaluate" button in the evidence cell.
         You can view the sources that corroborate a piece of evidence by clicking the "Detail" button for that piece
         of evidence.
+      {% endblocktrans %}
     </p>
 
     <table class="table table-bordered ach-table">
         <thead>
         <tr>
             <th class="ach-actions">
-                Actions:
-                <div class="btn-group" role="group" aria-label="Board Actions">
-                    <a class="btn btn-default btn-sm" href="{% url 'openach:add_evidence' board.id %}">Add Evidence</a>
-                    <a class="btn btn-default btn-sm" href="{% url 'openach:add_hypothesis' board.id %}">Add Hypothesis</a>
+                {% trans "Actions:" %}
+                <div class="btn-group" role="group" aria-label="{% trans "Board Actions" %}">
+                    <a class="btn btn-default btn-sm" href="{% url 'openach:add_evidence' board.id %}">{% trans "Add Evidence" %}</a>
+                    <a class="btn btn-default btn-sm" href="{% url 'openach:add_hypothesis' board.id %}">{% trans "Add Hypothesis" %}</a>
                     {% can_edit request board as editable %}
                     {% if editable %}
-                        <a class="btn btn-default btn-sm" href="{% url 'openach:edit_board' board.id %}">Edit Board</a>
+                        <a class="btn btn-default btn-sm" href="{% url 'openach:edit_board' board.id %}">{% trans "Edit Board" %}</a>
                     {% endif %}
-                    <a class="btn btn-default btn-sm" href="{% url 'openach:board_history' board.id %}">View History</a>
+                    <a class="btn btn-default btn-sm" href="{% url 'openach:board_history' board.id %}">{% trans "View History" %}</a>
                 </div><br/>
-                View:
-                <div class="btn-group" role="group" aria-label="View Type">
+                {% trans "View:" %}
+                <div class="btn-group" role="group" aria-label="{% trans "View Type" %}">
                     {% if view_type == 'disagreement' %}
-                        <a class="btn btn-default btn-sm active" href="{{ board|board_url }}">Disagreement</a>
+                        <a class="btn btn-default btn-sm active" href="{{ board|board_url }}">{% trans "Disagreement" %}</a>
                     {%  else %}
                         <a class="btn btn-default btn-sm" href="{{ board|board_url }}?view_type=disagreement">
-                            Disagreement
+                            {% trans "Disagreement" %}
                         </a>
                     {% endif %}
                     {% if request.user.is_authenticated %}
                         {% if view_type == 'comparison' %}
-                            <a class="btn btn-default btn-sm active" href="{{ board|board_url }}">Comparison</a>
+                            <a class="btn btn-default btn-sm active" href="{{ board|board_url }}">{% trans "Comparison" %}</a>
                         {%  else %}
                             <a class="btn btn-default btn-sm" href="{{ board|board_url }}?view_type=comparison">
-                                Comparison
+                              {% trans "Comparison" %}
                             </a>
                         {% endif %}
                     {% endif %}
@@ -80,7 +88,7 @@
                     {% endif %}
                     {% can_edit request board hypothesis as editable %}
                     {% if editable %}
-                        <a class="btn btn-default btn-xs" href="{% url 'openach:edit_hypothesis' hypothesis.id %}">Edit</a>
+                        <a class="btn btn-default btn-xs" href="{% url 'openach:edit_hypothesis' hypothesis.id %}">{% trans "Edit" %}</a>
                     {% endif %}
                 </th>
             {% endfor %}
@@ -94,9 +102,9 @@
                         <span class="event-date">{{ evidence.event_date }}</span>
                     {% endif %}
                     <span>{{ evidence.evidence_desc }}</span>
-                    <div class="btn-group btn-group-xs" role="group" aria-label="Evidence Actions">
-                        <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">Details</a>
-                        <a class="btn btn-default" href="{% url 'openach:evaluate' board.id evidence.id %}">Evaluate</a>
+                    <div class="btn-group btn-group-xs" role="group" aria-label="{% trans "Evidence Actions" %}">
+                        <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">{% trans "Details" %}</a>
+                        <a class="btn btn-default" href="{% url 'openach:evaluate' board.id evidence.id %}">{% trans "Evaluate" %}</a>
                     </div>
                     {% if debug_stats %}
                         <span class="label label-info">{{ diagnosticity.0|floatformat:2 }}</span>
@@ -129,12 +137,12 @@
                             </td>
                         {% elif user_detail %}
                             <td class="assessment {% comparison_style user_detail detail %} {% if not voted %}corner-cut{% endif %}">
-                                {{ user_detail|detail_name }} vs. {{ detail|detail_name }}
+                                {{ user_detail|detail_name }} {% trans "vs." %} {{ detail|detail_name }}
                                 {% include 'boards/_detail_icons.html' %}
                             </td>
                         {% else %}
                             <td class="assessment {{ user_detail|detail_classname }} {% if not voted %}corner-cut{% endif %}">
-                                Consensus: {{ detail|detail_name }}
+                                {% trans "Consensus:" %} {{ detail|detail_name }}
                                 {% include 'boards/_detail_icons.html' %}
                             </td>
                         {% endif %}
@@ -151,14 +159,14 @@
             <tr>
                 <td></td>
                 <td colspan={{ board.hypothesis_set.all|length }}>
-                    No evidence has been provided yet. <a href="{% url 'openach:add_evidence' board.id %}">Add evidence.</a>
+                    {% trans "No evidence has been provided yet." %} <a href="{% url 'openach:add_evidence' board.id %}">{% trans "Add evidence." %}</a>
                 </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <h2>Comments</h2>
+    <h2>{% trans "Comments" %}</h2>
 
     {% render_comment_list for board %}
 
@@ -173,10 +181,14 @@
             {{ form.timestamp }}
             {{ form.security_hash }}
             <input type="hidden" name="next" value="{{ board|board_url }}" />
-            <input class="btn btn-primary" type="submit" value="Add comment" id="id_submit" />
+            <input class="btn btn-primary" type="submit" value="{% trans "Add comment" %}" id="id_submit" />
         </form>
     {% else %}
-        <p>Please <a href="/accounts/login/?next={{ board|board_url }}">log in</a> to leave a comment.</p>
+        <p>
+          {% blocktrans trimmed with board|board_url as custom_url %}
+            Please <a href="/accounts/login/?next={{ custom_url }}">log in</a> to leave a comment.
+          {% endblocktrans %}
+        </p>
     {% endif %}
 
     {% include 'boards/_footer.html' %}
