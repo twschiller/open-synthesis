@@ -89,7 +89,11 @@ Before submitting a pull request, please review the
 
 # Acknowledgements
 
-We gratefully acknowledge this project's 3rd-party libraries and their contributors. See [here](requirements.txt) and 
+## Contributors
+* [Emin Mastizada](https://github.com/mastizada): internationalization
+
+## Third-Party Libraries and Services
+We gratefully acknowledge this project's third-party libraries and their contributors. See [here](requirements.txt) and 
 [here](package.json). Additionally, we'd like to acknowledge the following:
 
 * SSL/TLS certificate generated with [Let's Encrypt](https://letsencrypt.org/)
