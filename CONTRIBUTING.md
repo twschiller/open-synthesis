@@ -4,6 +4,12 @@ We appreciate all pull requests. However, before working on an enhancement/featu
 - Search to see if there's  already a discussion on the [Issue Tracker](https://github.com/twschiller/open-synthesis/issues). If not, you should [start a new discussion](https://github.com/twschiller/open-synthesis/issues/new)
 - Let us know you're working on the issue, so that we can (1) help fill in any gaps in the requirements, and (2) avoid having multiple contributors do redundant work
 
+**Table of Contents**
+* [Setting up your development environment](#local-development)
+* [Code style and testing](#code-style-and-testing)
+* [Translating Open Synthesis to another language](#adding-a-translation)
+* [Acknowledgements and list of contributors](#acknowledgements)
+
 ## Local Development
 
 To perform local development, you'll need Python 3.5, [pip](https://pip.pypa.io/en/stable/installing/),
@@ -86,6 +92,43 @@ If you are using Heroku, you can also run the worker with:
 
 Before submitting a pull request, please review the 
 [quality control wiki](https://github.com/twschiller/open-synthesis/wiki/Quality-Controls).
+
+## Adding a Translation
+
+If you want to help translate Open Synthesis but don't want to set up local development environment, let us know
+and we'll assist you.
+
+First, if you haven't already, [set up your local development environment](local-development). 
+Next, install [GNU gettext](https://www.gnu.org/software/gettext/).
+If you're using [Homebrew](http://brew.sh/index.html), the following commands install and link gettext:
+
+    brew install gettext
+    brew link --force gettext
+
+Create a translation file for your locale with the [makemessages](https://docs.djangoproject.com/en/1.10/ref/django-admin/#makemessages) 
+command. A list of language codes is available [here](http://www.oracle.com/technetwork/java/javase/javase7locales-334809.html).
+For example, to create a British English translation, use the following command:
+
+    python manage.py makemessages --locale=en_GB
+
+This will create a folder for the locale in the `local` directory with a messages file `django.po`. Translate the
+messages by filling in the `msgstr` fields in the messages file.
+
+Compile the translations with the [compilemessages](https://docs.djangoproject.com/en/1.10/ref/django-admin/#compilemessages) 
+command:
+
+    python manage.py compilemessages
+
+Add your translation to the `openintel/settings.py` file. Note that the language corresponding to the locale is lower
+case and uses a hypen `-` instead of an underscore `_`. So locale `en_GB` becomes `en-gb`:
+
+    LANGUAGES = (
+        ('en-us', _('English (United States)')),
+        ('en-gb', _('English (British)')),
+    )
+
+Your translation should now be available when you restart your server. If you're still seeing English, double-check
+that your browser is requesting the page in the language you created.
 
 # Acknowledgements
 
