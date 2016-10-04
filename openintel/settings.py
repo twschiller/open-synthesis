@@ -223,7 +223,6 @@ SECURE_HSTS_SECONDS = env('SECURE_HSTS_SECONDS')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
-gettext = lambda s: s  # noqa
 LANGUAGES = (
     # Add new locales in LANGUAGES variable, e.g., ('az', _('Azerbaijani'))
     ('en-us', _('English (United States)')),
