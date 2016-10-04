@@ -32,7 +32,7 @@ nplusone~=0.7.2
 django-invitations~=1.7
 django-webpack-loader~=0.3.3
 qrcode~=5.3
-pillow~=3.3.1
+pillow~=3.4.0
 django-notifications-hq~=1.2
 pytz==2016.7
 celery~=3.1.24

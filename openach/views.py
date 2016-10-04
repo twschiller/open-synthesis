@@ -4,49 +4,39 @@ For more information, please see:
     https://docs.djangoproject.com/en/1.10/topics/http/views/
 """
 from collections import defaultdict
-import logging
 import itertools
+import logging
 import random
-from io import BytesIO
 
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.sites.shortcuts import get_current_site
-from django.db import transaction
-from django import forms
-from django.utils import timezone
-from django.utils.http import urlencode
-from django.shortcuts import render, get_object_or_404
-from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.contrib.sites.models import Site
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.cache import cache
+from django.core.exceptions import PermissionDenied, ImproperlyConfigured
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db import transaction
+from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.shortcuts import render, get_object_or_404
 # NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
 from django.urls import reverse  # pylint: disable=no-name-in-module
-from django.core.exceptions import PermissionDenied, ImproperlyConfigured
-from django.conf import settings
-from django.views.decorators.http import require_http_methods, require_safe
-from django.forms import ValidationError
+from django.utils import timezone
 from django.utils.translation import ugettext as _
-from django.views.decorators.http import etag
 from django.views.decorators.cache import cache_page
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.core.cache import cache
-from slugify import slugify
+from django.views.decorators.http import require_http_methods, require_safe, etag
 from field_history.models import FieldHistory
-import qrcode
-from qrcode.image.svg import SvgPathImage
 from notifications.signals import notify
 
-from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
-from .models import ProjectNews, BoardFollower, UserSettings
-from .models import EVIDENCE_MAX_LENGTH, HYPOTHESIS_MAX_LENGTH, URL_MAX_LENGTH, SLUG_MAX_LENGTH
-from .models import BOARD_TITLE_MAX_LENGTH, BOARD_DESC_MAX_LENGTH
+from .auth import check_edit_authorization
+from .decorators import cache_if_anon, cache_on_auth, account_required
+from .donate import bitcoin_donation_url, make_qr_code
+from .forms import BoardCreateForm, BoardForm, EvidenceForm, EvidenceSourceForm, SettingsForm, HypothesisForm
 from .metrics import consensus_vote, hypothesis_sort_key, evidence_sort_key, calc_disagreement
 from .metrics import generate_contributor_count, generate_evaluator_count
 from .metrics import user_boards_contributed, user_boards_created, user_boards_evaluated
-from .decorators import cache_if_anon, cache_on_auth, account_required
-from .auth import check_edit_authorization
-
+from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
+from .models import ProjectNews, BoardFollower
 
 # XXX: allow_remove logic should probably be refactored to a template context processor
 
@@ -54,15 +44,6 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 PAGE_CACHE_TIMEOUT_SECONDS = 60
 DEBUG = getattr(settings, 'DEBUG', False)
-
-DEFAULT_EVAL = '------'
-KEEP_EVAL = '-- Keep Previous Assessment'
-REMOVE_EVAL = '-- Remove Assessment'
-
-
-def is_field_provided(form, field):
-    """Return true if field has non-None value in the form."""
-    return field in form.cleaned_data and form.cleaned_data[field] is not None
 
 
 def _remove_and_redirect(request, removable, message_detail):
@@ -76,16 +57,6 @@ def _remove_and_redirect(request, removable, message_detail):
         return HttpResponseRedirect(reverse('openach:detail', args=(removable.board.id,)))
     else:
         raise PermissionDenied()
-
-
-def bitcoin_donation_url(address):
-    """Return a Bitcoin donation URL for DONATE_BITCOIN_ADDRESS or None."""
-    if address:
-        msg = _("Donate to {name}").format(name=Site.objects.get_current().name)
-        url = "bitcoin:{}?{}".format(address, urlencode({'message': msg}))
-        return url
-    else:
-        return None
 
 
 def make_paginator(request, object_list, per_page=10, orphans=3):
@@ -142,10 +113,7 @@ def board_listing(request):
     """Return a paginated board listing view showing all boards and their popularity."""
     board_list = Board.objects.order_by('-pub_date')
     metric_timeout_seconds = 60 * 2
-
-    desc = _('List of intelligence boards on {name} and summary information').format(
-        name=Site.objects.get_current().name
-    )
+    desc = _('List of intelligence boards on {name} and summary information').format(name=get_current_site(request).name)
     context = {
         'boards': make_paginator(request, board_list),
         'contributors': cache.get_or_set('contributor_count', generate_contributor_count(), metric_timeout_seconds),
@@ -201,11 +169,10 @@ def notifications(request):
 def about(request):
     """Return an about view showing contribution, licensing, contact, and other information."""
     address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
-    privacy_url = getattr(settings, 'PRIVACY_URL', None)
     context = {
         'bitcoin_address': address,
-        'bitcoin_donate_url': bitcoin_donation_url(address),
-        'privacy_url': privacy_url,
+        'bitcoin_donate_url': bitcoin_donation_url(get_current_site(request).name, address),
+        'privacy_url': getattr(settings, 'PRIVACY_URL', None),
     }
     return render(request, 'boards/about.html', context=context)
 
@@ -287,84 +254,33 @@ def board_history(request, board_id):
     return render(request, 'boards/board_audit.html', {'board': board, 'history': history})
 
 
-class BoardForm(forms.Form):
-    """Board creation form.
-
-    Users must specify at two competing hypotheses.
-    """
-
-    # NOTE: pylint and pep8 disagree about the hanging indents below in the help_text
-
-    board_title = forms.CharField(
-        label=_('Board Title'),
-        max_length=BOARD_TITLE_MAX_LENGTH,
-        help_text=_(
-            "The board title (i.e., topic). Typically phrased as a question asking about "
-            "what happened in the past, what is happening currently, or what will happen in the future. "
-            "For example: 'who/what was behind event X?' or 'what are Y's current capabilities?'"
-        )
-    )
-    board_desc = forms.CharField(
-        label=_('Board Description'),
-        max_length=BOARD_DESC_MAX_LENGTH,
-        widget=forms.Textarea,
-        help_text=_(
-            "A description providing context around the topic. Helps to clarify what hypotheses "
-            "and evidence are relevant."
-        )
-    )
-    hypothesis1 = forms.CharField(
-        label=_('Hypothesis #1'),
-        max_length=HYPOTHESIS_MAX_LENGTH,
-        help_text=_("A hypothesis providing a potential answer to the topic question.")
-    )
-    hypothesis2 = forms.CharField(
-        label=_('Hypothesis #2'),
-        max_length=HYPOTHESIS_MAX_LENGTH,
-        help_text=_("An alternative hypothesis providing a potential answer to the topic question.")
-    )
-
-
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def create_board(request):
     """Return a board creation view, or handle the form submission."""
     if request.method == 'POST':
-        form = BoardForm(request.POST)
+        form = BoardCreateForm(request.POST)
         if form.is_valid():
-            timestamp = timezone.now()
             with transaction.atomic():
-                board = Board.objects.create(
-                    board_title=form.cleaned_data['board_title'],
-                    board_slug=slugify(form.cleaned_data['board_title'], max_length=SLUG_MAX_LENGTH),
-                    board_desc=form.cleaned_data['board_desc'],
-                    creator=request.user,
-                    pub_date=timestamp
-                )
+                board = form.save(commit=False)
+                board.creator = request.user
+                board.pub_date = timezone.now()
+                board.save()
                 for hypothesis_key in ['hypothesis1', 'hypothesis2']:
                     Hypothesis.objects.create(
                         board=board,
-                        hypothesis_text=form.cleaned_data[hypothesis_key],
-                        submit_date=timestamp,
+                        hypothesis_text=form.cleaned_data[hypothesis_key]
                     )
                 BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
                     'is_creator': True,
-                    'update_timestamp': timestamp
                 })
 
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
-        form = BoardForm()
+        form = BoardCreateForm()
     return render(request, 'boards/create_board.html', {'form': form})
 
-
-class BoardEditForm(forms.Form):
-    """Board edit form."""
-
-    board_title = forms.CharField(label=_('Board Title'), max_length=BOARD_TITLE_MAX_LENGTH)
-    board_desc = forms.CharField(label=_('Board Description'), max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
-
-
+    
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def edit_board(request, board_id):
@@ -374,8 +290,7 @@ def edit_board(request, board_id):
     allow_remove = request.user.is_staff and getattr(settings, 'EDIT_REMOVE_ENABLED', True)
 
     if request.method == 'POST':
-        form = BoardEditForm(request.POST)
-
+        form = BoardForm(request.POST, instance=board)
         if 'remove' in form.data:
             if allow_remove:
                 board.removed = True
@@ -386,14 +301,11 @@ def edit_board(request, board_id):
                 raise PermissionDenied()
 
         elif form.is_valid():
-            board.board_title = form.cleaned_data['board_title']
-            board.board_desc = form.cleaned_data['board_desc']
-            board.board_slug = slugify(form.cleaned_data['board_title'], max_length=SLUG_MAX_LENGTH)
-            board.save()
+            form.save()
             messages.success(request, _('Updated board title and/or description.'))
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
-        form = BoardEditForm(initial={'board_title': board.board_title, 'board_desc': board.board_desc})
+        form = BoardForm(instance=board)
 
     context = {
         'form': form,
@@ -404,103 +316,46 @@ def edit_board(request, board_id):
     return render(request, 'boards/edit_board.html', context)
 
 
-class EvidenceEditForm(forms.Form):
-    """Form for modifying the basic evidence information."""
-
-    evidence_desc = forms.CharField(
-        label=_('Evidence'), max_length=EVIDENCE_MAX_LENGTH,
-        help_text=_('A short summary of the evidence. Use the Event Date field for capturing the date')
-    )
-    event_date = forms.DateField(
-        label=_('Event Date (Optional)'),
-        help_text=_('The date the event occurred or started'),
-        required=False,
-        widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
-    )
-
-
-class BaseSourceForm(forms.Form):
-    """Form for adding a source to a piece of evidence."""
-
-    evidence_url = forms.URLField(
-        label=_('Source Website'),
-        help_text=_('A source (e.g., news article or press release) corroborating the evidence'),
-        max_length=URL_MAX_LENGTH
-    )
-    evidence_date = forms.DateField(
-        label=_('Source Date'),
-        # NOTE: pylint and pep8 disagree about the hanging indent below
-        help_text=_(
-            'The date the source released or last updated the information corroborating the evidence. '
-            'Typically the date of the article or post'
-        ),
-        widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
-    )
-
-
-class EvidenceForm(BaseSourceForm, EvidenceEditForm):
-    """Form for adding a new piece of evidence.
-
-    If EVIDENCE_REQUIRE_SOURCE is set, the evidence provided must have a source. Analysts can provide additional
-    corroborating / conflicting sources after adding the evidence.
-    """
-
-    def __init__(self, *args, **kwargs):
-        """Construct an evidence form.
-
-        Require an initial corroborating source (and date) if EVIDENCE_REQUIRE_SOURCE is True.
-        """
-        super().__init__(*args, **kwargs)
-        if not getattr(settings, 'EVIDENCE_REQUIRE_SOURCE', True):
-            self.fields['evidence_url'].required = False
-            self.fields['evidence_url'].label += ' (Optional)'
-            self.fields['evidence_date'].required = False
-            self.fields['evidence_date'].label += ' (Optional)'
-
-    def clean(self):
-        """Require a source date if the analyst provided a source URL."""
-        if is_field_provided(self, 'evidence_url') and not is_field_provided(self, 'evidence_date'):
-            raise ValidationError(_('Please provide a date for the source.'), code='invalid')
-
-
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def add_evidence(request, board_id):
     """Return a view of adding evidence (with a source), or handle the form submission."""
     board = get_object_or_404(Board, pk=board_id)
 
+    require_source = getattr(settings, 'EVIDENCE_REQUIRE_SOURCE', True)
+
     if request.method == 'POST':
-        form = EvidenceForm(request.POST)
-        if form.is_valid():
+        evidence_form = EvidenceForm(request.POST)
+        source_form = EvidenceSourceForm(request.POST)
+        if evidence_form.is_valid() and source_form.is_valid():
             with transaction.atomic():
-                submit_date = timezone.now()
-                evidence = Evidence.objects.create(
-                    evidence_desc=form.cleaned_data['evidence_desc'],
-                    event_date=form.cleaned_data['event_date'],
-                    board=board,
-                    creator=request.user,
-                    submit_date=submit_date
-                )
-                if is_field_provided(form, 'evidence_url') and is_field_provided(form, 'evidence_date'):
-                    EvidenceSource.objects.create(
-                        evidence=evidence,
-                        source_url=form.cleaned_data['evidence_url'],
-                        source_date=form.cleaned_data['evidence_date'],
-                        uploader=request.user,
-                        corroborating=True,
-                        submit_date=submit_date
-                    )
+                evidence = evidence_form.save(commit=False)
+                evidence.board = board
+                evidence.creator = request.user
+                evidence.save()
+
+                if source_form.cleaned_data.get('evidence_url'):
+                    source = source_form.save(commit=False)
+                    source.evidence = evidence
+                    source.uploader = request.user
+                    source.save()
+
                 BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
                     'is_contributor': True,
-                    'update_timestamp': submit_date
                 })
 
             notify_add(board, actor=request.user, action_object=evidence)
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
-        form = EvidenceForm()
+        evidence_form = EvidenceForm()
+        source_form = EvidenceSourceForm(require=require_source, initial={'corroborating': True})
 
-    return render(request, 'boards/add_evidence.html', {'form': form, 'board': board})
+    context = {
+        'board': board,
+        'evidence_form': evidence_form,
+        'source_form': source_form,
+    }
+    return render(request, 'boards/add_evidence.html', context)
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
@@ -513,20 +368,18 @@ def edit_evidence(request, evidence_id):
     check_edit_authorization(request, board=board, has_creator=evidence)
 
     if request.method == 'POST':
-        form = EvidenceEditForm(request.POST)
+        form = EvidenceForm(request.POST, instance=evidence)
         if 'remove' in form.data:
             return _remove_and_redirect(request, evidence, evidence.evidence_desc)
 
         elif form.is_valid():
-            evidence.evidence_desc = form.cleaned_data['evidence_desc']
-            evidence.event_date = form.cleaned_data['event_date']
-            evidence.save()
+            form.save()
             messages.success(request, _('Updated evidence description and date.'))
             notify_edit(board, actor=request.user, action_object=evidence)
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence.id,)))
 
     else:
-        form = EvidenceEditForm(initial={'evidence_desc': evidence.evidence_desc, 'event_date': evidence.event_date})
+        form = EvidenceForm(instance=evidence)
 
     context = {
         'form': form,
@@ -538,18 +391,6 @@ def edit_evidence(request, evidence_id):
     return render(request, 'boards/edit_evidence.html', context)
 
 
-class EvidenceSourceForm(BaseSourceForm):
-    """Form for editing a corroborating/contradicting source for a piece of evidence.
-
-    The hidden corroborating field should be set by the view method before rendering the form.
-    """
-
-    corroborating = forms.BooleanField(
-        required=False,
-        widget=forms.HiddenInput()
-    )
-
-
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def add_source(request, evidence_id):
@@ -558,14 +399,10 @@ def add_source(request, evidence_id):
     if request.method == 'POST':
         form = EvidenceSourceForm(request.POST)
         if form.is_valid():
-            EvidenceSource.objects.create(
-                evidence=evidence,
-                source_url=form.cleaned_data['evidence_url'],
-                source_date=form.cleaned_data['evidence_date'],
-                uploader=request.user,
-                submit_date=timezone.now(),
-                corroborating=form.cleaned_data['corroborating'],
-            )
+            source = form.save(commit=False)
+            source.evidence = evidence
+            source.uploader = request.user
+            source.save()
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
         else:
             corroborating = form.data['corroborating'] == 'True'
@@ -598,8 +435,8 @@ def toggle_source_tag(request, evidence_id, source_id):
                 user_tag.delete()
                 messages.success(request, _('Removed "{name}" tag from source.').format(name=tag.tag_name))
             else:
-                AnalystSourceTag.objects.create(source=source, tagger=request.user, tag=tag, tag_date=timezone.now())
-                messages.success(request, _('Added "{name}" tag to source.').format(name=tag.tag_name))
+                AnalystSourceTag.objects.create(source=source, tagger=request.user, tag=tag)
+                messages.success(request, 'Added "{name}" tag to source.'.format(name=tag.tag_name))
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
     else:
         # Redirect to the form where the user can toggle a source tag
@@ -647,12 +484,6 @@ def evidence_detail(request, evidence_id):
     return render(request, 'boards/evidence_detail.html', context)
 
 
-class HypothesisForm(forms.Form):
-    """Form for a board hypothesis."""
-
-    hypothesis_text = forms.CharField(label=_('Hypothesis'), max_length=200)
-
-
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def add_hypothesis(request, board_id):
@@ -663,16 +494,12 @@ def add_hypothesis(request, board_id):
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
         if form.is_valid():
-            timestamp = timezone.now()
-            hypothesis = Hypothesis.objects.create(
-                hypothesis_text=form.cleaned_data['hypothesis_text'],
-                board=board,
-                creator=request.user,
-                submit_date=timestamp,
-            )
+            hypothesis = form.save(commit=False)
+            hypothesis.board = board
+            hypothesis.creator = request.user
+            hypothesis.save()
             BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
                 'is_contributor': True,
-                'update_timestamp': timestamp
             })
             notify_add(board, actor=request.user, action_object=hypothesis)
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
@@ -697,18 +524,17 @@ def edit_hypothesis(request, hypothesis_id):
     check_edit_authorization(request, board, hypothesis)
 
     if request.method == 'POST':
-        form = HypothesisForm(request.POST)
+        form = HypothesisForm(request.POST, instance=hypothesis)
         if 'remove' in form.data:
             return _remove_and_redirect(request, hypothesis, hypothesis.hypothesis_text)
 
         elif form.is_valid():
-            hypothesis.hypothesis_text = form.cleaned_data['hypothesis_text']
-            hypothesis.save()
-            messages.success(request, _('Updated hypothesis.'))
+            form.save()
+            messages.success(request, _('Updated hypothesis: {text}').format(text=form.cleaned_data['hypothesis_text']))
             notify_edit(board, actor=request.user, action_object=hypothesis)
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
-        form = HypothesisForm(initial={'hypothesis_text': hypothesis.hypothesis_text})
+        form = HypothesisForm(instance=hypothesis)
 
     context = {
         'form': form,
@@ -720,23 +546,6 @@ def edit_hypothesis(request, hypothesis_id):
     return render(request, 'boards/edit_hypothesis.html', context)
 
 
-class SettingsForm(forms.ModelForm):
-    """User account settings form."""
-
-    class Meta:  # pylint: disable=too-few-public-methods
-        """Form meta options.
-
-        See https://docs.djangoproject.com/en/1.10/topics/forms/modelforms/
-        """
-
-        model = UserSettings
-        fields = ['digest_frequency']
-        help_texts = {
-            'digest_frequency':
-                _('How frequently you want to receive email updates containing notifications you\'ve missed.'),
-        }
-
-
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def private_profile(request):
@@ -744,15 +553,12 @@ def private_profile(request):
     user = request.user
 
     if request.method == 'POST':
-        logger.debug('POST user settings for user %s', user)
-        form = SettingsForm(request.POST)
+        form = SettingsForm(request.POST, instance=user.settings)
         if form.is_valid():
-            UserSettings.objects.update_or_create(user=user, defaults={
-                'digest_frequency': form.cleaned_data['digest_frequency']
-            })
+            form.save()
             messages.success(request, _("Updated account settings."))
     else:
-        form = SettingsForm(instance=user.usersettings)
+        form = SettingsForm(instance=user.settings)
 
     context = {
         'user': user,
@@ -800,43 +606,47 @@ def evaluate(request, board_id, evidence_id):
     Take a couple measures to reduce bias: (1) do not show the analyst their previous assessment, and (2) show
     the hypotheses in a random order.
     """
+    # Would be nice if we could refactor this and the view to use formsets. Not obvious how to handle the shuffling
+    # of the indices that way
+
     board = get_object_or_404(Board, pk=board_id)
     evidence = get_object_or_404(Evidence, pk=evidence_id)
+
+    default_eval = '------'
+    keep_eval = '-- ' + _('Keep Previous Assessment')
+    remove_eval = '-- ' + _('Remove Assessment')
 
     evaluations = {e.hypothesis_id: e for e in
                    Evaluation.objects.filter(board=board_id, evidence=evidence_id, user=request.user)}
 
     hypotheses = [(h, evaluations.get(h.id, None)) for h in Hypothesis.objects.filter(board=board_id)]
 
+    evaluation_set = set([str(m.value) for m in Eval])
+
     if request.method == 'POST':
         with transaction.atomic():
-            timestamp = timezone.now()
             for hypothesis, dummy_evaluation in hypotheses:
                 select = request.POST['hypothesis-{}'.format(hypothesis.id)]
-                if select == REMOVE_EVAL:
+                if select == remove_eval:
                     Evaluation.objects.filter(
                         board=board_id,
                         evidence=evidence,
                         user=request.user,
                         hypothesis_id=hypothesis.id,
                     ).delete()
-                elif select != DEFAULT_EVAL and select != KEEP_EVAL:
+                elif select in evaluation_set:
                     Evaluation.objects.update_or_create(
                         board=board,
                         evidence=evidence,
                         hypothesis=hypothesis,
                         user=request.user,
-                        defaults={
-                            'value': select,
-                            'timestamp': timestamp
-                        }
+                        defaults={'value': select}
                     )
                 else:
                     # don't add/update the evaluation
                     pass
             BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
                 'is_evaluator': True,
-                'update_timestamp': timestamp
             })
 
         messages.success(request, "Recorded evaluations for evidence: {}".format(evidence.evidence_desc))
@@ -851,9 +661,9 @@ def evaluate(request, board_id, evidence_id):
             'evidence': evidence,
             'hypotheses': new_hypotheses + old_hypotheses,
             'options': Evaluation.EVALUATION_OPTIONS,
-            'default_eval': DEFAULT_EVAL,
-            'keep_eval': KEEP_EVAL,
-            'remove_eval': REMOVE_EVAL,
+            'default_eval': default_eval,
+            'keep_eval': keep_eval,
+            'remove_eval': remove_eval,
         }
         return render(request, 'boards/evaluate.html', context)
 
@@ -861,14 +671,14 @@ def evaluate(request, board_id, evidence_id):
 @require_safe
 def robots(request):
     """Return the robots.txt including the sitemap location (using the site domain) if the site is public."""
-    private_intance = getattr(settings, 'ACCOUNT_REQUIRED', False)
+    private_instance = getattr(settings, 'ACCOUNT_REQUIRED', False)
     context = {
         'sitemap': (
             ''.join(['https://', get_current_site(request).domain, reverse('django.contrib.sitemaps.views.sitemap')])
-            if not private_intance
+            if not private_instance
             else None
         ),
-        'disallow_all': private_intance,
+        'disallow_all': private_instance,
     }
     return render(request, 'robots.txt', context, content_type='text/plain')
 
@@ -894,25 +704,12 @@ def certbot(dummy_request, challenge_key):  # pragma: no cover
 @require_safe
 @etag(lambda r: getattr(settings, 'DONATE_BITCOIN_ADDRESS', ''))
 @cache_page(60 * 60)
-def bitcoin_qrcode(dummy_request):
+def bitcoin_qrcode(request):
     """Return a QR Code for donating via Bitcoin."""
     # NOTE: if only etag is set, Django doesn't include cache headers
-    address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', '')
+    address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
     if address:
-        # https://pypi.python.org/pypi/qrcode/5.3
-        logger.debug("Generating QR code for address %s", address)
-        code = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_M,  # about 15% or less errors can be corrected.
-            box_size=10,
-            border=4,
-        )
-        code.add_data(bitcoin_donation_url(address))
-        code.make(fit=True)
-        img = code.make_image(image_factory=SvgPathImage)
-        raw = BytesIO()
-        img.save(raw)
-        raw.flush()
+        raw = make_qr_code(bitcoin_donation_url(get_current_site(request).name, address))
         return HttpResponse(raw.getvalue(), content_type="image/svg+xml")
     else:
         raise Http404
