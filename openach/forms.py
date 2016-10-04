@@ -50,7 +50,7 @@ class EvidenceForm(forms.ModelForm):
         model = Evidence
         fields = ['evidence_desc', 'event_date']
         widgets = {
-            'event_date': forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
+            'event_date': forms.DateInput(attrs={'class': 'date', 'data-provide': 'datepicker'})
         }
 
 
@@ -63,7 +63,7 @@ class EvidenceSourceForm(forms.ModelForm):
         model = EvidenceSource
         fields = ['source_url', 'source_date', 'corroborating']
         widgets = {
-            'source_date': forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'}),
+            'source_date': forms.DateInput(attrs={'class': 'date', 'data-provide': 'datepicker'}),
             'corroborating': forms.HiddenInput()
         }
 

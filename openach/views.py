@@ -51,9 +51,9 @@ def _remove_and_redirect(request, removable, message_detail):
     if getattr(settings, 'EDIT_REMOVE_ENABLED', True):
         removable.removed = True
         removable.save()
-        klass_name = removable._meta.verbose_name.title()  # pylint: disable=protected-access
-        klass = klass_name[:1].lower() + klass_name[1:] if klass_name else ''
-        messages.success(request, _('Removed {klass}: {message}').format(klass=klass, message=message_detail))
+        class_name = removable._meta.verbose_name.title()  # pylint: disable=protected-access
+        class_ = class_name[:1].lower() + class_name[1:] if class_name else ''
+        messages.success(request, _('Removed {object_type}: {detail}').format(object_type=class_, detail=message_detail))  # nopep8
         return HttpResponseRedirect(reverse('openach:detail', args=(removable.board.id,)))
     else:
         raise PermissionDenied()
@@ -113,7 +113,7 @@ def board_listing(request):
     """Return a paginated board listing view showing all boards and their popularity."""
     board_list = Board.objects.order_by('-pub_date')
     metric_timeout_seconds = 60 * 2
-    desc = _('List of intelligence boards on {name} and summary information').format(name=get_current_site(request).name)
+    desc = _('List of intelligence boards on {name} and summary information').format(name=get_current_site(request).name)  # nopep8
     context = {
         'boards': make_paginator(request, board_list),
         'contributors': cache.get_or_set('contributor_count', generate_contributor_count(), metric_timeout_seconds),
@@ -254,7 +254,7 @@ def board_history(request, board_id):
     return render(request, 'boards/board_audit.html', {'board': board, 'history': history})
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def create_board(request):
     """Return a board creation view, or handle the form submission."""
@@ -280,8 +280,8 @@ def create_board(request):
         form = BoardCreateForm()
     return render(request, 'boards/create_board.html', {'form': form})
 
-    
-@require_http_methods(["HEAD", "GET", "POST"])
+
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def edit_board(request, board_id):
     """Return a board edit view, or handle the form submission."""
@@ -316,7 +316,7 @@ def edit_board(request, board_id):
     return render(request, 'boards/edit_board.html', context)
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def add_evidence(request, board_id):
     """Return a view of adding evidence (with a source), or handle the form submission."""
@@ -358,7 +358,7 @@ def add_evidence(request, board_id):
     return render(request, 'boards/add_evidence.html', context)
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def edit_evidence(request, evidence_id):
     """Return a view for editing a piece of evidence, or handle for submission."""
@@ -391,7 +391,7 @@ def edit_evidence(request, evidence_id):
     return render(request, 'boards/edit_evidence.html', context)
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def add_source(request, evidence_id):
     """Return a view for adding a corroborating/contradicting source, or handle form submission."""
@@ -419,7 +419,7 @@ def add_source(request, evidence_id):
     return render(request, 'boards/add_source.html', context)
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def toggle_source_tag(request, evidence_id, source_id):
     """Toggle source tag for the given source and redirect to the evidence detail page for the associated evidence."""
@@ -436,14 +436,14 @@ def toggle_source_tag(request, evidence_id, source_id):
                 messages.success(request, _('Removed "{name}" tag from source.').format(name=tag.tag_name))
             else:
                 AnalystSourceTag.objects.create(source=source, tagger=request.user, tag=tag)
-                messages.success(request, 'Added "{name}" tag to source.'.format(name=tag.tag_name))
+                messages.success(request, _('Added "{name}" tag to source.').format(name=tag.tag_name))
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
     else:
         # Redirect to the form where the user can toggle a source tag
         return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def clear_notifications(request):
     """Handle POST request to clear notifications and redirect user to their profile."""
@@ -484,7 +484,7 @@ def evidence_detail(request, evidence_id):
     return render(request, 'boards/evidence_detail.html', context)
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def add_hypothesis(request, board_id):
     """Return a view for adding a hypothesis, or handle form submission."""
@@ -514,7 +514,7 @@ def add_hypothesis(request, board_id):
     return render(request, 'boards/add_hypothesis.html', context)
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def edit_hypothesis(request, hypothesis_id):
     """Return a view for editing a hypothesis, or handle board submission."""
@@ -530,7 +530,7 @@ def edit_hypothesis(request, hypothesis_id):
 
         elif form.is_valid():
             form.save()
-            messages.success(request, _('Updated hypothesis: {text}').format(text=form.cleaned_data['hypothesis_text']))
+            messages.success(request, _('Updated hypothesis: {text}').format(text=form.cleaned_data['hypothesis_text']))  # nopep8
             notify_edit(board, actor=request.user, action_object=hypothesis)
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
@@ -546,7 +546,7 @@ def edit_hypothesis(request, hypothesis_id):
     return render(request, 'boards/edit_hypothesis.html', context)
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def private_profile(request):
     """Return a view of the private profile associated with the authenticated user and handle settings."""
@@ -556,7 +556,7 @@ def private_profile(request):
         form = SettingsForm(request.POST, instance=user.settings)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Updated account settings."))
+            messages.success(request, _('Updated account settings.'))
     else:
         form = SettingsForm(instance=user.settings)
 
@@ -565,7 +565,7 @@ def private_profile(request):
         'boards_created': user_boards_created(user)[:5],
         'boards_contributed': user_boards_contributed(user),
         'board_voted': user_boards_evaluated(user),
-        'meta_description': _("Account profile for user {name}").format(name=user),
+        'meta_description': _('Account profile for user {name}').format(name=user),
         'notifications': request.user.notifications.unread(),
         'settings_form': form,
     }
@@ -587,7 +587,7 @@ def public_profile(request, account_id):
     return render(request, 'boards/public_profile.html', context)
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @account_required
 def profile(request, account_id):
     """Return a view of the profile associated with account_id.
@@ -598,7 +598,7 @@ def profile(request, account_id):
     return private_profile(request) if request.user.id == int(account_id) else public_profile(request, account_id)
 
 
-@require_http_methods(["HEAD", "GET", "POST"])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def evaluate(request, board_id, evidence_id):
     """Return a view for assessing a piece of evidence against all hypotheses.
@@ -649,7 +649,7 @@ def evaluate(request, board_id, evidence_id):
                 'is_evaluator': True,
             })
 
-        messages.success(request, "Recorded evaluations for evidence: {}".format(evidence.evidence_desc))
+        messages.success(request, _('Recorded evaluations for evidence: {desc}').format(desc=evidence.evidence_desc))
         return HttpResponseRedirect(reverse('openach:detail', args=(board_id,)))
     else:
         new_hypotheses = [h for h in hypotheses if h[1] is None]
@@ -710,6 +710,6 @@ def bitcoin_qrcode(request):
     address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
     if address:
         raw = make_qr_code(bitcoin_donation_url(get_current_site(request).name, address))
-        return HttpResponse(raw.getvalue(), content_type="image/svg+xml")
+        return HttpResponse(raw.getvalue(), content_type='image/svg+xml')
     else:
         raise Http404

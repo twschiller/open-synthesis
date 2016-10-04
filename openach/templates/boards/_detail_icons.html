@@ -2,9 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% comment %}
-   The levels here need to match the levels in board_extras.
-{% endcomment %}
+{# The levels here need to match the levels in board_extras. #}
 {% if detail_disagreement >= 2.0 %}
     <a href="{{ board|board_url }}?view_type=disagreement">
         <img class="dispute-icon" src="{% static 'boards/images/fire-extreme.svg' %}"

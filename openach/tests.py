@@ -680,7 +680,6 @@ class BoardDetailTests(TestCase):
 class EvidenceDetailTests(TestCase):
 
     def setUp(self):
-        time = timezone.now()
         self.client = Client()
         self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
         self.board = create_board('Test Board', days=5)
@@ -1703,8 +1702,8 @@ class DigestTests(TestCase):
 
 class CeleryTestCase(TestCase):
 
-    def testNoError(self):
-        """Test that the ``add`` task runs with no errors, and returns the correct result."""
+    def test_celery_example(self):
+        """Test that the ``example_task`` task runs with no errors, and returns the correct result."""
         result = example_task.delay(8, 8)
 
         self.assertEquals(result.get(), 16)

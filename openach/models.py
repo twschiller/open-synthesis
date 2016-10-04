@@ -90,7 +90,7 @@ class Board(models.Model):
             try:
                 return reverse('openach:detail_slug', args=(self.id, self.board_slug,))
             except NoReverseMatch:
-                logger.warning("Malformed SLUG for reverse URL match: %s", self.board_slug)
+                logger.warning('Malformed SLUG for reverse URL match: %s', self.board_slug)
                 return reverse('openach:detail', args=(self.id,))
         else:
             return self.get_canonical_url()
@@ -318,7 +318,7 @@ class UserSettings(models.Model):
         _('email digest frequency'),
         default=DigestFrequency.daily.key,
         choices=DIGEST_FREQUENCY,
-        help_text=_('How frequently to receive email updates containing missed notifications'),
+        help_text=_('How frequently to receive email updates containing new notifications'),
     )
 
 
