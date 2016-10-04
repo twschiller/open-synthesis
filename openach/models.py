@@ -3,17 +3,19 @@
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/topics/db/models/
 """
+from enum import Enum, unique
 import datetime
 import logging
-from enum import Enum, unique
 
-from django.db import models
-from django.utils import timezone
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import models
 # NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
 from django.urls import reverse, NoReverseMatch  # pylint: disable=no-name-in-module
-from django.conf import settings
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from field_history.tracker import FieldHistoryTracker
+from slugify import slugify
 
 
 # See database portability constraints here: https://docs.djangoproject.com/en/1.10/ref/databases/#character-fields
@@ -40,9 +42,26 @@ class RemovableModelManager(models.Manager):  # pylint: disable=too-few-public-m
 class Board(models.Model):
     """An ACH matrix with hypotheses, evidence, and evaluations."""
 
-    board_title = models.CharField(max_length=BOARD_TITLE_MAX_LENGTH)
-    board_slug = models.SlugField(null=True, allow_unicode=False, max_length=SLUG_MAX_LENGTH)
-    board_desc = models.CharField('board description', max_length=BOARD_DESC_MAX_LENGTH)
+    board_title = models.CharField(
+        max_length=BOARD_TITLE_MAX_LENGTH,
+        help_text=_('The board title. Typically phrased as a question asking about what happened in the past, '
+                    'what is happening currently, or what will happen in the future')
+    )
+
+    board_slug = models.SlugField(
+        null=True,
+        allow_unicode=False,
+        max_length=SLUG_MAX_LENGTH,
+        editable=False
+    )
+
+    board_desc = models.CharField(
+        'board description',
+        max_length=BOARD_DESC_MAX_LENGTH,
+        help_text=_('A description providing context around the topic. Helps to clarify which hypotheses '
+                    'and evidence are relevant')
+    )
+
     creator = models.ForeignKey(User, null=True)
     pub_date = models.DateTimeField('date published')
     removed = models.BooleanField(default=False)
@@ -54,6 +73,11 @@ class Board(models.Model):
     def __str__(self):
         """Return a human-readable representation of the board."""
         return self.board_title
+
+    def save(self, *args, **kwargs):
+        """Update slug on save."""
+        self.board_slug = slugify(self.board_title, max_length=SLUG_MAX_LENGTH)
+        return super().save(*args, **kwargs)
 
     def was_published_recently(self):
         """Return True iff the Board was created recently."""
@@ -84,16 +108,19 @@ class BoardFollower(models.Model):
     is_creator = models.BooleanField(default=False)
     is_contributor = models.BooleanField(default=False)
     is_evaluator = models.BooleanField(default=False)
-    update_timestamp = models.DateTimeField()
+    update_timestamp = models.DateTimeField(auto_now=True)
 
 
 class Hypothesis(models.Model):
     """An ACH matrix hypothesis."""
 
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
-    hypothesis_text = models.CharField('hypothesis', max_length=HYPOTHESIS_MAX_LENGTH)
+    hypothesis_text = models.CharField(
+        'hypothesis',
+        max_length=HYPOTHESIS_MAX_LENGTH
+    )
     creator = models.ForeignKey(User, null=True)
-    submit_date = models.DateTimeField('date added')
+    submit_date = models.DateTimeField('date added', auto_now_add=True)
     removed = models.BooleanField(default=False)
     field_history = FieldHistoryTracker(['hypothesis_text', 'removed'])
 
@@ -118,11 +145,25 @@ class Evidence(models.Model):
     """A piece of evidence for an ACH matrix."""
 
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
+
     creator = models.ForeignKey(User, null=True)
-    evidence_desc = models.CharField('evidence description', max_length=EVIDENCE_MAX_LENGTH)
-    event_date = models.DateField('evidence event date', null=True)
-    submit_date = models.DateTimeField('date added')
+
+    evidence_desc = models.CharField(
+        'evidence description',
+        max_length=EVIDENCE_MAX_LENGTH,
+        help_text=_('A short summary of the evidence. Use the event date field for capturing the date')
+    )
+
+    event_date = models.DateField(
+        'evidence event date',
+        null=True,
+        help_text=_('The date the event occurred or started')
+    )
+
+    submit_date = models.DateTimeField('date added', auto_now_add=True)
+
     removed = models.BooleanField(default=False)
+
     field_history = FieldHistoryTracker(['evidence_desc', 'event_date', 'removed'])
 
     objects = RemovableModelManager()
@@ -150,12 +191,25 @@ class EvidenceSource(models.Model):
     """A source for a piece of evidence in the ACH matrix."""
 
     evidence = models.ForeignKey(Evidence, on_delete=models.CASCADE)
-    source_url = models.URLField(max_length=URL_MAX_LENGTH)
-    # the date the source was last updated/released
-    source_date = models.DateField('source date')
+
+    source_url = models.URLField(
+        'source website',
+        max_length=URL_MAX_LENGTH,
+        help_text=_('A source (e.g., news article or press release) corroborating the evidence'),
+    )
+
+    source_date = models.DateField(
+        'source date',
+        help_text=_('The date the source released or last updated the information corroborating the evidence. '
+                    'Typically the date of the article or post'),
+    )
+
     uploader = models.ForeignKey(User)
-    submit_date = models.DateTimeField('date added')
+
+    submit_date = models.DateTimeField('date added', auto_now_add=True)
+
     corroborating = models.BooleanField()
+
     removed = models.BooleanField(default=False)
 
     objects = RemovableModelManager()
@@ -179,7 +233,7 @@ class AnalystSourceTag(models.Model):
     source = models.ForeignKey(EvidenceSource, on_delete=models.CASCADE)
     tagger = models.ForeignKey(User, on_delete=models.CASCADE)
     tag = models.ForeignKey(EvidenceSourceTag, on_delete=models.CASCADE)
-    tag_date = models.DateTimeField('date tagged')
+    tag_date = models.DateTimeField('date tagged', auto_now_add=True)
 
 
 @unique
@@ -203,18 +257,18 @@ class Evaluation(models.Model):
     """A user's evaluation of a hypothesis with respect to a piece of evidence."""
 
     EVALUATION_OPTIONS = (
-        (Eval.not_applicable.value, 'N/A'),
-        (Eval.very_inconsistent.value, 'Very Inconsistent'),
-        (Eval.inconsistent.value, 'Inconsistent'),
-        (Eval.neutral.value, 'Neutral'),
-        (Eval.consistent.value, 'Consistent'),
-        (Eval.very_consistent.value, 'Very Consistent'),
+        (Eval.not_applicable.value, _('N/A')),
+        (Eval.very_inconsistent.value, _('Very Inconsistent')),
+        (Eval.inconsistent.value, _('Inconsistent')),
+        (Eval.neutral.value, _('Neutral')),
+        (Eval.consistent.value, _('Consistent')),
+        (Eval.very_consistent.value, _('Very Consistent')),
     )
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
     hypothesis = models.ForeignKey(Hypothesis, on_delete=models.CASCADE)
     evidence = models.ForeignKey(Evidence, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField('date evaluated')
+    timestamp = models.DateTimeField('date evaluated', auto_now=True)
     value = models.PositiveSmallIntegerField(default=0, choices=EVALUATION_OPTIONS)
 
     def __str__(self):
@@ -253,13 +307,19 @@ class UserSettings(models.Model):
     """User account preferences."""
 
     DIGEST_FREQUENCY = (
-        (DigestFrequency.never.key, 'Never'),
-        (DigestFrequency.daily.key, 'Daily'),
-        (DigestFrequency.weekly.key, 'Weekly'),
+        (DigestFrequency.never.key, _('Never')),
+        (DigestFrequency.daily.key, _('Daily')),
+        (DigestFrequency.weekly.key, _('Weekly')),
     )
-    user = models.OneToOneField(User)
+
+    user = models.OneToOneField(User, related_name='settings')
+
     digest_frequency = models.PositiveSmallIntegerField(
-        'email digest frequency', default=DigestFrequency.daily.key, choices=DIGEST_FREQUENCY)
+        'email digest frequency',
+        default=DigestFrequency.daily.key,
+        choices=DIGEST_FREQUENCY,
+        help_text=_('How frequently to receive email updates containing missed notifications'),
+    )
 
 
 class DigestStatus(models.Model):

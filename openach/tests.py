@@ -1,32 +1,33 @@
 import datetime
 import logging
 
-from django.utils import timezone
-from django.test import TestCase, Client
-from unittest.mock import patch, Mock
-from django.urls import reverse
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import mail
-from django_comments.models import Comment
-from django.conf import settings
 from django.core.management import call_command
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.utils import timezone
+from django_comments.models import Comment
 from field_history.models import FieldHistory
 from notifications.signals import notify
+from unittest.mock import patch
 
-from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, calc_disagreement
-from .metrics import inconsistency, consistency, proportion_na, proportion_unevaluated
-from .metrics import hypothesis_sort_key, evidence_sort_key
-from .models import Board, Evidence, Hypothesis, Evaluation, ProjectNews, BoardFollower, UserSettings
-from .models import URL_MAX_LENGTH, Eval, DigestFrequency
-from .sitemap import BoardSitemap
-from .views import EvidenceSource, EvidenceSourceTag, AnalystSourceTag
-from .views import bitcoin_donation_url, notify_edit, notify_add
-from .views import SettingsForm, BoardEditForm, EvidenceSourceForm, HypothesisForm, EvidenceEditForm
-from .util import first_occurrences
 from .digest import create_digest_email, send_digest_emails
+from .metrics import hypothesis_sort_key, evidence_sort_key
+from .metrics import inconsistency, consistency, proportion_na, proportion_unevaluated
+from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, calc_disagreement
+from .models import Board, Evidence, Hypothesis, Evaluation, Eval, ProjectNews, BoardFollower, URL_MAX_LENGTH
+from .models import UserSettings, DigestFrequency
+from .sitemap import BoardSitemap
 from .tasks import example_task
+from .util import first_occurrences
+from .views import bitcoin_donation_url, notify_edit, notify_add
+from .views import EvidenceSource, EvidenceSourceTag, AnalystSourceTag
+from .views import SettingsForm, BoardForm, EvidenceSourceForm, HypothesisForm, EvidenceForm
+
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,6 @@ def add_follower(board):
     BoardFollower.objects.create(
         user=follower,
         board=board,
-        update_timestamp=timezone.now()
     )
     return follower
 
@@ -161,9 +161,9 @@ class BoardFormTests(TestCase):
 
     def test_board_edit_form(self):
         """Test that the board editing form validates for reasonable input."""
-        form = BoardEditForm({
+        form = BoardForm({
             'board_title': "New board title",
-            'board_desc': "New board description"
+            'board_desc': "New board description",
         })
         self.assertTrue(form.is_valid())
 
@@ -252,7 +252,7 @@ class BoardFormTests(TestCase):
     def test_can_view_evidence_history(self):
         """Test that the board history shows the history of evidence that has been removed."""
         board = Board.objects.create(board_title="Board #1", creator=self.user, pub_date=timezone.now())
-        evidence = Evidence.objects.create(board=board, evidence_desc="Evidence", submit_date=timezone.now())
+        evidence = Evidence.objects.create(board=board, evidence_desc="Evidence")
         remove(evidence)
         response = self.client.get(reverse('openach:board_history', args=(board.id,)))
         self.assertEqual(response.status_code, 200)
@@ -264,21 +264,19 @@ class SitemapTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
-        self.board = create_board('Test Board', days=5)
+        self.board = create_board('Test Board', days=-5)
         self.evidence = Evidence.objects.create(
             board=self.board,
             creator=self.user,
             evidence_desc="Evidence #1",
             event_date=None,
-            submit_date=timezone.now()
         )
         self.hypotheses = [
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #1",
                 creator=self.user,
-                submit_date=timezone.now(),
-            ),
+            )
         ]
 
     def test_can_get_items(self):
@@ -298,7 +296,6 @@ class SitemapTests(TestCase):
             board=self.board,
             hypothesis_text="Hypothesis #2",
             creator=self.user,
-            submit_date=timezone.now() + datetime.timedelta(days=5),
         )
         sitemap = BoardSitemap()
         board = sitemap.items()[0]
@@ -316,20 +313,17 @@ class EvidenceAssessmentTests(TestCase):
             creator=self.user,
             evidence_desc="Evidence #1",
             event_date=None,
-            submit_date=timezone.now()
         )
         self.hypotheses = [
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #1",
                 creator=self.user,
-                submit_date=timezone.now(),
             ),
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #2",
                 creator=self.user,
-                submit_date=timezone.now(),
             )
         ]
 
@@ -370,13 +364,11 @@ class AddEditHypothesisTests(TestCase):
                 board=self.board,
                 hypothesis_text="Hypothesis #1",
                 creator=self.user,
-                submit_date=timezone.now(),
             ),
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #2",
                 creator=self.user,
-                submit_date=timezone.now()
             )
         ]
         self.follower = add_follower(self.board)
@@ -522,13 +514,11 @@ class BoardDetailTests(TestCase):
                 board=self.board,
                 hypothesis_text="Hypothesis #1",
                 creator=self.user,
-                submit_date=timezone.now(),
             ),
             Hypothesis.objects.create(
                 board=self.board,
                 hypothesis_text="Hypothesis #2",
                 creator=self.user,
-                submit_date=timezone.now(),
             )
         ]
 
@@ -539,7 +529,6 @@ class BoardDetailTests(TestCase):
             evidence=self.evidence,
             user=user,
             value=eval.value,
-            timestamp=timezone.now()
         )
 
     def _add_evidence(self):
@@ -548,7 +537,6 @@ class BoardDetailTests(TestCase):
             creator=self.user,
             evidence_desc="Evidence #1",
             event_date=None,
-            submit_date=timezone.now()
         )
 
     def test_can_display_board_with_no_evidence(self):
@@ -657,10 +645,10 @@ class BoardDetailTests(TestCase):
     def test_order_hypotheses_and_evidence(self):
         """Test that the board detail views order evidence by diagnosticity and hypotheses by consistency."""
         def mk_evidence(desc):
-            return Evidence.objects.create(board=self.board, creator=self.user, evidence_desc=desc, event_date=None, submit_date=timezone.now())
+            return Evidence.objects.create(board=self.board, creator=self.user, evidence_desc=desc, event_date=None)
 
         def mk_eval(hypothesis, evidence, eval_):
-            Evaluation.objects.create(board=self.board, hypothesis=hypothesis, evidence=evidence, user=self.user, timestamp=timezone.now(), value=eval_.value)
+            Evaluation.objects.create(board=self.board, hypothesis=hypothesis, evidence=evidence, user=self.user, value=eval_.value)
 
         # put neutral evidence first so it's PK will be lower (and will probably be returned first by the DB)
         neutral = mk_evidence("Neutral Evidence")
@@ -701,14 +689,12 @@ class EvidenceDetailTests(TestCase):
             creator=self.user,
             evidence_desc="Evidence #1",
             event_date=datetime.datetime.strptime('2010-06-01', "%Y-%m-%d").date(),
-            submit_date=time
         )
         self.source = EvidenceSource.objects.create(
             evidence=self.evidence,
             source_url="https://google.com",
             source_date="2016-01-06",
             uploader=self.user,
-            submit_date=time,
             corroborating=True,
         )
         self.tags = [
@@ -803,7 +789,6 @@ class AddEvidenceTests(TestCase):
             creator=self.user,
             evidence_desc="Evidence #1",
             event_date=None,
-            submit_date=timezone.now()
         )
         self.follower = add_follower(self.board)
 
@@ -831,8 +816,8 @@ class AddEvidenceTests(TestCase):
         response = self.client.post(reverse('openach:add_evidence', args=(self.board.id,)), data={
             'evidence_desc': text,
             'event_date': "1/1/2016",
-            'evidence_url': "https://google.com",
-            'evidence_date': "1/1/2016",
+            'source_url': "https://google.com",
+            'source_date': "1/1/2016",
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Evidence.objects.filter(evidence_desc=text)), 0)
@@ -854,7 +839,7 @@ class AddEvidenceTests(TestCase):
 
     def test_evidence_edit_form(self):
         """Test that form validation passes for reasonable input."""
-        form = EvidenceEditForm({
+        form = EvidenceForm({
             'evidence_desc': "Evidence Description",
             'event_date': "1/1/2016",
         })
@@ -867,7 +852,6 @@ class AddEvidenceTests(TestCase):
             creator=self.user,
             evidence_desc="Evidence #1",
             event_date=None,
-            submit_date=timezone.now()
         )
         self.client.login(username='john', password='johnpassword')
         response = self.client.get(reverse('openach:edit_evidence', args=(self.evidence.id,)))
@@ -881,7 +865,6 @@ class AddEvidenceTests(TestCase):
             creator=self.user,
             evidence_desc="Evidence #1",
             event_date=None,
-            submit_date=timezone.now()
         )
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:edit_evidence', args=(self.evidence.id,)))
@@ -894,7 +877,6 @@ class AddEvidenceTests(TestCase):
             creator=self.user,
             evidence_desc="Evidence #1",
             event_date=None,
-            submit_date=timezone.now()
         )
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:edit_evidence', args=(self.evidence.id,)), data={
@@ -928,7 +910,6 @@ class AddSourceTests(TestCase):
             creator=self.user,
             evidence_desc="Evidence #1",
             event_date=None,
-            submit_date=timezone.now()
         )
 
     def test_require_login_for_add_source(self):
@@ -953,8 +934,8 @@ class AddSourceTests(TestCase):
         self.client.login(username='john', password='johnpassword')
         url = "https://google.com"
         response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
-            'evidence_url': url,
-            'evidence_date': "1/1/2016",
+            'source_url': url,
+            'source_date': "1/1/2016",
             'corroborating': True,
         })
         self.assertEqual(response.status_code, 302)
@@ -973,7 +954,7 @@ class AddSourceTests(TestCase):
         url = "https://google.com"
         response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
             # intentionally leave off the evidence_date
-            'evidence_url': url,
+            'source_url': url,
             'corroborating': False,
         })
         self.assertContains(response, "Add Conflicting Source", status_code=200)
@@ -981,21 +962,22 @@ class AddSourceTests(TestCase):
     def test_reject_long_url(self):
         """Test the the add source form rejects long URLs (issue #58)."""
         form = EvidenceSourceForm({
-            'evidence_url':  "https://google.com" + ("x" * URL_MAX_LENGTH),
-            'evidence_date': "1/1/2016",
+            'source_url':  "https://google.com" + ("x" * URL_MAX_LENGTH),
+            'source_date': "1/1/2016",
         })
         self.assertFalse(form.is_valid())
 
     def test_add_conflicting_evidence_source_form(self):
-        """Test tha the form validation passes for reasonable input."""
+        """Test that the form validation passes for reasonable input."""
         form = EvidenceSourceForm({
-            'evidence_url':  "https://google.com",
-            'evidence_date': "1/1/2016",
+            'source_url':  "https://google.com",
+            'source_date': "1/1/2016",
+            'corroborating': "False",
         })
         self.assertTrue(form.is_valid())
         form = EvidenceSourceForm({
-            'evidence_url':  "https://google.com",
-            'evidence_date': "1/1/2016",
+            'source_url':  "https://google.com",
+            'source_date': "1/1/2016",
             'corroborating': "True",
         })
         self.assertTrue(form.is_valid())
@@ -1004,8 +986,8 @@ class AddSourceTests(TestCase):
         """Test that a conflicting source can be added via the form."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
-            'evidence_url':  "https://google.com",
-            'evidence_date': "1/1/2016",
+            'source_url':  "https://google.com",
+            'source_date': "1/1/2016",
             'corroborating': "False",
         })
         self.assertEqual(response.status_code, 302)
@@ -1033,7 +1015,6 @@ class ProfileTests(TestCase):
         self.hypothesis = Hypothesis.objects.create(
             hypothesis_text="Hypothesis",
             creator=user,
-            submit_date=timezone.now(),
             board=self.board
         )
 
@@ -1041,7 +1022,6 @@ class ProfileTests(TestCase):
         self.evidence = Evidence.objects.create(
             evidence_desc="Evidence",
             creator=user,
-            submit_date=timezone.now(),
             board=self.board
         )
 
@@ -1052,7 +1032,6 @@ class ProfileTests(TestCase):
             hypothesis=self.hypothesis,
             user=user,
             board=self.board,
-            timestamp=timezone.now()
         )
 
     def test_empty_public_activity(self):
@@ -1179,15 +1158,15 @@ class ProfileTests(TestCase):
 
     def test_update_settings(self):
         """Test that the user can update their digest frequency."""
-        self.user.usersettings.digest_frequency = DigestFrequency.never.key
-        self.user.usersettings.save()
+        self.user.settings.digest_frequency = DigestFrequency.never.key
+        self.user.settings.save()
         self.client.login(username='john', password='johnpassword')
         response = self.client.post('/accounts/profile/', data={
             'digest_frequency':  str(DigestFrequency.weekly.key),
         })
         self.assertEqual(response.status_code, 200)
-        self.user.usersettings.refresh_from_db()
-        self.assertEqual(self.user.usersettings.digest_frequency, DigestFrequency.weekly.key)
+        self.user.settings.refresh_from_db()
+        self.assertEqual(self.user.settings.digest_frequency, DigestFrequency.weekly.key)
 
 
 def create_board(board_title, days):
@@ -1264,8 +1243,8 @@ class AboutViewTests(TestCase):
 
     def test_can_create_bitcoin_donation_link(self):
         """Test utility method for constructing Bitcoin links."""
-        self.assertIsNone(bitcoin_donation_url(""))
-        self.assertIn("abc123", bitcoin_donation_url(self.address))
+        self.assertIsNone(bitcoin_donation_url(site_name='anything', address=''))
+        self.assertIn("abc123", bitcoin_donation_url(site_name='anything', address=self.address))
 
     def test_can_generate_bitcoin_qrcode(self):
         """Test SVG QR Code generation."""
@@ -1519,7 +1498,7 @@ class AccountManagementTests(TestCase):
             'password2': 'testpassword1!',
         })
         user = User.objects.filter(username='testuser').first()
-        self.assertIsNotNone(user.usersettings, 'User settings object not created')
+        self.assertIsNotNone(user.settings, 'User settings object not created')
 
 
 class NotificationTests(TestCase):
@@ -1538,7 +1517,6 @@ class NotificationTests(TestCase):
         BoardFollower.objects.create(
             board=self.board,
             user=self.user,
-            update_timestamp=timezone.now()
         )
 
     def test_public_cannot_get_notifications(self):
@@ -1566,7 +1544,6 @@ class NotificationTests(TestCase):
         hypothesis = Hypothesis.objects.create(
             board=self.board,
             hypothesis_text='Hypothesis',
-            submit_date=timezone.now()
         )
         notify_add(self.board, self.other, hypothesis)
         notify_edit(self.board, self.other, hypothesis)
@@ -1582,7 +1559,6 @@ class NotificationTests(TestCase):
         evidence = Evidence.objects.create(
             board=self.board,
             evidence_desc='Evidence',
-            submit_date=timezone.now()
         )
         notify_add(self.board, self.other, evidence)
         notify_edit(self.board, self.other, evidence)
@@ -1652,19 +1628,16 @@ class DigestTests(TestCase):
             BoardFollower.objects.create(
                 board=board,
                 user=self.daily,
-                update_timestamp=timezone.now()
             )
             hypothesis = Hypothesis.objects.create(
                 board=board,
                 hypothesis_text='Hypothesis #{}'.format(x),
                 creator=self.weekly,
-                submit_date=timezone.now()
             )
             evidence = Evidence.objects.create(
                 board=board,
                 evidence_desc='Evidence #{}'.format(x),
                 creator=self.weekly,
-                submit_date=timezone.now()
             )
             notify_add(board, self.weekly, hypothesis)
             notify_add(board, self.weekly, evidence)
