@@ -98,7 +98,7 @@ Before submitting a pull request, please review the
 If you want to help translate Open Synthesis but don't want to set up local development environment, let us know
 and we'll assist you.
 
-First, if you haven't already, [set up your local development environment](local-development). 
+First, if you haven't already, follow the instructions above to [set up your local development environment](#local-development). 
 Next, install [GNU gettext](https://www.gnu.org/software/gettext/).
 If you're using [Homebrew](http://brew.sh/index.html), the following commands install and link gettext:
 
