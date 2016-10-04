@@ -1,8 +1,8 @@
 # How to contribute
 
-We appreciate all pull requests. However, before working on an enhancement/feature, you should search to see if there's 
-already a discussion on the [Issue Tracker](https://github.com/twschiller/open-synthesis/issues). If not, you should 
-[start a new discussion](https://github.com/twschiller/open-synthesis/issues/new).
+We appreciate all pull requests. However, before working on an enhancement/feature, you should:
+- Search to see if there's  already a discussion on the [Issue Tracker](https://github.com/twschiller/open-synthesis/issues). If not, you should [start a new discussion](https://github.com/twschiller/open-synthesis/issues/new)
+- Let us know you're working on the issue, so that we can (1) help fill in any gaps in the requirements, and (2) avoid having multiple contributors do redundant work
 
 ## Local Development
 
