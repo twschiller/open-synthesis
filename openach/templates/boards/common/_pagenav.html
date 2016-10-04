@@ -1,14 +1,15 @@
 {% load board_extras %}
+{% load i18n %}
 
-<nav aria-label="Page navigation">
+<nav aria-label="{% trans "Page navigation" %}">
     <ul class="pagination">
         <li class="{% if not paged.has_previous %}disabled{% endif %}">
             {% if paged.has_previous %}
-                <a href="?{% url_replace request 'page' paged.previous_page_number %}" aria-label="Previous">
+                <a href="?{% url_replace request 'page' paged.previous_page_number %}" aria-label="{% trans "Previous" %}">
                     <span aria-hidden="true">&laquo;</span>
                 </a>
             {% else %}
-                <a href="#" aria-label="Previous">
+                <a href="#" aria-label="{% trans "Previous" %}">
                     <span aria-hidden="true">&laquo;</span>
                 </a>
             {% endif %}
@@ -16,7 +17,7 @@
         {% for page in paged.paginator.page_range %}
             {% if page == paged.number %}
                 <li class="active">
-                    <a href="#">{{ page }} <span class="sr-only">(current)</span></a>
+                    <a href="#">{{ page }} <span class="sr-only">{% trans "(current)" %}</span></a>
                 </li>
             {% else %}
                 <li>
@@ -26,11 +27,11 @@
         {% endfor %}
         <li class="{% if not paged.has_next %}disabled{% endif %}">
             {% if paged.has_next %}
-                <a href="?{% url_replace request 'page' paged.next_page_number %}" aria-label="Next">
+                <a href="?{% url_replace request 'page' paged.next_page_number %}" aria-label="{% trans "Next" %}">
                     <span aria-hidden="true">&raquo;</span>
                 </a>
             {% else %}
-                <a href="#" aria-label="Next">
+                <a href="#" aria-label="{% trans "Next" %}">
                     <span aria-hidden="true">&raquo;</span>
                 </a>
             {% endif %}

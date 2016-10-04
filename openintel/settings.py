@@ -16,6 +16,7 @@ import os
 import logging
 import sys
 
+from django.utils.translation import ugettext_lazy as _
 import dj_database_url
 import environ
 
@@ -121,6 +122,9 @@ INSTALLED_APPS = [
 MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # LocaleMiddleware must come after SessionMiddleware and before CommonMiddleware
+    # see: https://docs.djangoproject.com/en/1.10/topics/i18n/translation/#how-django-discovers-language-preference
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -219,7 +223,14 @@ SECURE_HSTS_SECONDS = env('SECURE_HSTS_SECONDS')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
-
+gettext = lambda s: s  # noqa
+LANGUAGES = (
+    # Add new locales in LANGUAGES variable, e.g., ('az', _('Azerbaijani'))
+    ('en-us', _('English (United States)')),
+)
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, 'locale'),
+)
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'

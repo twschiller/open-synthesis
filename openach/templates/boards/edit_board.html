@@ -1,22 +1,21 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}Edit Board | {{ site.name }}{% endblock %}
-
 {% load bootstrap %}
 {% load i18n %}
 {% load board_extras %}
 
+{% block title %}{% trans "Edit Board" %} | {{ site.name }}{% endblock %}
+
 {% block content %}
     <h1>{% trans "Edit Board" %}</h1>
 
-    <p>Update the title and/or description for the board.</p>
+    <p>{% trans "Update the title and/or description for the board." %}</p>
 
     <form action="{% url 'openach:edit_board' board.id %}" method="post">
         {% csrf_token %}
         {{ form|bootstrap }}
         <div class="form-group">
             <div>
-                <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>&nbsp;
+                <a class="btn btn-default" href="{{ board|board_url }}">{% trans "Return to Board" %}</a>&nbsp;
                 {% if allow_remove %}
                     <button type="submit" class="btn btn-danger" name="remove" value="remove">{% trans "Remove Board" %}</button>&nbsp;
                 {% endif %}

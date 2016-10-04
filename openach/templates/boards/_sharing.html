@@ -1,19 +1,20 @@
 {% load board_extras %}
+{% load i18n %}
 
 {% with encoded_title=title|urlencode:"" encoded_url=url|urlencode:"" %}
     <div class="social">
         <a class="share-link share-twitter"
            href="https://twitter.com/intent/tweet/?text={{ encoded_title }}&amp;url={{ encoded_url }}"
-           target="_blank">Twitter</a>
+           target="_blank">{% trans "Twitter" %}</a>
         <a class="share-link share-facebook" href="https://facebook.com/sharer/sharer.php?u={{ encoded_url }}"
-           target="_blank">Facebook</a>
+           target="_blank">{% trans "Facebook" %}</a>
         <a class="share-link share-whatsapp" href="whatsapp://send?text={{ encoded_title }} {{ encoded_url }}"
-           target="_blank">WhatsApp</a>
+           target="_blank">{% trans "WhatsApp" %}</a>
         <a class="share-link share-reddit" href="https://reddit.com/submit/?url={{ encoded_url }}"
-           target="_blank">Reddit</a>
+           target="_blank">{% trans "Reddit" %}</a>
         <a class="share-link share-hackernews" href="https://news.ycombinator.com/submitlink?u={{ encoded_url }}&t={{ encoded_title }}"
-           target="_self">Hacker News</a>
+           target="_self">{% trans "Hacker News" %}</a>
         <a class="share-link share-email" href="mailto:?subject={{ encoded_title }}&amp;body={{ encoded_url }}"
-           target="_self">Email</a>
+           target="_self">{% trans "Email" %}</a>
     </div>
 {% endwith %}

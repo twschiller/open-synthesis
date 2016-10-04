@@ -1,17 +1,22 @@
 {% extends 'boards/base.html' %}
-
 {% load board_extras %}
+{% load i18n %}
 
-{% block title %}Assess Evidence | {{ site.name }}{% endblock %}
+{% block title %}{% trans "Assess Evidence" %} | {{ site.name }}{% endblock %}
 
 {% block content %}
 
-    <h1>Assess Evidence</h1>
+    <h1>{% trans "Assess Evidence" %}</h1>
 
-    <p><b>Instructions:</b> Assess the consistency of each hypothesis with respect to the following evidence. Assume
-    that the evidence is valid. You can assess the validity of the evidence (and its sources) on the
-        <a href="{% url 'openach:evidence_detail' evidence.id %}">evidence detail page</a>. If the evidence does not
-    apply to a hypothesis, select N/A.
+    <p>
+      <b>{% trans "Instructions:" %}</b>
+      {% url 'openach:evidence_detail' evidence.id as evidence_url %}
+      {% blocktrans trimmed %}
+        Assess the consistency of each hypothesis with respect to the following evidence. Assume
+        that the evidence is valid. You can assess the validity of the evidence (and its sources) on the
+        <a href="{{ evidence_url }}">evidence detail page</a>. If the evidence does not
+        apply to a hypothesis, select N/A.
+      {% endblocktrans %}
     </p>
 
     <div class="well">{{ evidence.evidence_desc }}</div>
@@ -20,7 +25,7 @@
         {% csrf_token %}
         {% for hypothesis, eval_ in hypotheses %}
             <div class="form-group">
-                <label for="hypothesis-{{ hypothesis.id }}" class="control-label">Hypothesis: {{ hypothesis.hypothesis_text }}</label>
+                <label for="hypothesis-{{ hypothesis.id }}" class="control-label">{% trans "Hypothesis:"%} {{ hypothesis.hypothesis_text }}</label>
                 <div>
                     <select id="hypothesis-{{ hypothesis.id }}" name="hypothesis-{{ hypothesis.id }}" class="form-control">
                         {% if eval_ %}
@@ -38,8 +43,8 @@
         {% endfor %}
         <div class="form-group">
             <div>
-                <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>
-                <button class="btn btn-primary" type="submit">Submit</button>
+                <a class="btn btn-default" href="{{ board|board_url }}">{% trans "Return to Board" %}</a>
+                <button class="btn btn-primary" type="submit">{% trans "Submit" %}</button>
             </div>
         </div>
     </form>

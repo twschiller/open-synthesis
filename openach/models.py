@@ -90,7 +90,7 @@ class Board(models.Model):
             try:
                 return reverse('openach:detail_slug', args=(self.id, self.board_slug,))
             except NoReverseMatch:
-                logger.warning("Malformed SLUG for reverse URL match: %s", self.board_slug)
+                logger.warning('Malformed SLUG for reverse URL match: %s', self.board_slug)
                 return reverse('openach:detail', args=(self.id,))
         else:
             return self.get_canonical_url()
@@ -134,7 +134,7 @@ class Hypothesis(models.Model):
             https://docs.djangoproject.com/en/1.10/topics/db/models/#meta-options
         """
 
-        verbose_name_plural = "hypotheses"
+        verbose_name_plural = _("hypotheses")
 
     def __str__(self):
         """Return a human-readable representation of the hypothesis."""
@@ -176,7 +176,7 @@ class Evidence(models.Model):
             https://docs.djangoproject.com/en/1.10/topics/db/models/#meta-options
         """
 
-        verbose_name_plural = "evidence"
+        verbose_name_plural = _("evidence")
 
     def __str__(self):
         """Return a human-readable representation of the evidence."""
@@ -315,10 +315,10 @@ class UserSettings(models.Model):
     user = models.OneToOneField(User, related_name='settings')
 
     digest_frequency = models.PositiveSmallIntegerField(
-        'email digest frequency',
+        _('email digest frequency'),
         default=DigestFrequency.daily.key,
         choices=DIGEST_FREQUENCY,
-        help_text=_('How frequently to receive email updates containing missed notifications'),
+        help_text=_('How frequently to receive email updates containing new notifications'),
     )
 
 

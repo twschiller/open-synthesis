@@ -1,9 +1,8 @@
 {% extends 'boards/base.html' %}
+{% load board_extras %}
+{% load i18n %}
 
 {% block title %}{{ site.name }}{% endblock %}
-
-{% load i18n %}
-{% load board_extras %}
 
 {% block content %}
 
@@ -11,36 +10,43 @@
         <div class="col-md-7">
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Welcome to the Open Synthesis Project!</h3>
+                    <h3 class="panel-title">{% trans "Welcome to the Open Synthesis Project!" %}</h3>
                 </div>
                 <div class="panel-body">
                     <p>
+                      {% blocktrans trimmed %}
                         Open Synthesis is an open platform for intelligence analysis. We're taking the best practices
                         from the intelligence and business communities and adapting them to work at internet-scale.
+                      {% endblocktrans %}
                     </p>
-
                     <p>
+                      {% blocktrans trimmed %}
                         Every day, the world's population creates 2.5 quintillion bytes of data. Our goal is to empower
                         the public to distill this flood of information into actionable analysis.
+                      {% endblocktrans %}
                     </p>
 
                     <p>
-                        Want to contribute? <a href="accounts/signup">Become an analyst today!</a>
+                      {% blocktrans trimmed with signup_url="accounts/signup" %}
+                        Want to contribute? <a href="{{ signup_url }}">Become an analyst today!</a>
+                      {% endblocktrans %}
                     </p>
                 </div>
             </div>
 
             <div class="panel panel-info">
                 <div class="panel-heading">
-                    <h3 class="panel-title">New to the Analysis of Competing Hypotheses (ACH)?</h3>
+                    <h3 class="panel-title">{% trans "New to the Analysis of Competing Hypotheses (ACH)?" %}</h3>
                 </div>
                 <div class="panel-body">
-                    Created at the <a href="https://www.cia.gov/library/center-for-the-study-of-intelligence/csi-publications/books-and-monographs/psychology-of-intelligence-analysis/art11.html">CIA</a>,
+                  {% blocktrans trimmed with art_url="https://www.cia.gov/library/center-for-the-study-of-intelligence/csi-publications/books-and-monographs/psychology-of-intelligence-analysis/art11.html" %}
+                    Created at the <a href="{{ art_url }}">CIA</a>,
                     ACH is a simple tool for analyzing complex situations. To perform ACH for an analysis question,
                     you first brainstorm a set of hypotheses that could answer the question. Next, you compile a list
                     of relevant evidence (information). For each piece of evidence, you assess which of the hypotheses
                     are consistent with that evidence. Once you've assessed all the evidence and hypotheses, you can
                     determine which hypotheses are most likely given the evidence.
+                  {% endblocktrans %}
                 </div>
             </div>
         </div>
@@ -48,7 +54,7 @@
         <div class="col-md-5">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Project News</h3>
+                    <h3 class="panel-title">{% trans "Project News" %}</h3>
                 </div>
                 <ul class="list-group">
                     {% if latest_project_news %}
@@ -58,17 +64,17 @@
                             </li>
                         {% endfor %}
                     {% else %}
-                        <li class="list-group-item">No project news.</li>
+                        <li class="list-group-item">{% trans "No project news." %}</li>
                     {% endif %}
                 </ul>
             </div>
 
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Most Recent Boards</h3>
+                    <h3 class="panel-title">{% trans "Most Recent Boards" %}</h3>
                 </div>
                 <div class="panel-body">
-                    Want help analyzing a question?
+                    {% trans "Want help analyzing a question?" %}
                     <a href="{% url 'openach:create_board' %}">{% trans "Create a board." %}</a>
                 </div>
                 <ul class="list-group">
@@ -79,7 +85,7 @@
                             </li>
                         {% endfor %}
                     {% else %}
-                        <li class="list-group-item">No boards available.</li>
+                        <li class="list-group-item">{% trans "No boards available." %}</li>
                     {% endif %}
                 </ul>
             </div>

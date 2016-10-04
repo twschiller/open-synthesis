@@ -1,10 +1,9 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}Edit Evidence | {{ site.name }}{% endblock %}
-
 {% load board_extras %}
 {% load bootstrap %}
 {% load i18n %}
+
+{% block title %}{% trans "Edit Evidence" %} | {{ site.name }}{% endblock %}
 
 {% block content %}
     <h1>{% trans "Edit Evidence" %}</h1>
@@ -14,7 +13,7 @@
         {{ form|bootstrap }}
         <div class="form-group">
             <div>
-                <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">Return to Evidence</a>
+                <a class="btn btn-default" href="{% url 'openach:evidence_detail' evidence.id %}">{% trans "Return to Evidence" %}</a>
                 {% if allow_remove %}
                     <button type="submit" class="btn btn-danger" name="remove" value="remove">{% trans "Remove Evidence" %}</button>&nbsp;
                 {% endif %}

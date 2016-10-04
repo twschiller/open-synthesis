@@ -2,6 +2,7 @@
 import logging
 import collections
 
+from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives, get_connection
@@ -46,8 +47,9 @@ def user_digest_start(user, digest_frequency, as_of):
     :param digest_frequency: the DigestFrequency for the digest
     :param as_of: the datetime to generate the digest for
     """
-    # NOTE: this is inefficient for multiple users because we have to hit the DB for each one
+    # NOTE: this approach is inefficient for multiple users because we have to hit the DB for each one
     if digest_frequency == DigestFrequency.never:
+        # don't need to internationalize; user won't see this error
         raise ValueError('Digest frequency cannot be "never"')
 
     digest = as_of - digest_frequency.delta
@@ -89,7 +91,7 @@ def send_digest_emails(digest_frequency):
     :return tuple containing number of emails successfully sent and number that failed to send
     """
     if digest_frequency == DigestFrequency.never:
-        raise ValueError('Cannot send digest emails for frequency "never"')
+        raise ValueError(_('Cannot send digest emails for frequency "never"'))
 
     timestamp = timezone.now()
     subscribers = [

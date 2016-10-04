@@ -1,16 +1,17 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}Create Board | {{ site.name }}{% endblock %}
-
 {% load bootstrap %}
 {% load i18n %}
+
+{% block title %}{% trans "Create Board" %} | {{ site.name }}{% endblock %}
 
 {% block content %}
     <h1>{% trans "Create Board" %}</h1>
 
     <p>
+      {% blocktrans trimmed %}
         To create a board, enter a title, a description, and two initial competing hypotheses.
         You will be able to add additional hypotheses once you've created the board.
+      {% endblocktrans %}
     </p>
 
     <form action="{% url 'openach:create_board' %}" method="post">

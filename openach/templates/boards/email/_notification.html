@@ -1,26 +1,37 @@
 {% load board_extras %}
+{% load i18n %}
 
 {% if notification.verb == 'added' %}
     {% if notification.action_object|get_class == 'Hypothesis' %}
-        <a href="https://{{ site.domain }}/accounts/{{ notification.actor.id }}/">{{ notification.actor.username }}</a> added hypothesis '{{ notification.action_object }}'
+        {% blocktrans trimmed with site_domain=site.domain actor_id=notification.actor.id actor_username=notification.actor.username action_name=notification.action_object %}
+        <a href="https://{{ site_domain }}/accounts/{{ actor_id }}/">{{ actor_username }}</a> added hypothesis '{{ action_name }}'
+        {% endblocktrans %}
     {% elif  notification.action_object|get_class == 'Evidence' %}
-        <a href="https://{{ site.domain }}/accounts/{{ notification.actor.id }}/">{{ notification.actor.username }}</a>
+        {% url 'openach:evidence_detail' notification.action_object.id as evidence_detail_url %}
+        {% blocktrans trimmed with site_domain=site.domain actor_id=notification.actor.id actor_username=notification.actor.username action_name=notification.action_object %}
+        <a href="https://{{ site_domain }}/accounts/{{ actor_id }}/">{{ actor_username }}</a>
         added evidence
-        <a href="https://{{ site.domain }}/{% url 'openach:evidence_detail' notification.action_object.id %}">
-            '{{ notification.action_object }}'
+        <a href="https://{{ site_domain }}/{{ evidence_detail_url }}">
+            '{{ action_name }}'
         </a>
+        {% endblocktrans %}
     {% else %}
         {{ notification }}
     {% endif %}
 {% elif notification.verb == 'edited' %}
     {% if notification.action_object|get_class == 'Hypothesis' %}
-        <a href="https://{{ site.domain }}/accounts/{{ notification.actor.id }}/">{{ notification.actor.username }}</a> edited hypothesis '{{ notification.action_object }}'
+        {% blocktrans trimmed with site_domain=site.domain actor_id=notification.actor.id actor_username=notification.actor.username action_name=notification.action_object %}
+        <a href="https://{{ site_domain }}/accounts/{{ actor_id }}/">{{ actor_username }}</a> edited hypothesis '{{ action_name }}'
+        {% endblocktrans %}
     {% elif  notification.action_object|get_class == 'Evidence' %}
-        <a href="https://{{ site.domain }}/accounts/{{ notification.actor.id }}/">{{ notification.actor.username }}</a>
+        {% url 'openach:evidence_detail' notification.action_object.id as evidence_detail_url %}
+        {% blocktrans trimmed with site_domain=site.domain actor_id=notification.actor.id actor_username=notification.actor.username action_name=notification.action_object %}
+        <a href="https://{{ site_domain }}/accounts/{{ actor_id }}/">{{ actor_username }}</a>
         edited evidence
-        <a href="https://{{ site.domain }}/{% url 'openach:evidence_detail' notification.action_object.id %}">
-            '{{ notification.action_object }}'
+        <a href="https://{{ site_domain }}/{{ evidence_detail_url }}">
+            '{{ action_name }}'
         </a>
+        {% endblocktrans %}
     {% else %}
         {{ notification }}
     {% endif %}

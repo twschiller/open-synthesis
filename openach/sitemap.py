@@ -12,8 +12,8 @@ from .models import Board, Evidence, Hypothesis
 class BoardSitemap(Sitemap):
     """Sitemap containing metadata about ACH boards."""
 
-    protocol = "https"
-    changefreq = "daily"
+    protocol = 'https'
+    changefreq = 'daily'
     priority = 0.5
 
     def items(self):

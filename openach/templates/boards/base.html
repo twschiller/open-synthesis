@@ -1,8 +1,10 @@
 {% load staticfiles %}
+{% load i18n %}
 {% load render_bundle from webpack_loader %}
 {% load notifications_tags %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="{{ LANGUAGE_CODE }}">
 <head prefix="og: http://ogp.me/ns# profile: http://ogp.me/ns/profile# website: http://ogp.me/ns/website# ">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -34,20 +36,20 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="{% url 'openach:index' %}">Home</a></li>
-                    <li><a href="{% url 'openach:about' %}">About</a></li>
-                    <li><a href="{% url 'openach:boards' %}">Boards</a></li>
+                    <li><a href="{% url 'openach:index' %}">{% trans "Home" %}</a></li>
+                    <li><a href="{% url 'openach:about' %}">{% trans "About" %}</a></li>
+                    <li><a href="{% url 'openach:boards' %}">{% trans "Boards" %}</a></li>
                     {% if request.user.is_authenticated %}
                         <li>
-                            <a href="/accounts/profile">Profile
+                            <a href="/accounts/profile">{% trans "Profile" %}
                                 <span class='badge'
                                       data-notify-api-url="{% url 'notifications:live_unread_notification_count' %}">0
                                 </span>
                             </a>
                         </li>
-                        <li><a href="/accounts/logout">Logout</a></li>
+                        <li><a href="/accounts/logout">{% trans "Logout" %}</a></li>
                     {% else %}
-                        <li><a href="/accounts/login">Login</a></li>
+                        <li><a href="/accounts/login">{% trans "Login" %}</a></li>
                     {% endif %}
                 </ul>
             </div><!--/.nav-collapse -->
