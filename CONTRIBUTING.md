@@ -111,7 +111,7 @@ For example, to create a British English translation, use the following command:
 
     python manage.py makemessages --locale=en_GB
 
-This will create a folder for the locale in the `local` directory with a messages file `django.po`. Translate the
+This will create a folder for the locale in the `locale` directory with a messages file `django.po`. Translate the
 messages by filling in the `msgstr` fields in the messages file.
 
 Compile the translations with the [compilemessages](https://docs.djangoproject.com/en/1.10/ref/django-admin/#compilemessages) 

@@ -3,6 +3,9 @@
 {% load render_bundle from webpack_loader %}
 {% load notifications_tags %}
 {% get_current_language as LANGUAGE_CODE %}
+{% get_available_languages as LANGUAGES %}
+{% get_language_info_list for LANGUAGES as languages %}
+
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head prefix="og: http://ogp.me/ns# profile: http://ogp.me/ns/profile# website: http://ogp.me/ns/website# ">
@@ -51,6 +54,23 @@
                     {% else %}
                         <li><a href="/accounts/login">{% trans "Login" %}</a></li>
                     {% endif %}
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                  {% if languages|length > 1 %}
+                    <li>
+                      <form action="{% url 'set_language' %}" method="post" class="language-form" name="switchLanguageForm">
+                        {% csrf_token %}
+                        <input name="next" type="hidden" value="{{ redirect_to }}" />
+                        <select name="language" class="form-control">
+                            {% for language in languages %}
+                                <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
+                                    {{ language.name_local }} ({{ language.code }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                      </form>
+                    </li>
+                  {% endif %}
                 </ul>
             </div><!--/.nav-collapse -->
         </div><!--/.container-fluid -->
