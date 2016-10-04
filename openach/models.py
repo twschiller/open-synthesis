@@ -7,6 +7,7 @@ import datetime
 import logging
 from enum import Enum, unique
 
+from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -107,7 +108,7 @@ class Hypothesis(models.Model):
             https://docs.djangoproject.com/en/1.10/topics/db/models/#meta-options
         """
 
-        verbose_name_plural = "hypotheses"
+        verbose_name_plural = _("hypotheses")
 
     def __str__(self):
         """Return a human-readable representation of the hypothesis."""
@@ -135,7 +136,7 @@ class Evidence(models.Model):
             https://docs.djangoproject.com/en/1.10/topics/db/models/#meta-options
         """
 
-        verbose_name_plural = "evidence"
+        verbose_name_plural = _("evidence")
 
     def __str__(self):
         """Return a human-readable representation of the evidence."""
@@ -203,12 +204,12 @@ class Evaluation(models.Model):
     """A user's evaluation of a hypothesis with respect to a piece of evidence."""
 
     EVALUATION_OPTIONS = (
-        (Eval.not_applicable.value, 'N/A'),
-        (Eval.very_inconsistent.value, 'Very Inconsistent'),
-        (Eval.inconsistent.value, 'Inconsistent'),
-        (Eval.neutral.value, 'Neutral'),
-        (Eval.consistent.value, 'Consistent'),
-        (Eval.very_consistent.value, 'Very Consistent'),
+        (Eval.not_applicable.value, _('N/A')),
+        (Eval.very_inconsistent.value, _('Very Inconsistent')),
+        (Eval.inconsistent.value, _('Inconsistent')),
+        (Eval.neutral.value, _('Neutral')),
+        (Eval.consistent.value, _('Consistent')),
+        (Eval.very_consistent.value, _('Very Consistent')),
     )
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
     hypothesis = models.ForeignKey(Hypothesis, on_delete=models.CASCADE)
@@ -253,13 +254,13 @@ class UserSettings(models.Model):
     """User account preferences."""
 
     DIGEST_FREQUENCY = (
-        (DigestFrequency.never.key, 'Never'),
-        (DigestFrequency.daily.key, 'Daily'),
-        (DigestFrequency.weekly.key, 'Weekly'),
+        (DigestFrequency.never.key, _('Never')),
+        (DigestFrequency.daily.key, _('Daily')),
+        (DigestFrequency.weekly.key, _('Weekly')),
     )
     user = models.OneToOneField(User)
     digest_frequency = models.PositiveSmallIntegerField(
-        'email digest frequency', default=DigestFrequency.daily.key, choices=DIGEST_FREQUENCY)
+        _('email digest frequency'), default=DigestFrequency.daily.key, choices=DIGEST_FREQUENCY)
 
 
 class DigestStatus(models.Model):

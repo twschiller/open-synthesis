@@ -72,7 +72,7 @@ def _remove_and_redirect(request, removable, message_detail):
         removable.save()
         klass_name = removable._meta.verbose_name.title()  # pylint: disable=protected-access
         klass = klass_name[:1].lower() + klass_name[1:] if klass_name else ''
-        messages.success(request, 'Removed {}: {}'.format(klass, message_detail))
+        messages.success(request, _('Removed {klass}: {message}').format(klass=klass, message=message_detail))
         return HttpResponseRedirect(reverse('openach:detail', args=(removable.board.id,)))
     else:
         raise PermissionDenied()
@@ -81,7 +81,7 @@ def _remove_and_redirect(request, removable, message_detail):
 def bitcoin_donation_url(address):
     """Return a Bitcoin donation URL for DONATE_BITCOIN_ADDRESS or None."""
     if address:
-        msg = "Donate to {}".format(Site.objects.get_current().name)
+        msg = _("Donate to {name}").format(name=Site.objects.get_current().name)
         url = "bitcoin:{}?{}".format(address, urlencode({'message': msg}))
         return url
     else:
@@ -143,7 +143,9 @@ def board_listing(request):
     board_list = Board.objects.order_by('-pub_date')
     metric_timeout_seconds = 60 * 2
 
-    desc = 'List of intelligence boards on {} and summary information'.format(Site.objects.get_current().name)
+    desc = _('List of intelligence boards on {name} and summary information').format(
+        name=Site.objects.get_current().name
+    )
     context = {
         'boards': make_paginator(request, board_list),
         'contributors': cache.get_or_set('contributor_count', generate_contributor_count(), metric_timeout_seconds),
@@ -170,7 +172,7 @@ def user_board_listing(request, account_id):
     user = get_object_or_404(User, pk=account_id)
     query = request.GET.get('query')
     verb, board_list = queries.get(query, queries[None])(user)
-    desc = 'List of intelligence boards user {} has {}'.format(user.username, verb)
+    desc = _('List of intelligence boards user {username} has {verb}').format(username=user.username, verb=verb)
     context = {
         'user': user,
         'boards': make_paginator(request, board_list),
@@ -294,28 +296,32 @@ class BoardForm(forms.Form):
     # NOTE: pylint and pep8 disagree about the hanging indents below in the help_text
 
     board_title = forms.CharField(
-        label='Board Title',
+        label=_('Board Title'),
         max_length=BOARD_TITLE_MAX_LENGTH,
-        help_text="The board title (i.e., topic). Typically phrased as a question asking about " +
-                  "what happened in the past, what is happening currently, or what will happen in the future. " +  # nopep8
-                  "For example: 'who/what was behind event X?' or 'what are Y's current capabilities?'"  # nopep8
+        help_text=_(
+            "The board title (i.e., topic). Typically phrased as a question asking about "
+            "what happened in the past, what is happening currently, or what will happen in the future. "
+            "For example: 'who/what was behind event X?' or 'what are Y's current capabilities?'"
+        )
     )
     board_desc = forms.CharField(
-        label='Board Description',
+        label=_('Board Description'),
         max_length=BOARD_DESC_MAX_LENGTH,
         widget=forms.Textarea,
-        help_text="A description providing context around the topic. Helps to clarify what hypotheses " +
-                  "and evidence are relevant."  # pylint: disable=bad-continuation
+        help_text=_(
+            "A description providing context around the topic. Helps to clarify what hypotheses "
+            "and evidence are relevant."
+        )
     )
     hypothesis1 = forms.CharField(
-        label='Hypothesis #1',
+        label=_('Hypothesis #1'),
         max_length=HYPOTHESIS_MAX_LENGTH,
-        help_text="A hypothesis providing a potential answer to the topic question."
+        help_text=_("A hypothesis providing a potential answer to the topic question.")
     )
     hypothesis2 = forms.CharField(
-        label='Hypothesis #2',
+        label=_('Hypothesis #2'),
         max_length=HYPOTHESIS_MAX_LENGTH,
-        help_text="An alternative hypothesis providing a potential answer to the topic question."
+        help_text=_("An alternative hypothesis providing a potential answer to the topic question.")
     )
 
 
@@ -355,8 +361,8 @@ def create_board(request):
 class BoardEditForm(forms.Form):
     """Board edit form."""
 
-    board_title = forms.CharField(label='Board Title', max_length=BOARD_TITLE_MAX_LENGTH)
-    board_desc = forms.CharField(label='Board Description', max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
+    board_title = forms.CharField(label=_('Board Title'), max_length=BOARD_TITLE_MAX_LENGTH)
+    board_desc = forms.CharField(label=_('Board Description'), max_length=BOARD_DESC_MAX_LENGTH, widget=forms.Textarea)
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
@@ -374,7 +380,7 @@ def edit_board(request, board_id):
             if allow_remove:
                 board.removed = True
                 board.save()
-                messages.success(request, 'Removed board {}'.format(board.board_title))
+                messages.success(request, _('Removed board {name}').format(name=board.board_title))
                 return HttpResponseRedirect(reverse('openach:index'))
             else:
                 raise PermissionDenied()
@@ -384,7 +390,7 @@ def edit_board(request, board_id):
             board.board_desc = form.cleaned_data['board_desc']
             board.board_slug = slugify(form.cleaned_data['board_title'], max_length=SLUG_MAX_LENGTH)
             board.save()
-            messages.success(request, 'Updated board title and/or description.')
+            messages.success(request, _('Updated board title and/or description.'))
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = BoardEditForm(initial={'board_title': board.board_title, 'board_desc': board.board_desc})
@@ -402,12 +408,12 @@ class EvidenceEditForm(forms.Form):
     """Form for modifying the basic evidence information."""
 
     evidence_desc = forms.CharField(
-        label='Evidence', max_length=EVIDENCE_MAX_LENGTH,
-        help_text='A short summary of the evidence. Use the Event Date field for capturing the date'
+        label=_('Evidence'), max_length=EVIDENCE_MAX_LENGTH,
+        help_text=_('A short summary of the evidence. Use the Event Date field for capturing the date')
     )
     event_date = forms.DateField(
-        label='Event Date (Optional)',
-        help_text='The date the event occurred or started',
+        label=_('Event Date (Optional)'),
+        help_text=_('The date the event occurred or started'),
         required=False,
         widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
     )
@@ -417,15 +423,17 @@ class BaseSourceForm(forms.Form):
     """Form for adding a source to a piece of evidence."""
 
     evidence_url = forms.URLField(
-        label='Source Website',
-        help_text='A source (e.g., news article or press release) corroborating the evidence',
+        label=_('Source Website'),
+        help_text=_('A source (e.g., news article or press release) corroborating the evidence'),
         max_length=URL_MAX_LENGTH
     )
     evidence_date = forms.DateField(
-        label='Source Date',
+        label=_('Source Date'),
         # NOTE: pylint and pep8 disagree about the hanging indent below
-        help_text='The date the source released or last updated the information corroborating the evidence. ' +
-                  'Typically the date of the article or post',  # pylint: disable=bad-continuation
+        help_text=_(
+            'The date the source released or last updated the information corroborating the evidence. '
+            'Typically the date of the article or post'
+        ),
         widget=forms.DateInput(attrs={'class': "date", 'data-provide': 'datepicker'})
     )
 
@@ -513,7 +521,7 @@ def edit_evidence(request, evidence_id):
             evidence.evidence_desc = form.cleaned_data['evidence_desc']
             evidence.event_date = form.cleaned_data['event_date']
             evidence.save()
-            messages.success(request, 'Updated evidence description and date.')
+            messages.success(request, _('Updated evidence description and date.'))
             notify_edit(board, actor=request.user, action_object=evidence)
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence.id,)))
 
@@ -588,10 +596,10 @@ def toggle_source_tag(request, evidence_id, source_id):
             user_tag = AnalystSourceTag.objects.filter(source=source, tagger=request.user, tag=tag)
             if user_tag.count() > 0:
                 user_tag.delete()
-                messages.success(request, 'Removed "{}" tag from source.'.format(tag.tag_name))
+                messages.success(request, _('Removed "{name}" tag from source.').format(name=tag.tag_name))
             else:
                 AnalystSourceTag.objects.create(source=source, tagger=request.user, tag=tag, tag_date=timezone.now())
-                messages.success(request, 'Added "{}" tag to source.'.format(tag.tag_name))
+                messages.success(request, _('Added "{name}" tag to source.').format(tag.tag_name))
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
     else:
         # Redirect to the form where the user can toggle a source tag
@@ -605,7 +613,7 @@ def clear_notifications(request):
     if request.method == 'POST':
         if 'clear' in request.POST:
             request.user.notifications.mark_all_as_read()
-            messages.success(request, 'Cleared all notifications.')
+            messages.success(request, _('Cleared all notifications.'))
     return HttpResponseRedirect('/accounts/profile')
 
 
@@ -634,7 +642,7 @@ def evidence_detail(request, evidence_id):
         'source_tags': source_tags,
         'user_tags': user_tags,
         'available_tags': available_tags,
-        'meta_description': "Analysis of evidence: {}".format(evidence.evidence_desc)
+        'meta_description': _("Analysis of evidence: {description}").format(description=evidence.evidence_desc)
     }
     return render(request, 'boards/evidence_detail.html', context)
 
@@ -642,7 +650,7 @@ def evidence_detail(request, evidence_id):
 class HypothesisForm(forms.Form):
     """Form for a board hypothesis."""
 
-    hypothesis_text = forms.CharField(label='Hypothesis', max_length=200)
+    hypothesis_text = forms.CharField(label=_('Hypothesis'), max_length=200)
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
@@ -696,7 +704,7 @@ def edit_hypothesis(request, hypothesis_id):
         elif form.is_valid():
             hypothesis.hypothesis_text = form.cleaned_data['hypothesis_text']
             hypothesis.save()
-            messages.success(request, 'Updated hypothesis.')
+            messages.success(request, _('Updated hypothesis.'))
             notify_edit(board, actor=request.user, action_object=hypothesis)
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
@@ -742,7 +750,7 @@ def private_profile(request):
             UserSettings.objects.update_or_create(user=user, defaults={
                 'digest_frequency': form.cleaned_data['digest_frequency']
             })
-            messages.success(request, "Updated account settings.")
+            messages.success(request, _("Updated account settings."))
     else:
         form = SettingsForm(instance=user.usersettings)
 
@@ -751,7 +759,7 @@ def private_profile(request):
         'boards_created': user_boards_created(user)[:5],
         'boards_contributed': user_boards_contributed(user),
         'board_voted': user_boards_evaluated(user),
-        'meta_description': "Account profile for user {}".format(user),
+        'meta_description': _("Account profile for user {name}").format(name=user),
         'notifications': request.user.notifications.unread(),
         'settings_form': form,
     }
@@ -768,7 +776,7 @@ def public_profile(request, account_id):
         'boards_created': user_boards_created(user)[:5],
         'boards_contributed': user_boards_contributed(user),
         'board_voted': user_boards_evaluated(user),
-        'meta_description': "Account profile for user {}".format(user),
+        'meta_description': _("Account profile for user {name}").format(name=user),
     }
     return render(request, 'boards/public_profile.html', context)
 

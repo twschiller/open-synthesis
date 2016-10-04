@@ -7,6 +7,7 @@ import logging
 import collections
 import math
 
+from django.utils.translation import ugettext_lazy as _
 from django.template.defaulttags import register
 # NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
 from django.urls import reverse  # pylint: disable=no-name-in-module
@@ -47,7 +48,7 @@ def detail_name(eval_):
     if eval_:
         return next(e[1] for e in Evaluation.EVALUATION_OPTIONS if e[0] == eval_.value)
     else:
-        return 'No Assessments'
+        return _('No Assessments')
 
 
 @register.filter
@@ -75,10 +76,10 @@ def get_source_tags(dictionary, source_id, tag_id):
 DisputeLevel = collections.namedtuple('DisputeLevel', ['max_level', 'name', 'css_class'])
 # NOTE: the levels here need to match the levels in _detail_icons
 DISPUTE_LEVELS = [
-    DisputeLevel(max_level=0.5, name='Consensus', css_class='disagree-consensus'),
-    DisputeLevel(max_level=1.5, name='Mild Dispute', css_class='disagree-mild-dispute'),
-    DisputeLevel(max_level=2.0, name='Large Dispute', css_class='disagree-large-dispute'),
-    DisputeLevel(max_level=math.inf, name='Extreme Dispute', css_class='disagree-extreme-dispute'),
+    DisputeLevel(max_level=0.5, name=_('Consensus'), css_class='disagree-consensus'),
+    DisputeLevel(max_level=1.5, name=_('Mild Dispute'), css_class='disagree-mild-dispute'),
+    DisputeLevel(max_level=2.0, name=_('Large Dispute'), css_class='disagree-large-dispute'),
+    DisputeLevel(max_level=math.inf, name=_('Extreme Dispute'), css_class='disagree-extreme-dispute'),
 ]
 
 
@@ -89,7 +90,7 @@ def _dispute_level(value):
 @register.filter
 def disagreement_category(value):
     """Return a human-readable description of the level of disagreement given by the value."""
-    return 'No Assessments' if value is None else _dispute_level(value).name
+    return _('No Assessments') if value is None else _dispute_level(value).name
 
 
 @register.filter
