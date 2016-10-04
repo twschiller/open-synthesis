@@ -13,7 +13,8 @@
 
     <form action="{% url 'openach:add_evidence' board.id %}" method="post">
         {% csrf_token %}
-        {{ form|bootstrap }}
+        {{ evidence_form|bootstrap }}
+        {{ source_form|bootstrap }}
         <div class="form-group">
             <div>
                 <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>
