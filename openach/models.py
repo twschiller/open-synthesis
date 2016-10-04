@@ -134,7 +134,7 @@ class Hypothesis(models.Model):
             https://docs.djangoproject.com/en/1.10/topics/db/models/#meta-options
         """
 
-        verbose_name_plural = "hypotheses"
+        verbose_name_plural = _("hypotheses")
 
     def __str__(self):
         """Return a human-readable representation of the hypothesis."""
@@ -176,7 +176,7 @@ class Evidence(models.Model):
             https://docs.djangoproject.com/en/1.10/topics/db/models/#meta-options
         """
 
-        verbose_name_plural = "evidence"
+        verbose_name_plural = _("evidence")
 
     def __str__(self):
         """Return a human-readable representation of the evidence."""
@@ -315,7 +315,7 @@ class UserSettings(models.Model):
     user = models.OneToOneField(User, related_name='settings')
 
     digest_frequency = models.PositiveSmallIntegerField(
-        'email digest frequency',
+        _('email digest frequency'),
         default=DigestFrequency.daily.key,
         choices=DIGEST_FREQUENCY,
         help_text=_('How frequently to receive email updates containing missed notifications'),

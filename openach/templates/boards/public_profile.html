@@ -1,9 +1,12 @@
 {% extends 'boards/base.html' %}
-
 {% load board_extras %}
 {% load i18n %}
 
-{% block title %}User {{ user.username }} | {{ site.name }}{% endblock %}
+{% block title %}
+  {% blocktrans trimmed with username=user.username site_name=site.name %}
+    User {{ username }} | {{ site_name }}
+  {% endblocktrans %}
+{% endblock %}
 
 {% block opengraph %}
     <meta property="og:type" content="profile" />
@@ -16,10 +19,18 @@
         <div class="col-md-7">
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="panel-title">User {{ user.username }}</h3>
+                    <h3 class="panel-title">
+                      {% blocktrans trimmed with username=user.username %}
+                        User {{ username }}
+                      {% endblocktrans %}
+                    </h3>
                 </div>
                 <ul class="list-group">
-                    <li class="list-group-item">Member since {{ user.date_joined|date }}</li>
+                    <li class="list-group-item">
+                      {% blocktrans trimmed with user.date_joined|date as join_date %}
+                        Member since {{ join_date }}
+                      {% endblocktrans %}
+                    </li>
                 </ul>
             </div>
         </div> <!-- col -->
@@ -29,10 +40,10 @@
                 <div class="panel-heading clearfix">
                     {% if boards_created %}
                         <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=created">
-                            View All
+                            {% trans "View All" %}
                         </a>
                     {% endif %}
-                    <h3 class="panel-title">Recent Boards Created</h3>
+                    <h3 class="panel-title">{% trans "Recent Boards Created" %}</h3>
                 </div>
                 <ul class="list-group">
                     {% if boards_created %}
@@ -42,7 +53,11 @@
                             </li>
                         {% endfor %}
                     {% else %}
-                        <li>User {{ user.username }} has not created any boards</li>
+                        <li>
+                          {% blocktrans trimmed with username=user.username %}
+                            User {{ username }} has not created any boards
+                          {% endblocktrans %}
+                        </li>
                     {% endif %}
                 </ul>
             </div>
@@ -51,10 +66,10 @@
                 <div class="panel-heading clearfix">
                     {% if boards_contributed %}
                         <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=contributed">
-                            View All
+                            {% trans "View All" %}
                         </a>
                     {% endif %}
-                    <h3 class="panel-title">Recent Boards Contributed To</h3>
+                    <h3 class="panel-title">{% trans "Recent Boards Contributed To" %}</h3>
                 </div>
                 <ul class="list-group">
                     {% if boards_contributed %}
@@ -62,7 +77,11 @@
                             <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
                         {% endfor %}
                     {% else %}
-                        <li>User {{ user.username }} has not contributed to any boards</li>
+                        <li>
+                          {% blocktrans trimmed with username=user.username %}
+                            User {{ username }} has not contributed to any boards
+                          {% endblocktrans %}
+                        </li>
                     {% endif %}
                 </ul>
             </div>
@@ -71,10 +90,10 @@
                 <div class="panel-heading clearfix">
                     {% if board_voted %}
                         <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' user.id %}?query=evaluated">
-                            View All
+                            {% trans "View All" %}
                         </a>
                     {% endif %}
-                    <h3 class="panel-title">Recent Boards Analyzed</h3>
+                    <h3 class="panel-title">{% trans "Recent Boards Analyzed" %}</h3>
                 </div>
                 <ul class="list-group">
                     {% if board_voted %}
@@ -82,7 +101,11 @@
                             <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
                         {% endfor %}
                     {% else %}
-                        <li>User {{ user.username }} has not evaluated any boards</li>
+                        <li>
+                          {% blocktrans trimmed with username=user.username %}
+                            User {{ username }} has not evaluated any boards
+                          {% endblocktrans %}
+                        </li>
                     {% endif %}
                 </ul>
             </div>

@@ -2,22 +2,30 @@
 {% load i18n %}
 {% load board_extras %}
 
-<h1>{{ site.name }} {{ digest_frequency }} digest for {{ timestamp|date }}</h1>
+<h1>
+  {% blocktrans trimmed with site.name as site_name and timestamp|date as date_text %}
+  {{ site_name }} {{ digest_frequency }} digest for {{ date_text }}
+  {% endblocktrans %}
+</h1>
 
 {% if new_boards %}
-    <h2>New Boards</h2>
+    <h2>{% trans "New Boards" %}</h2>
     <ul>
         {% for board in new_boards %}
-            <li><a href="https://{{ site.domain }}{{ board|board_url }}">{ board.board_title }}:</a></li>
+          <li><a href="https://{{ site.domain }}{{ board|board_url }}">{{ board.board_title }}:</a></li>
         {% endfor %}
     </ul>
 {% endif %}
 
 {% if notifications %}
-    <h2>Board Updates</h2>
+    <h2>{% trans "Board Updates" %}</h2>
 
     {% for target, for_target in notifications.items %}
-        <h3>Board <a href="https://{{ site.domain }}{{ target|board_url }}">{{ target.board_title }}</a></h3>
+        <h3>
+          {% blocktrans trimmed with site.domain as site_domain and target|board_url as custom_url and target.board_title as board_title %}
+          Board <a href="https://{{ site.domain }}{{ custom_url }}">{{ board_title }}</a>
+          {% endblocktrans %}
+        </h3>
         <ul>
             {% for notification in for_target %}
                 <li>{% include 'boards/email/_notification.html' %}</li>
@@ -27,7 +35,9 @@
 {% endif %}
 
 <p>
-    You are receiving this e-mail because you're subscribed to receive {{ digest_frequency }} updates
-    from <a href="https://{{ site.domain }}">{{ site.name }}</a>. To modify your email settings, visit
-    your <a href="https://{{ site.domain }}/accounts/profile/">account profile</a>.
+  {% blocktrans trimmed with site_domain=site.domain site_name=site.name %}
+  You are receiving this e-mail because you're subscribed to receive {{ digest_frequency }} updates
+  from <a href="https://{{ site_domain }}">{{ site_name }}</a>. To modify your email settings, visit
+  your <a href="https://{{ site_domain }}/accounts/profile/">account profile</a>.
+  {% endblocktrans %}
 </p>

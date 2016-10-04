@@ -128,6 +128,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.gzip.GZipMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'csp.middleware.CSPMiddleware',
     # MinifyHTMLMiddleware needs to be after all middleware that may modify the HTML
     'pipeline.middleware.MinifyHTMLMiddleware',
@@ -219,7 +220,15 @@ SECURE_HSTS_SECONDS = env('SECURE_HSTS_SECONDS')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
-
+# # Add new locales in LANGUAGES variable
+# # Ex: ('az', gettext('Azerbaijani')),
+gettext = lambda s: s
+LANGUAGES = (
+    ('en', gettext('English')),
+)
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, 'locale'),
+)
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'

@@ -53,7 +53,7 @@ def _remove_and_redirect(request, removable, message_detail):
         removable.save()
         klass_name = removable._meta.verbose_name.title()  # pylint: disable=protected-access
         klass = klass_name[:1].lower() + klass_name[1:] if klass_name else ''
-        messages.success(request, 'Removed {}: {}'.format(klass, message_detail))
+        messages.success(request, _('Removed {klass}: {message}').format(klass=klass, message=message_detail))
         return HttpResponseRedirect(reverse('openach:detail', args=(removable.board.id,)))
     else:
         raise PermissionDenied()
@@ -113,8 +113,7 @@ def board_listing(request):
     """Return a paginated board listing view showing all boards and their popularity."""
     board_list = Board.objects.order_by('-pub_date')
     metric_timeout_seconds = 60 * 2
-
-    desc = 'List of intelligence boards on {} and summary information'.format(get_current_site(request).name)
+    desc = _('List of intelligence boards on {name} and summary information').format(name=get_current_site(request).name)
     context = {
         'boards': make_paginator(request, board_list),
         'contributors': cache.get_or_set('contributor_count', generate_contributor_count(), metric_timeout_seconds),
@@ -141,7 +140,7 @@ def user_board_listing(request, account_id):
     user = get_object_or_404(User, pk=account_id)
     query = request.GET.get('query')
     verb, board_list = queries.get(query, queries[None])(user)
-    desc = 'List of intelligence boards user {} has {}'.format(user.username, verb)
+    desc = _('List of intelligence boards user {username} has {verb}').format(username=user.username, verb=verb)
     context = {
         'user': user,
         'boards': make_paginator(request, board_list),
@@ -281,7 +280,7 @@ def create_board(request):
         form = BoardCreateForm()
     return render(request, 'boards/create_board.html', {'form': form})
 
-
+    
 @require_http_methods(["HEAD", "GET", "POST"])
 @login_required
 def edit_board(request, board_id):
@@ -296,14 +295,14 @@ def edit_board(request, board_id):
             if allow_remove:
                 board.removed = True
                 board.save()
-                messages.success(request, 'Removed board {}'.format(board.board_title))
+                messages.success(request, _('Removed board {name}').format(name=board.board_title))
                 return HttpResponseRedirect(reverse('openach:index'))
             else:
                 raise PermissionDenied()
 
         elif form.is_valid():
             form.save()
-            messages.success(request, 'Updated board title and/or description.')
+            messages.success(request, _('Updated board title and/or description.'))
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
         form = BoardForm(instance=board)
@@ -375,7 +374,7 @@ def edit_evidence(request, evidence_id):
 
         elif form.is_valid():
             form.save()
-            messages.success(request, 'Updated evidence description and date.')
+            messages.success(request, _('Updated evidence description and date.'))
             notify_edit(board, actor=request.user, action_object=evidence)
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence.id,)))
 
@@ -434,10 +433,10 @@ def toggle_source_tag(request, evidence_id, source_id):
             user_tag = AnalystSourceTag.objects.filter(source=source, tagger=request.user, tag=tag)
             if user_tag.count() > 0:
                 user_tag.delete()
-                messages.success(request, 'Removed "{}" tag from source.'.format(tag.tag_name))
+                messages.success(request, _('Removed "{name}" tag from source.').format(name=tag.tag_name))
             else:
                 AnalystSourceTag.objects.create(source=source, tagger=request.user, tag=tag)
-                messages.success(request, 'Added "{}" tag to source.'.format(tag.tag_name))
+                messages.success(request, 'Added "{name}" tag to source.'.format(name=tag.tag_name))
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
     else:
         # Redirect to the form where the user can toggle a source tag
@@ -451,7 +450,7 @@ def clear_notifications(request):
     if request.method == 'POST':
         if 'clear' in request.POST:
             request.user.notifications.mark_all_as_read()
-            messages.success(request, 'Cleared all notifications.')
+            messages.success(request, _('Cleared all notifications.'))
     return HttpResponseRedirect('/accounts/profile')
 
 
@@ -480,7 +479,7 @@ def evidence_detail(request, evidence_id):
         'source_tags': source_tags,
         'user_tags': user_tags,
         'available_tags': available_tags,
-        'meta_description': "Analysis of evidence: {}".format(evidence.evidence_desc)
+        'meta_description': _("Analysis of evidence: {description}").format(description=evidence.evidence_desc)
     }
     return render(request, 'boards/evidence_detail.html', context)
 
@@ -531,7 +530,7 @@ def edit_hypothesis(request, hypothesis_id):
 
         elif form.is_valid():
             form.save()
-            messages.success(request, 'Updated hypothesis: {}'.format(form.cleaned_data['hypothesis_text']))
+            messages.success(request, _('Updated hypothesis: {text}').format(text=form.cleaned_data['hypothesis_text']))
             notify_edit(board, actor=request.user, action_object=hypothesis)
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
@@ -557,7 +556,7 @@ def private_profile(request):
         form = SettingsForm(request.POST, instance=user.settings)
         if form.is_valid():
             form.save()
-            messages.success(request, "Updated account settings.")
+            messages.success(request, _("Updated account settings."))
     else:
         form = SettingsForm(instance=user.settings)
 
@@ -566,7 +565,7 @@ def private_profile(request):
         'boards_created': user_boards_created(user)[:5],
         'boards_contributed': user_boards_contributed(user),
         'board_voted': user_boards_evaluated(user),
-        'meta_description': "Account profile for user {}".format(user),
+        'meta_description': _("Account profile for user {name}").format(name=user),
         'notifications': request.user.notifications.unread(),
         'settings_form': form,
     }
@@ -583,7 +582,7 @@ def public_profile(request, account_id):
         'boards_created': user_boards_created(user)[:5],
         'boards_contributed': user_boards_contributed(user),
         'board_voted': user_boards_evaluated(user),
-        'meta_description': "Account profile for user {}".format(user),
+        'meta_description': _("Account profile for user {name}").format(name=user),
     }
     return render(request, 'boards/public_profile.html', context)
 

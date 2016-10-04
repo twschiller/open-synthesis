@@ -1,4 +1,5 @@
 {% load board_extras %}
+{% load i18n %}
 {% load static %}
 
 {% comment %}
@@ -7,16 +8,16 @@
 {% if detail_disagreement >= 2.0 %}
     <a href="{{ board|board_url }}?view_type=disagreement">
         <img class="dispute-icon" src="{% static 'boards/images/fire-extreme.svg' %}"
-             alt="Extreme dispute over assessment" title="Extreme dispute icon"/>
+             alt="{% trans "Extreme dispute over assessment" %}" title="{% trans "Extreme dispute icon" %}"/>
     </a>
 {% elif detail_disagreement >= 1.5 %}
     <a href="{{ board|board_url }}?view_type=disagreement">
         <img class="dispute-icon" src="{% static 'boards/images/fire-large.svg' %}"
-             alt="Large dispute over assessment" title="Large dispute icon"/>
+             alt="{% trans "Large dispute over assessment" %}" title="{% trans "Large dispute icon" %}"/>
     </a>
 {% elif detail_disagreement >= 0.5 %}
     <a href="{{ board|board_url }}?view_type=disagreement">
         <img class="dispute-icon" src="{% static 'boards/images/fire-mild.svg' %}"
-             alt="Mild dispute over assessment" title="Mild dispute icon"/>
+             alt="{% trans "Mild dispute over assessment" %}" title="{% trans "Mild dispute icon" %}"/>
     </a>
 {% endif %}

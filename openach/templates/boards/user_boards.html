@@ -1,9 +1,14 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}{{ user.username }}'s Boards | {{ site.name }}{% endblock %}
-
 {% load board_extras %}
+{% load i18n %}
 {% load static %}
+
+{% block title %}
+  {% blocktrans trimmed with username=user.username %}
+    {{ username }}'s Boards
+  {% endblocktrans %}
+  | {{ site.name }}
+{% endblock %}
 
 {% block opengraph %}
     <meta property="og:title" content="Intelligence boards user {{ user.username }} has {{ verb }} on {{ site.name }}" />
@@ -13,12 +18,14 @@
 {% block content %}
     <h1>
         {% if user == request.user %}
-            Boards you have {{ verb }}
+            {% trans "Boards you have {{ verb }}" %}
         {% else %}
-            Boards <i>{{ user.username }}</i> has {{ verb }}
+          {% blocktrans trimmed with username=user.username %}
+            Boards <i>{{ username }}</i> has {{ verb }}
+          {% endblocktrans %}
         {% endif %}
 
-        <a class="btn btn-default" href="{% url 'profile' user.id %}">View Account</a>
+        <a class="btn btn-default" href="{% url 'profile' user.id %}">{% trans "View Account" %}</a>
     </h1>
 
     {% include 'boards/_board_table.html' %}

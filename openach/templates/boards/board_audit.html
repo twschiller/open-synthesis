@@ -1,23 +1,31 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}Change History for {{ board.board_title }} | {{ site.name }}{% endblock %}
-
 {% load board_extras %}
+{% load i18n %}
 {% load comments %}
 {% load bootstrap %}
 
+{% block title %}
+  {% blocktrans trimmed with board_title=board.board_title site_name=site.name %}
+    Change History for {{ board_title }} | {{ site_name }}
+  {% endblocktrans %}
+{% endblock %}
+
 {% block content %}
 
-    <h1>Change History: {{ board.board_title }}</h1>
+    <h1>
+      {% blocktrans trimmed with board_title=board.board_title %}
+        Change History: {{ board_title }}
+      {% endblocktrans %}
+    </h1>
 
-    <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>
+    <a class="btn btn-default" href="{{ board|board_url }}">{% trans "Return to Board" %}</a>
 
     <table class="table table-hover audit-table">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>User</th>
-                <th colspan="2">Modification</th>
+                <th>{% trans "Date" %}</th>
+                <th>{% trans "User" %}</th>
+                <th colspan="2">{% trans "Modification" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -29,7 +37,12 @@
                             <a href="{% url 'profile' event.user.id %}">{{ event.user.username }}</a>
                         {% endif %}
                     </td>
-                    <td>Changed {% get_verbose_field_name event.object event.field_name %} to {{ event.field_value }}</td>
+                    <td>
+                      {% get_verbose_field_name event.object event.field_name as field_name %}
+                      {% blocktrans trimmed with field_value=event.field_value %}
+                        Changed {{ field_name }} to {{ field_value }}
+                      {% endblocktrans %}
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>

@@ -1,6 +1,7 @@
 {% extends 'boards/base.html' %}
+{% load i18n %}
 
-{% block title %}About | {{ site.name }}{% endblock %}
+{% block title %}{% trans "About" %} | {{ site.name }}{% endblock %}
 
 {% load static %}
 
@@ -11,48 +12,56 @@
         <div class="col-md-7">
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="panel-title">How to Contribute</h3>
+                    <h3 class="panel-title">{% trans "How to Contribute" %}</h3>
                 </div>
                 <div class="panel-body">
                     <p>
+                      {% blocktrans trimmed with github_url="https://github.com/twschiller/open-synthesis" %}
                         The Open Synthesis Project is available open-source under the GNU Public License Version 3 on
-                        <a href="https://github.com/twschiller/open-synthesis">GitHub</a>.
+                        <a href="{{ github_url }}">GitHub</a>.
+                      {% endblocktrans %}
                     </p>
 
                     <p>
+                      {% blocktrans trimmed %}
                         In addition to intelligence analysis, we're actively looking for the following kinds of
                         contribution:
+                      {% endblocktrans %}
                     </p>
                     <ul>
-                        <li>UI/UX design</li>
-                        <li>Front-end development</li>
-                        <li>Translation</li>
-                        <li>Bug Reports</li>
+                        <li>{% trans "UI/UX design" %}</li>
+                        <li>{% trans "Front-end development" %}</li>
+                        <li>{% trans "Translation" %}</li>
+                        <li>{% trans "Bug Reports" %}</li>
                     </ul>
 
                     <p>
+                      {% blocktrans trimmed with issues_url="https://github.com/twschiller/open-synthesis/issues" %}
                         A list of open development tasks is available via
-                        <a href="https://github.com/twschiller/open-synthesis/issues">GitHub Issues</a>. If there's
+                        <a href="{{ issues_url }}">GitHub Issues</a>. If there's
                         another way you'd like to contribute, email us at
                         <a href="mailto:contribute@opensynthesis.org">contribute@opensynthesis.org</a>.
+                      {% endblocktrans %}
                     </p>
                 </div>
             </div>
 
             <div class="panel panel-info">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Content License</h3>
+                    <h3 class="panel-title">{% trans "Content License" %}</h3>
                 </div>
                 <div class="panel-body">
                     <p>
-                        Content on {{ site.name }} is licensed under a
-                        <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
-                            Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)</a>.
+                      {% blocktrans trimmed with site_name=site.name license_url="https://creativecommons.org/licenses/by-sa/4.0/" %}
+                        Content on {{ site_name }} is licensed under a
+                        <a rel="license" href="{{ license_url }}">
+                        Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)</a>.
                         Comments should be attributed to their respective authors.
+                      {% endblocktrans %}
                     </p>
                     <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
                         <img src="{% static 'boards/images/license.png' %}"
-                             alt="Creative Commons Attribution-ShareAlike 4.0 International License"/>
+                             alt="{% trans "Creative Commons Attribution-ShareAlike 4.0 International License" %}"/>
                     </a>
                 </div>
             </div>
@@ -60,12 +69,14 @@
             {% if privacy_url %}
                 <div class="panel panel-info">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Privacy Policy</h3>
+                        <h3 class="panel-title">{% trans "Privacy Policy" %}</h3>
                     </div>
                     <div class="panel-body">
                         <p>
-                            The {{ site.name }} privacy policy is available at
+                          {% blocktrans trimmed with site_name=site.name %}
+                            The {{ site_name }} privacy policy is available at
                             <a rel="external" href="{{ privacy_url }}">{{ privacy_url }}</a>
+                          {% endblocktrans %}
                         </p>
                     </div>
                 </div>
@@ -77,19 +88,21 @@
             {% if bitcoin_address %}
                 <div class="panel panel-success">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Donate</h3>
+                        <h3 class="panel-title">{% trans "Donate" %}</h3>
                     </div>
                     <div class="panel-body">
 
                         <div class="media">
                             <div class="media-left">
                                 <a href="{{ bitcoin_donate_url }}">
-                                    <img class="pull-left media-object" src="{% url 'openach:bitcoin_donate' %}" alt="Bitcoin donation QR code" width="100">
+                                    <img class="pull-left media-object" src="{% url 'openach:bitcoin_donate' %}" alt="{% trans "Bitcoin donation QR code" %}" width="100">
                                 </a>
                             </div>
                             <div class="media-body">
-                                <h4 class="media-heading">Donate via Bitcoin</h4>
-                                Donations help offset the operating costs for {{ site.name }}:
+                                <h4 class="media-heading">{% trans "Donate via Bitcoin" %}</h4>
+                                {% blocktrans trimmed with site_name=site.name %}
+                                Donations help offset the operating costs for {{ site_name }}:
+                                {% endblocktrans %}
                                 <a href="{{ bitcoin_donate_url }}">{{ bitcoin_address }}</a>
                             </div>
                         </div>
@@ -99,45 +112,55 @@
 
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Reporting Bugs</h3>
+                    <h3 class="panel-title">{% trans "Reporting Bugs" %}</h3>
                 </div>
                 <div class="panel-body">
-                    Find a bug? The best way to report it is using <a href="https://github.com/twschiller/open-synthesis/issues">GitHub Issues</a>.
+                  {% blocktrans trimmed with issues_url="https://github.com/twschiller/open-synthesis/issues" %}
+                    Find a bug? The best way to report it is using <a href="{{ issues_url }}">GitHub Issues</a>.
                     However, you can also email us at <a href="mailto:bugs@opensynthesis.org">bugs@opensynthesis.org</a>.
+                  {% endblocktrans %}
                 </div>
             </div>
 
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Responsible Disclosure</h3>
+                    <h3 class="panel-title">{% trans "Responsible Disclosure" %}</h3>
                 </div>
                 <div class="panel-body">
                     <p>
+                      {% blocktrans trimmed with pgp_url="https://keybase.io/tschiller" %}
                         If you find a security vulnerability in Open Synthesis, please privately report it to
                         <a href="mailto:security@opensynthesis.org">security@opensynthesis.org</a>. For secure
-                        communication, please use <a href="https://keybase.io/tschiller">this PGP key.</a>
+                        communication, please use <a href="{{ pgp_url }}">this PGP key.</a>
+                      {% endblocktrans %}
                     </p>
                     <p>
+                      {% blocktrans trimmed with security_url="https://github.com/twschiller/open-synthesis/blob/master/SECURITY.md" %}
                         Our responsible disclosure program is
-                        <a href="https://github.com/twschiller/open-synthesis/blob/master/SECURITY.md">
+                        <a href="{{ security_url }}">
                             available via GitHub.
                         </a>
+                      {% endblocktrans %}
                     </p>
                 </div>
             </div>
 
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Media Inquiries</h3>
+                    <h3 class="panel-title">{% trans "Media Inquiries" %}</h3>
                 </div>
                 <div class="panel-body">
                     <p>
+                      {% blocktrans trimmed %}
                         Are you a journalist or blogger interested in learning more about the Open Synthesis Project?
                         Send us an email at <a href="mailto:media@opensynthesis.org">media@opensynthesis.org</a>.
+                      {% endblocktrans %}
                     </p>
 
                     <p>
-                        For secure communication, please use <a href="https://keybase.io/tschiller">this PGP key.</a>
+                      {% blocktrans trimmed with pgp_url="https://keybase.io/tschiller" %}
+                        For secure communication, please use <a href="{{ pgp_url }}">this PGP key.</a>
+                      {% endblocktrans %}
                     </p>
                 </div>
             </div>

@@ -1,4 +1,5 @@
 """Django template context processors."""
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.sites.models import Site
 from django.conf import settings
 
@@ -16,8 +17,8 @@ def meta(dummy_request):
     return {
         'twitter_account': getattr(settings, 'TWITTER_ACCOUNT', None),
         'facebook_account': getattr(settings, 'FACEBOOK_ACCOUNT', None),
-        'default_description': "{} is an open platform for intelligence analysis".format(site_name),
-        'default_keywords': ["Analysis of Competing Hypothesis", "ACH", "intelligence analysis"]
+        'default_description': _("{name} is an open platform for intelligence analysis").format(name=site_name),
+        'default_keywords': [_("Analysis of Competing Hypothesis"), _("ACH"), _("intelligence analysis")]
     }
 
 

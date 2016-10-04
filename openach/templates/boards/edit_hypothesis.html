@@ -1,13 +1,16 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}Edit Hypothesis | {{ site.name }}{% endblock %}
-
 {% load board_extras %}
 {% load bootstrap %}
 {% load i18n %}
 
+{% block title %}{% trans "Edit Hypothesis" %} | {{ site.name }}{% endblock %}
+
 {% block content %}
-    <h1>{% trans "Edit Hypothesis for " %} <i>{{ board.board_title }}</i> </h1>
+    <h1>
+      {% blocktrans trimmed with board_title=board.board_title %}
+        Edit Hypothesis for <i>{{ board_title }}</i>
+      {% endblocktrans %}
+    </h1>
 
     <div class="well">{{ board.board_desc }}</div>
 
@@ -16,7 +19,7 @@
         {{ form|bootstrap }}
         <div class="form-group">
             <div class="">
-                <a class="btn btn-default" href="{{ board|board_url }}">Return to Board</a>&nbsp;
+                <a class="btn btn-default" href="{{ board|board_url }}">{% trans "Return to Board" %}</a>&nbsp;
                 {% if allow_remove %}
                     <button type="submit" class="btn btn-danger" name="remove" value="remove">{% trans "Remove Hypothesis" %}</button>&nbsp;
                 {% endif %}

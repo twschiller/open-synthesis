@@ -1,11 +1,11 @@
 {% extends 'boards/base.html' %}
-
-{% block title %}Evidence Detail | {{ site.name }}{% endblock %}
-
 {% load board_extras %}
 {% load auth_extras %}
+{% load i18n %}
 {% load comments %}
 {% load bootstrap %}
+
+{% block title %}{% trans "Evidence Detail" %} | {{ site.name }}{% endblock %}
 
 {% block opengraph %}
     <meta property="og:title" content="{{ evidence.board.board_title }}" />
@@ -14,36 +14,43 @@
 
 {% block content %}
     <h1>
-        Evidence for {{ evidence.board.board_title }}
+      {% blocktrans trimmed with board_title=evidence.board.board_title %}
+        Evidence for {{ board_title }}
+      {% endblocktrans %}
     </h1>
 
     <div>
-        Added by <a href="{% url 'profile' evidence.creator.id %}">{{ evidence.creator.username }}</a>
-        on {{ evidence.submit_date }}
+      {% url 'profile' evidence.creator.id as profile_url %}
+      {% blocktrans trimmed with creator_username=evidence.creator.username submit_date=evidence.submit_date %}
+        Added by <a href="{{ profile_url }}">{{ creator_username }}</a>
+        on {{ submit_date }}
+      {% endblocktrans %}
         {% if evidence.event_date %}
-            Event occurred on {{ evidence.event_date }}.
+          {% blocktrans trimmed with event_date=evidence.event_date %}
+            Event occurred on {{ event_date }}.
+          {% endblocktrans %}
         {%  endif %}
     </div>
     <div class="well">{{ evidence.evidence_desc }}</div>
 
     <div>
-        <a class="btn btn-primary" href="{% url 'openach:add_source' evidence.id %}?kind=corroborate">Add Corroborating Source</a>&nbsp;
-        <a class="btn btn-warning" href="{% url 'openach:add_source' evidence.id %}?kind=conflicting">Add Conflicting Source</a>&nbsp;
+        <a class="btn btn-primary" href="{% url 'openach:add_source' evidence.id %}?kind=corroborate">{% trans "Add Corroborating Source" %}</a>&nbsp;
+        <a class="btn btn-warning" href="{% url 'openach:add_source' evidence.id %}?kind=conflicting">{% trans "Add Conflicting Source" %}</a>&nbsp;
         {% can_edit request evidence.board evidence as editable %}
         {% if editable %}
-            <a class="btn btn-default" href="{% url 'openach:edit_evidence' evidence.id %}">Edit Evidence</a>&nbsp;
+            <a class="btn btn-default" href="{% url 'openach:edit_evidence' evidence.id %}">{% trans "Edit Evidence" %}</a>&nbsp;
         {% endif %}
-        <a class="btn btn-default" href="{{ evidence.board|board_url }}">Return to Board</a>
+        <a class="btn btn-default" href="{{ evidence.board|board_url }}">{% trans "Return to Board" %}</a>
     </div>
 
     <table class="table table-hover">
         <thead>
         <tr>
-            <th>Source Date</th>
-            <th>Quality Tags</th>
-            <th>Source URL</th>
-            <th>Submission</th>
-            <th>Add Quality Tag</th>
+            <th>{% trans "Source Date" %}</th>
+            <th>{% trans "Quality Tags" %}</th>
+            <th>{% trans "Source URL" %}</th>
+            <th>{% trans "Submission" %}</th>
+            <th>{% trans "Add Quality Tag" %}</th>
         </tr>
         </thead>
         <tbody>
@@ -62,8 +69,11 @@
                     <a href="{{ source.source_url }}" target="_blank">{{ source.source_url }}</a>
                 </td>
                 <td>
-                    Submitted on {{ source.submit_date }} by
-                    <a href="{% url 'profile' source.uploader.id %}">{{ source.uploader.username }}</a>
+                  {% url 'profile' source.uploader.id as profile_url %}
+                  {% blocktrans trimmed with submit_date=source.submit_date uploader_username=source.uploader.username %}
+                    Submitted on {{ submit_date }} by
+                    <a href="{{ profile_url }}">{{ uploader_username }}</a>
+                  {% endblocktrans %}
                 </td>
                 <td>
                     <form action="{% url 'openach:tag_source' evidence.id source.id %}" method="post">
@@ -80,7 +90,7 @@
         </tbody>
     </table>
 
-    <h2>Comments</h2>
+    <h2>{% trans "Comments" %}</h2>
 
     {% render_comment_list for evidence %}
 
@@ -95,12 +105,14 @@
             {{ form.timestamp }}
             {{ form.security_hash }}
             <input type="hidden" name="next" value="{% url 'openach:evidence_detail' evidence.id %}" />
-            <input class="btn btn-primary" type="submit" value="Add comment" id="id_submit" />
+            <input class="btn btn-primary" type="submit" value="{% trans "Add comment" %}" id="id_submit" />
         </form>
     {% else %}
         <p>
-            Please <a href="/accounts/login/?next={% url 'openach:evidence_detail' evidence.id %}">log in</a> to leave a
-            comment.
+          {% url 'openach:evidence_detail' evidence.id as evidence_url %}
+          {% blocktrans trimmed %}
+            Please <a href="/accounts/login/?next={{ evidence_url }}">log in</a> to leave a comment.
+          {% endblocktrans %}
         </p>
     {% endif %}
 
