@@ -225,7 +225,7 @@ SECURE_HSTS_SECONDS = env('SECURE_HSTS_SECONDS')
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 LANGUAGES = (
     # Add new locales in LANGUAGES variable, e.g., ('az', _('Azerbaijani'))
-    ('en-us', _('English (United States)')),
+    ('en', _('English (United States)')),
 )
 LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'locale'),
