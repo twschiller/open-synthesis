@@ -120,10 +120,10 @@ command:
     python manage.py compilemessages
 
 Add your translation to the `openintel/settings.py` file. Note that the language corresponding to the locale is lower
-case and uses a hypen `-` instead of an underscore `_`. So locale `en_GB` becomes `en-gb`:
+case and uses a hyphen `-` instead of an underscore `_`. So locale `en_GB` becomes `en-gb`:
 
     LANGUAGES = (
-        ('en-us', _('English (United States)')),
+        ('en', _('English (United States)')),
         ('en-gb', _('English (British)')),
     )
 
