@@ -23,7 +23,9 @@ require("bootstrap-datepicker");
 require("./notify");
 
 require("bootstrap/dist/css/bootstrap.min.css");
-
+require("bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css");
 require("../css/sharing.css");
 
-switchLanguageForm.addEventListener("change", function() { switchLanguageForm.submit(); });
+$("form[name='switchLanguageForm']").change(function(){
+    $(this).submit();
+});
