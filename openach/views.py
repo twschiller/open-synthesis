@@ -7,6 +7,7 @@ from collections import defaultdict
 import itertools
 import logging
 import random
+import json
 
 from django.conf import settings
 from django.contrib import messages
@@ -17,6 +18,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 # NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
@@ -713,3 +715,24 @@ def bitcoin_qrcode(request):
         return HttpResponse(raw.getvalue(), content_type='image/svg+xml')
     else:
         raise Http404
+
+
+@require_safe
+@cache_page(60 * 60)
+def board_search(request):
+    """Return filtered boards list data in json format."""
+    query = request.GET.get('query', '')
+    q_obj = Q(board_title__contains=query)
+    q_obj.add(Q(board_desc__contains=query), Q.OR)
+
+    boards_list = []
+    boards = Board.objects.filter(q_obj).order_by('-pub_date')[0:10]
+    for board in boards:
+        boards_list.append({
+            'board_title': board.board_title,
+            'board_desc': board.board_desc,
+            'url': reverse('openach:detail', args=(board.id,))
+        })
+
+    boards = json.dumps(boards_list)
+    return HttpResponse(boards, content_type='application/json')

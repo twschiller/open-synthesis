@@ -134,6 +134,7 @@ that your browser is requesting the page in the language you created.
 
 ## Contributors
 * [Emin Mastizada](https://github.com/mastizada): internationalization
+* [Surya Prashanth](https://github.com/Prashant-Surya): board search
 
 ## Third-Party Libraries and Services
 We gratefully acknowledge this project's third-party libraries and their contributors. See [here](requirements.txt) and 

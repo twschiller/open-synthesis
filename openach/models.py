@@ -44,8 +44,9 @@ class Board(models.Model):
 
     board_title = models.CharField(
         max_length=BOARD_TITLE_MAX_LENGTH,
+        db_index=True,
         help_text=_('The board title. Typically phrased as a question asking about what happened in the past, '
-                    'what is happening currently, or what will happen in the future')
+                    'what is happening currently, or what will happen in the future'),
     )
 
     board_slug = models.SlugField(
@@ -58,6 +59,7 @@ class Board(models.Model):
     board_desc = models.CharField(
         'board description',
         max_length=BOARD_DESC_MAX_LENGTH,
+        db_index=True,
         help_text=_('A description providing context around the topic. Helps to clarify which hypotheses '
                     'and evidence are relevant')
     )
