@@ -1715,3 +1715,7 @@ class CeleryTestCase(TestCase):
 
         self.assertEquals(result.get(), 16)
         self.assertTrue(result.successful())
+
+    def test_fetch_url_title_from_source(self):
+        """Tests update_url_title_description tasks fetches meta info of the url"""
+        pass

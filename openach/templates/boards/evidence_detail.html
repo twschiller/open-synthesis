@@ -48,7 +48,7 @@
         <tr>
             <th>{% trans "Source Date" %}</th>
             <th>{% trans "Quality Tags" %}</th>
-            <th>{% trans "Source URL" %}</th>
+            <th>{% trans "Source" %}</th>
             <th>{% trans "Submission" %}</th>
             <th>{% trans "Add Quality Tag" %}</th>
         </tr>
@@ -66,7 +66,13 @@
                     {% endfor %}
                 </td>
                 <td>
-                    <a href="{{ source.source_url }}" target="_blank">{{ source.source_url }}</a>
+                    <a href="{{ source.source_url }}" target="_blank">
+                   {% if source.source_title  %}
+                      {{ source.source_title }}
+                    {% else %}
+                       {{ source.source_url }}
+                    {% endif %}
+                   </a>
                 </td>
                 <td>
                   {% url 'profile' source.uploader.id as profile_url %}
