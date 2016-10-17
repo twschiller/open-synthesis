@@ -334,7 +334,7 @@ def add_evidence(request, board_id):
                 evidence.creator = request.user
                 evidence.save()
 
-                if source_form.cleaned_data.get('evidence_url'):
+                if source_form.cleaned_data.get('source_url'):
                     source = source_form.save(commit=False)
                     source.evidence = evidence
                     source.uploader = request.user

@@ -786,7 +786,7 @@ class AddEvidenceTests(TestCase):
         self.evidence = Evidence.objects.create(
             board=self.board,
             creator=self.user,
-            evidence_desc="Evidence #1",
+            evidence_desc='Evidence #1',
             event_date=None,
         )
         self.follower = add_follower(self.board)
@@ -814,12 +814,17 @@ class AddEvidenceTests(TestCase):
         text = 'Test Hypothesis 3'
         response = self.client.post(reverse('openach:add_evidence', args=(self.board.id,)), data={
             'evidence_desc': text,
-            'event_date': "1/1/2016",
-            'source_url': "https://google.com",
-            'source_date': "1/1/2016",
+            'event_date': '1/1/2016',
+            'source_url': 'https://google.com',
+            'source_date': '1/1/2016',
+            'corroborating': 'True',
         })
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Evidence.objects.filter(evidence_desc=text)), 0)
+
+        sources = list(EvidenceSource.objects.filter(source_url='https://google.com'))
+        self.assertEqual(len(sources), 1)
+        self.assertTrue(sources[0].corroborating)
 
         self.assertTrue(follows(self.user, self.board))
         self.assertGreater(self.follower.notifications.unread().count(), 0)
@@ -828,10 +833,10 @@ class AddEvidenceTests(TestCase):
         """Test that the form rejects long URLs (issue #58)."""
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:add_evidence', args=(self.board.id,)), data={
-            'evidence_desc': "Evidence Description",
-            'event_date': "1/1/2016",
-            'evidence_url': "https://google.com/" + ("x" * URL_MAX_LENGTH),
-            'evidence_date': "1/1/2016",
+            'evidence_desc': 'Evidence Description',
+            'event_date': '1/1/2016',
+            'source_url': 'https://google.com/' + ('x' * URL_MAX_LENGTH),
+            'source_date': '1/1/2016',
         })
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'boards/add_evidence.html')
@@ -839,8 +844,8 @@ class AddEvidenceTests(TestCase):
     def test_evidence_edit_form(self):
         """Test that form validation passes for reasonable input."""
         form = EvidenceForm({
-            'evidence_desc': "Evidence Description",
-            'event_date': "1/1/2016",
+            'evidence_desc': 'Evidence Description',
+            'event_date': '1/1/2016',
         })
         self.assertTrue(form.is_valid())
 
@@ -867,7 +872,7 @@ class AddEvidenceTests(TestCase):
         )
         self.client.login(username='john', password='johnpassword')
         response = self.client.post(reverse('openach:edit_evidence', args=(self.evidence.id,)))
-        self.assertContains(response, "Remove Evidence", status_code=200)
+        self.assertContains(response, 'Remove Evidence', status_code=200)
 
     def test_can_submit_edit_form(self):
         """Test that the evidence edit form properly updates the evidence."""
@@ -932,14 +937,16 @@ class AddSourceTests(TestCase):
         """Test that the source is actually added to the database when the user submits the form."""
         self.client.login(username='john', password='johnpassword')
         url = "https://google.com"
-        response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
-            'source_url': url,
-            'source_date': "1/1/2016",
-            'corroborating': True,
-        })
-        self.assertEqual(response.status_code, 302)
-        self.assertGreater(len(EvidenceSource.objects.filter(source_url=url)), 0)
-        self.assertGreater(len(EvidenceSource.objects.filter(corroborating=True)), 0)
+
+        for corroborating in [True, False]:
+            response = self.client.post(reverse('openach:add_source', args=(self.evidence.id,)), data={
+                'source_url': url,
+                'source_date': '1/1/2016',
+                'corroborating': str(corroborating),
+            })
+            self.assertEqual(response.status_code, 302)
+            self.assertGreater(len(EvidenceSource.objects.filter(source_url=url)), 0)
+            self.assertGreater(len(EvidenceSource.objects.filter(corroborating=corroborating)), 0)
 
     def test_add_conflicting_evidence_form(self):
         """Test that the form is for conflicting sources when ?kind=conflicting query parameter is supplied."""
