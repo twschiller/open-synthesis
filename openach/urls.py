@@ -44,4 +44,7 @@ urlpatterns = [  # pylint: disable=invalid-name
     url(r'^boards/(?P<board_id>[0-9]+)/evidence/(?P<evidence_id>[0-9]+)/evaluate$', views.evaluate, name='evaluate'),
     url(r'^boards/(?P<board_id>[0-9]+)/(?P<dummy_board_slug>[A-Za-z0-9\-]+)/$', views.detail, name='detail_slug'),
     url(r'^about$', views.about, name='about'),
+
+    # JSON API
+    url(r'^api/boards/$', views.board_search, name='board_search'),
 ]

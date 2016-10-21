@@ -7,6 +7,7 @@ from collections import defaultdict
 import itertools
 import logging
 import random
+import json
 
 from django.conf import settings
 from django.contrib import messages
@@ -17,6 +18,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 # NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
@@ -45,6 +47,7 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 PAGE_CACHE_TIMEOUT_SECONDS = 60
 DEBUG = getattr(settings, 'DEBUG', False)
+BOARD_SEARCH_RESULTS_MAX = 5
 
 
 def _remove_and_redirect(request, removable, message_detail):
@@ -715,3 +718,18 @@ def bitcoin_qrcode(request):
         return HttpResponse(raw.getvalue(), content_type='image/svg+xml')
     else:
         raise Http404
+
+
+@require_safe
+@cache_page(60 * 60)
+def board_search(request):
+    """Return filtered boards list data in json format."""
+    query = request.GET.get('query', '')
+    search = Q(board_title__contains=query) | Q(board_desc__contains=query)
+    queryset = Board.objects.filter(search).order_by('-pub_date')[:BOARD_SEARCH_RESULTS_MAX]
+    boards = json.dumps([{
+            'board_title': board.board_title,
+            'board_desc': board.board_desc,
+            'url': reverse('openach:detail', args=(board.id,))
+        } for board in queryset])
+    return HttpResponse(boards, content_type='application/json')

@@ -7,6 +7,10 @@ body {
     margin-bottom: 20px;
 }
 
+.navbar-collapse.in {
+    overflow-y: visible;
+}
+
 .source-tag {
     background-color: #5bc0de;
     color: white;
@@ -171,15 +175,22 @@ h1>.badge, h2>.badge, h3>.badge {
     background: #A600FF;
 }
 
-@media (max-width: 768px) {
-  .language-form {
-    margin-left: 25% !important;
-    width: 50% !important;
-  }
+/* match selectize style so there's no jitter in the style */
+.navbar-search #board-search {
+    width: 200px;
+    margin-bottom: 5px;
 }
 
-@media (min-width: 768px) {
-  .language-form {
-    padding-top: 8px;
-  }
+.navbar-search .selectize-input {
+    width: 200px;
+    margin-bottom: 0;
 }
+
+.navbar-search .selectize-control.single .selectize-input:after {
+    content: none; !important;
+}
+
+.navbar-language .selectize-input {
+    width: 175px;
+}
+
