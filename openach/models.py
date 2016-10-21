@@ -24,8 +24,8 @@ EVIDENCE_MAX_LENGTH = 200
 HYPOTHESIS_MAX_LENGTH = 200
 BOARD_TITLE_MAX_LENGTH = 200
 BOARD_DESC_MAX_LENGTH = 255
-URL_TITLE_MAX_LENGTH = 255
-URL_DESCRIPTION_MAX_LENGTH = 1000
+SOURCE_TITLE_MAX_LENGTH = 255
+SOURCE_DESCRIPTION_MAX_LENGTH = 1000
 
 SLUG_MAX_LENGTH = getattr(settings, 'SLUG_MAX_LENGTH', 72)
 
@@ -199,15 +199,16 @@ class EvidenceSource(models.Model):
         max_length=URL_MAX_LENGTH,
         help_text=_('A source (e.g., news article or press release) corroborating the evidence'),
     )
+
     source_title = models.CharField(
         'source title',
-        max_length=URL_TITLE_MAX_LENGTH,
+        max_length=SOURCE_TITLE_MAX_LENGTH,
         default=''
     )
 
     source_description = models.CharField(
         'source description',
-        max_length=URL_DESCRIPTION_MAX_LENGTH,
+        max_length=SOURCE_DESCRIPTION_MAX_LENGTH,
         default=''
     )
 

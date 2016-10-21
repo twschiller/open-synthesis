@@ -10,12 +10,14 @@ import logging
 import requests
 
 from bs4 import BeautifulSoup
-from celery import shared_task  # noqa
+from celery import shared_task
 from .models import EvidenceSource
 from requests.packages.urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
 logger = logging.getLogger(__name__)
+
+SOURCE_METADATA_RETRY = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
 
 
 @shared_task
@@ -27,43 +29,44 @@ def example_task(x, y):  # pragma: no cover
     return x + y
 
 
+def parse_metadata(html):
+    """Return document metadata from Open Graph, meta, and title tags.
+
+    If title Open Graph property is not set, uses the document title tag. If the description Open Graph property is
+    not set, uses the description meta tag.
+
+    For more information, please see:
+    - http://ogp.me/
+    """
+    # adapted from https://github.com/erikriver/opengraph
+    metadata = {}
+    doc = BeautifulSoup(html, "html.parser")
+    tags = doc.html.head.findAll(property=re.compile(r'^og'))
+    for tag in tags:
+        if tag.has_attr('content'):
+            metadata[tag['property'][len('og:'):]] = tag['content']
+
+    if 'title' not in metadata and doc.title:
+        metadata['title'] = doc.title.text
+
+    if 'description' not in metadata:
+        description_tags = doc.html.head.findAll('meta', attrs={'name': 'description'})
+        # there should be at most one description tag per document
+        if len(description_tags) > 0:
+            metadata['description'] = description_tags[0].get('content', '')
+
+    return metadata
+
+
 @shared_task
-def fetch_url_title_from_source(source_id):
-    """
-    Fetches Title and Description from a source 
-    Source : https://github.com/erikriver/opengraph
-    """
+def fetch_source_metadata(source_id):
+    """Fetch title and description metadata for the given source."""
     source = EvidenceSource.objects.get(id=source_id)
-    try:
-        s = requests.Session()
-        retries = Retry(total=5,
-                        backoff_factor=0.1,
-                        status_forcelist=[500, 502, 503, 504])
-        s.mount('http://', HTTPAdapter(max_retries=retries))
-        s.mount('https://', HTTPAdapter(max_retries=retries))
-        html = s.get(source.source_url)
-        doc = BeautifulSoup(html.text, "html.parser")
-        ogs = doc.html.head.findAll(property=re.compile(r'^og'))
-        url_info = {}
-        for og in ogs:
-            if og.has_attr('content'):
-                url_info[og['property'][3:]] = og['content']
-        if 'title' not in url_info:
-            url_info['title'] = doc.title.text
-            url_info['description'] = scrape_description(doc)
-        source.source_title = url_info['title']
-        source.source_description = url_info['description']
-        logger.info(url_info)
-        source.save()
-    except requests.exceptions.ConnectionError as connection_exception:
-        logger.info(connection_exception)
-    except requests.exceptions.RequestException as request_exception:
-        logger.info(request_exception)
-    except Exception as e:
-        logger.info(e)
-
-
-def scrape_description(doc):
-    tag = doc.html.head.findAll('meta', attrs={"name":"description"})
-    result = "".join([t['content'] for t in tag])
-    return result
+    session = requests.session()
+    session.mount('http://', HTTPAdapter(max_retries=SOURCE_METADATA_RETRY))
+    session.mount('https://', HTTPAdapter(max_retries=SOURCE_METADATA_RETRY))
+    html = session.get(source.source_url)
+    metadata = parse_metadata(html.text)
+    source.source_title = metadata.get('title', '')
+    source.source_description = metadata.get('description', '')
+    source.save()
