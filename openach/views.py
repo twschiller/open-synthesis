@@ -37,6 +37,7 @@ from .metrics import generate_contributor_count, generate_evaluator_count
 from .metrics import user_boards_contributed, user_boards_created, user_boards_evaluated
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
 from .models import ProjectNews, BoardFollower
+from .tasks import fetch_source_metadata
 
 # XXX: allow_remove logic should probably be refactored to a template context processor
 
@@ -339,11 +340,11 @@ def add_evidence(request, board_id):
                     source.evidence = evidence
                     source.uploader = request.user
                     source.save()
+                    fetch_source_metadata.delay(source.id)
 
                 BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
                     'is_contributor': True,
                 })
-
             notify_add(board, actor=request.user, action_object=evidence)
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
@@ -403,6 +404,7 @@ def add_source(request, evidence_id):
             source.evidence = evidence
             source.uploader = request.user
             source.save()
+            fetch_source_metadata.delay(source.id)
             return HttpResponseRedirect(reverse('openach:evidence_detail', args=(evidence_id,)))
         else:
             corroborating = form.data['corroborating'] == 'True'

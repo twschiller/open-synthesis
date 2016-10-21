@@ -146,6 +146,12 @@ h1>.badge, h2>.badge, h3>.badge {
     margin-top: -0.3em;
 }
 
+
+.source-description {
+    font-size: 0.9em;
+    color: #909497;
+}
+
 /* https://codepen.io/necks/pen/BKfHl */
 
 .corner-cut {
