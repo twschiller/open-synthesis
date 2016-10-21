@@ -47,6 +47,7 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 PAGE_CACHE_TIMEOUT_SECONDS = 60
 DEBUG = getattr(settings, 'DEBUG', False)
+BOARD_SEARCH_RESULTS_MAX = 5
 
 
 def _remove_and_redirect(request, removable, message_detail):
@@ -724,17 +725,11 @@ def bitcoin_qrcode(request):
 def board_search(request):
     """Return filtered boards list data in json format."""
     query = request.GET.get('query', '')
-    q_obj = Q(board_title__contains=query)
-    q_obj.add(Q(board_desc__contains=query), Q.OR)
-
-    boards_list = []
-    boards = Board.objects.filter(q_obj).order_by('-pub_date')[0:10]
-    for board in boards:
-        boards_list.append({
+    search = Q(board_title__contains=query) | Q(board_desc__contains=query)
+    queryset = Board.objects.filter(search).order_by('-pub_date')[:BOARD_SEARCH_RESULTS_MAX]
+    boards = json.dumps([{
             'board_title': board.board_title,
             'board_desc': board.board_desc,
             'url': reverse('openach:detail', args=(board.id,))
-        })
-
-    boards = json.dumps(boards_list)
+        } for board in queryset])
     return HttpResponse(boards, content_type='application/json')

@@ -7,6 +7,10 @@ body {
     margin-bottom: 20px;
 }
 
+.navbar-collapse.in {
+    overflow-y: visible;
+}
+
 .source-tag {
     background-color: #5bc0de;
     color: white;
@@ -171,8 +175,19 @@ h1>.badge, h2>.badge, h3>.badge {
     background: #A600FF;
 }
 
+/* match selectize style so there's no jitter in the style */
+.navbar-search #board-search {
+    width: 200px;
+    margin-bottom: 5px;
+}
+
 .navbar-search .selectize-input {
     width: 200px;
+    margin-bottom: 0;
+}
+
+.navbar-search .selectize-control.single .selectize-input:after {
+    content: none; !important;
 }
 
 .navbar-language .selectize-input {
