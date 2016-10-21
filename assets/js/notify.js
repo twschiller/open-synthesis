@@ -1,6 +1,7 @@
 /*
  * Open Synthesis, an open platform for intelligence analysis
- * Copyright (C) 2016  Todd Schiller
+ * Copyright (C) 2016 Open Synthesis Contributors. See CONTRIBUTING.md
+ * file at the top-level directory of this distribution.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

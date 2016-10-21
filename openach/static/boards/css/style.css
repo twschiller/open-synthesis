@@ -171,15 +171,11 @@ h1>.badge, h2>.badge, h3>.badge {
     background: #A600FF;
 }
 
-@media (max-width: 768px) {
-  .language-form {
-    margin-left: 25% !important;
-    width: 50% !important;
-  }
+.navbar-search .selectize-input {
+    width: 200px;
 }
 
-@media (min-width: 768px) {
-  .language-form {
-    padding-top: 8px;
-  }
+.navbar-language .selectize-input {
+    width: 175px;
 }
+

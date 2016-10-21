@@ -1,6 +1,7 @@
 /*
  * Open Synthesis, an open platform for intelligence analysis
- * Copyright (C) 2016  Todd Schiller
+ * Copyright (C) 2016 Open Synthesis Contributors. See CONTRIBUTING.md
+ * file at the top-level directory of this distribution.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,12 +21,19 @@
 require("jquery");
 require("bootstrap");
 require("bootstrap-datepicker");
-require("./notify");
+require("selectize");
 
 require("bootstrap/dist/css/bootstrap.min.css");
 require("bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css");
+require("selectize/dist/css/selectize.css");
+require("selectize/dist/css/selectize.bootstrap3.css");
 require("../css/sharing.css");
+
+require("./board_search");
+require("./notify");
 
 $("form[name='switchLanguageForm']").change(function(){
     $(this).submit();
 });
+
+$(".selectize").selectize();

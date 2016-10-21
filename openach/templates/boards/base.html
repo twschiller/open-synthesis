@@ -54,24 +54,28 @@
                     {% else %}
                         <li><a href="/accounts/login">{% trans "Login" %}</a></li>
                     {% endif %}
-                </ul>
-                <ul class="nav navbar-nav navbar-right">
-                  {% if languages|length > 1 %}
                     <li>
-                      <form action="{% url 'set_language' %}" method="post" class="language-form" name="switchLanguageForm">
-                        {% csrf_token %}
-                        <input name="next" type="hidden" value="{{ redirect_to }}" />
-                        <select name="language" class="form-control">
-                            {% for language in languages %}
-                                <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
-                                    {{ language.name_local }} ({{ language.code }})
-                                </option>
-                            {% endfor %}
-                        </select>
-                      </form>
                     </li>
-                  {% endif %}
                 </ul>
+                <div class="navbar-form navbar-left navbar-search">
+                    <div class="form-group">
+                        <input id="board-search" type="text" class="form-control" placeholder="{% trans "Search" %}">
+                    </div>
+                </div>
+                {% if languages|length > 1 %}
+                <form class="navbar-form navbar-right navbar-language" name="switchLanguageForm"
+                      action="{% url 'set_language' %}" method="post">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ redirect_to }}" />
+                    <select name="language" class="form-control selectize">
+                        {% for language in languages %}
+                        <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
+                            {{ language.name_local }} ({{ language.code }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+                {% endif %}
             </div><!--/.nav-collapse -->
         </div><!--/.container-fluid -->
     </nav>
@@ -93,6 +97,5 @@
 </div> <!-- /container -->
 
 {% render_bundle 'main' 'js' %}
-
 </body>
 </html>
