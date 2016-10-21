@@ -66,13 +66,15 @@
                     {% endfor %}
                 </td>
                 <td>
-                    <a href="{{ source.source_url }}" target="_blank">
                     {% if source.source_title  %}
-                      {{ source.source_title }}
+                        <a href="{{ source.source_url }}" rel="noopener noreferrer" target="_blank">{{ source.source_title }}</a>
+                        <span class="source-domain">[{{ source.source_url|domain }}]</span>
                     {% else %}
-                       {{ source.source_url }}
+                        <a href="{{ source.source_url }}" rel="noopener noreferrer" target="_blank">
+                            {{ source.source_url }}
+                        </a>
                     {% endif %}
-                   </a>
+                    <span class="source-description">{{ source.source_description|truncatechars:140 }}</span>
                 </td>
                 <td>
                   {% url 'profile' source.uploader.id as profile_url %}

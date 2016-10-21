@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.template.defaulttags import register
 # NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
 from django.urls import reverse  # pylint: disable=no-name-in-module
+import tldextract
 
 from openach.models import Evaluation, Eval
 
@@ -199,3 +200,10 @@ def url_replace(request, field, value):
     dict_ = request.GET.copy()
     dict_[field] = value
     return dict_.urlencode()
+
+
+@register.filter
+def domain(url):
+    """Return the domain with suffix for a URL."""
+    parsed = tldextract.extract(url)
+    return parsed.domain + '.' + parsed.suffix

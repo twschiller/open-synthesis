@@ -134,6 +134,7 @@ that your browser is requesting the page in the language you created.
 
 ## Contributors
 * [Emin Mastizada](https://github.com/mastizada): internationalization
+* [Deepak Kushwaha](https://github.com/dip-kush): source metadata
 
 ## Third-Party Libraries and Services
 We gratefully acknowledge this project's third-party libraries and their contributors. See [here](requirements.txt) and 
