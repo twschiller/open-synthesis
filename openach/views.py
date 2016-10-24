@@ -34,11 +34,12 @@ from .auth import check_edit_authorization
 from .decorators import cache_if_anon, cache_on_auth, account_required
 from .donate import bitcoin_donation_url, make_qr_code
 from .forms import BoardCreateForm, BoardForm, EvidenceForm, EvidenceSourceForm, SettingsForm, HypothesisForm
-from .metrics import consensus_vote, hypothesis_sort_key, evidence_sort_key, calc_disagreement
+from .forms import BoardPermissionForm
+from .metrics import aggregate_vote, hypothesis_sort_key, evidence_sort_key, calc_disagreement
 from .metrics import generate_contributor_count, generate_evaluator_count
 from .metrics import user_boards_contributed, user_boards_created, user_boards_evaluated
 from .models import Board, Hypothesis, Evidence, EvidenceSource, Evaluation, Eval, AnalystSourceTag, EvidenceSourceTag
-from .models import ProjectNews, BoardFollower
+from .models import ProjectNews, BoardFollower, BoardPermissions
 from .tasks import fetch_source_metadata
 
 # XXX: allow_remove logic should probably be refactored to a template context processor
@@ -79,9 +80,9 @@ def make_paginator(request, object_list, per_page=10, orphans=3):
 
 
 def notify_followers(board, actor, verb, action_object):
-    """Notify board followers of an action."""
+    """Notify board followers of that have read permissions for the board."""
     for follow in board.followers.all().select_related('user'):
-        if follow.user != actor:
+        if follow.user != actor and board.can_read(follow.user):
             notify.send(actor, recipient=follow.user, actor=actor, verb=verb,
                         action_object=action_object, target=board)
 
@@ -102,7 +103,7 @@ def notify_edit(board, actor, action_object):
 def index(request):
     """Return a homepage view showing project information, news, and recent boards."""
     # Show all of the boards until we can implement tagging, search, etc.
-    latest_board_list = Board.objects.order_by('-pub_date')[:5]
+    latest_board_list = Board.objects.user_readable(request.user)[:5]
     latest_project_news = ProjectNews.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
     context = {
         'latest_board_list': latest_board_list,
@@ -115,7 +116,7 @@ def index(request):
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def board_listing(request):
     """Return a paginated board listing view showing all boards and their popularity."""
-    board_list = Board.objects.order_by('-pub_date')
+    board_list = Board.objects.user_readable(request.user).order_by('-pub_date')
     metric_timeout_seconds = 60 * 2
     desc = _('List of intelligence boards on {name} and summary information').format(name=get_current_site(request).name)  # nopep8
     context = {
@@ -135,10 +136,10 @@ def user_board_listing(request, account_id):
 
     queries = {
         # default to boards contributed to
-        None: lambda x: ('contributed to', user_boards_contributed(x)),
-        'created': lambda x: ('created', user_boards_created(x)),
-        'evaluated': lambda x: ('evaluated', user_boards_evaluated(x)),
-        'contribute': lambda x: ('contributed to', user_boards_contributed(x)),
+        None: lambda x: ('contributed to', user_boards_contributed(x, viewing_user=request.user)),
+        'created': lambda x: ('created', user_boards_created(x, viewing_user=request.user)),
+        'evaluated': lambda x: ('evaluated', user_boards_evaluated(x, viewing_user=request.user)),
+        'contribute': lambda x: ('contributed to', user_boards_contributed(x, viewing_user=request.user)),
     }
 
     user = get_object_or_404(User, pk=account_id)
@@ -193,26 +194,42 @@ def detail(request, board_id, dummy_board_slug=None):
     # the page key to only consider the id and the query parameters.
     # https://docs.djangoproject.com/en/1.10/topics/cache/#the-per-view-cache
     # NOTE: cannot cache page for logged in users b/c comments section contains CSRF and other protection mechanisms.
-    view_type = 'average' if request.GET.get('view_type') is None else request.GET['view_type']
+    view_type = 'aggregate' if request.GET.get('view_type') is None else request.GET['view_type']
 
     board = get_object_or_404(Board, pk=board_id)
-    votes = Evaluation.objects.filter(board=board).select_related('user')
+    permissions = board.permissions.for_user(request.user)
 
-    participants = {vote.user for vote in votes}
+    if 'read_board' not in permissions:
+        raise PermissionDenied()
 
-    # calculate consensus and disagreement for each evidence/hypothesis pair
+    vote_type = request.GET.get('vote_type', default=(
+        'collab'
+        # rewrite to avoid unnecessary lookup if key is present?
+        if board.permissions.collaborators.filter(pk=request.user.id).exists()
+        else 'all'
+    ))
+
+    all_votes = list(board.evaluation_set.select_related('user'))
+
+    # calculate aggregate and disagreement for each evidence/hypothesis pair
+    agg_votes = all_votes
+    if vote_type == 'collab':
+        collaborators = set([c.id for c in board.permissions.collaborators.all()])
+        agg_votes = [v for v in all_votes if v.user_id in collaborators]
+
     def _pair_key(evaluation):
         return evaluation.evidence_id, evaluation.hypothesis_id
     keyed = defaultdict(list)
-    for vote in votes:
-        keyed[_pair_key(vote)].append(Eval.for_value(vote.value))
-    consensus = {k: consensus_vote(v) for k, v in keyed.items()}
+    for vote in agg_votes:
+        keyed[_pair_key(vote)].append(Eval(vote.value))
+    aggregate = {k: aggregate_vote(v) for k, v in keyed.items()}
     disagreement = {k: calc_disagreement(v) for k, v in keyed.items()}
 
     user_votes = (
-        {_pair_key(v): Eval.for_value(v.value) for v in votes.filter(user=request.user)}
+        {_pair_key(v): Eval(v.value) for v in all_votes if v.user_id == request.user.id}
         if request.user.is_authenticated
-        else None)
+        else None
+    )
 
     # augment hypotheses and evidence with diagnosticity and consistency
     def _group(first, second, func, key):
@@ -224,16 +241,17 @@ def detail(request, board_id, dummy_board_slug=None):
 
     context = {
         'board': board,
+        'permissions': permissions,
         'evidences': sorted(evidence_diagnosticity, key=lambda e: e[1]),
         'hypotheses': sorted(hypothesis_consistency, key=lambda h: h[1]),
         'view_type': view_type,
-        'votes': consensus,
+        'vote_type': vote_type,
+        'votes': aggregate,
         'user_votes': user_votes,
         'disagreement': disagreement,
-        'participants': participants,
         'meta_description': board.board_desc,
         'allow_share': not getattr(settings, 'ACCOUNT_REQUIRED', False),
-        'debug_stats': DEBUG
+        'debug_stats': DEBUG,
     }
     return render(request, 'boards/detail.html', context)
 
@@ -247,7 +265,12 @@ def board_history(request, board_id):
     def _get_history(models):
         changes = [FieldHistory.objects.get_for_model(x).select_related('user') for x in models]
         return itertools.chain(*changes)
+
     board = get_object_or_404(Board, pk=board_id)
+
+    if 'read_board' not in board.permissions.for_user(request.user):
+        raise PermissionDenied()
+
     history = [
         _get_history([board]),
         _get_history(Evidence.all_objects.filter(board=board)),
@@ -261,7 +284,10 @@ def board_history(request, board_id):
 @require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
 def create_board(request):
-    """Return a board creation view, or handle the form submission."""
+    """Return a board creation view, or handle the form submission.
+
+    Set default permissions for the new board. Mark board creator as a board follower.
+    """
     if request.method == 'POST':
         form = BoardCreateForm(request.POST)
         if form.is_valid():
@@ -270,6 +296,7 @@ def create_board(request):
                 board.creator = request.user
                 board.pub_date = timezone.now()
                 board.save()
+                BoardPermissions.objects.create(board=board)
                 for hypothesis_key in ['hypothesis1', 'hypothesis2']:
                     Hypothesis.objects.create(
                         board=board,
@@ -322,9 +349,36 @@ def edit_board(request, board_id):
 
 @require_http_methods(['HEAD', 'GET', 'POST'])
 @login_required
+def edit_permissions(request, board_id):
+    """View board permissions form and handle form submission."""
+    board = get_object_or_404(Board, pk=board_id)
+
+    if not (request.user.is_staff or request.user.id == board.creator_id):
+        raise PermissionDenied()
+
+    if request.method == 'POST':
+        form = BoardPermissionForm(request.POST, instance=board.permissions)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
+    else:
+        form = BoardPermissionForm(instance=board.permissions)
+
+    context = {
+        'board': board,
+        'form': form,
+    }
+    return render(request, 'boards/edit_permissions.html', context)
+
+
+@require_http_methods(['HEAD', 'GET', 'POST'])
+@login_required
 def add_evidence(request, board_id):
     """Return a view of adding evidence (with a source), or handle the form submission."""
     board = get_object_or_404(Board, pk=board_id)
+
+    if 'add_elements' not in board.permissions.for_user(request.user):
+        raise PermissionDenied()
 
     require_source = getattr(settings, 'EVIDENCE_REQUIRE_SOURCE', True)
 
@@ -496,6 +550,9 @@ def add_hypothesis(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
     existing = Hypothesis.objects.filter(board=board)
 
+    if 'add_elements' not in board.permissions.for_user(request.user):
+        raise PermissionDenied()
+
     if request.method == 'POST':
         form = HypothesisForm(request.POST)
         if form.is_valid():
@@ -567,9 +624,9 @@ def private_profile(request):
 
     context = {
         'user': user,
-        'boards_created': user_boards_created(user)[:5],
-        'boards_contributed': user_boards_contributed(user),
-        'board_voted': user_boards_evaluated(user),
+        'boards_created': user_boards_created(user, viewing_user=user)[:5],
+        'boards_contributed': user_boards_contributed(user, viewing_user=user),
+        'board_voted': user_boards_evaluated(user, viewing_user=user),
         'meta_description': _('Account profile for user {name}').format(name=user),
         'notifications': request.user.notifications.unread(),
         'settings_form': form,
@@ -584,9 +641,9 @@ def public_profile(request, account_id):
     user = get_object_or_404(User, pk=account_id)
     context = {
         'user': user,
-        'boards_created': user_boards_created(user)[:5],
-        'boards_contributed': user_boards_contributed(user),
-        'board_voted': user_boards_evaluated(user),
+        'boards_created': user_boards_created(user, viewing_user=request.user)[:5],
+        'boards_contributed': user_boards_contributed(user, viewing_user=request.user),
+        'board_voted': user_boards_evaluated(user, viewing_user=request.user),
         'meta_description': _("Account profile for user {name}").format(name=user),
     }
     return render(request, 'boards/public_profile.html', context)
@@ -615,6 +672,10 @@ def evaluate(request, board_id, evidence_id):
     # of the indices that way
 
     board = get_object_or_404(Board, pk=board_id)
+
+    if 'read_board' not in board.permissions.for_user(request.user):
+        raise PermissionDenied()
+
     evidence = get_object_or_404(Evidence, pk=evidence_id)
 
     default_eval = '------'
@@ -721,12 +782,11 @@ def bitcoin_qrcode(request):
 
 
 @require_safe
-@cache_page(60 * 60)
 def board_search(request):
     """Return filtered boards list data in json format."""
     query = request.GET.get('query', '')
     search = Q(board_title__contains=query) | Q(board_desc__contains=query)
-    queryset = Board.objects.filter(search).order_by('-pub_date')[:BOARD_SEARCH_RESULTS_MAX]
+    queryset = Board.objects.user_readable(request.user).filter(search)[:BOARD_SEARCH_RESULTS_MAX]
     boards = json.dumps([{
             'board_title': board.board_title,
             'board_desc': board.board_desc,

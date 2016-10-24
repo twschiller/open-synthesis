@@ -1,0 +1,32 @@
+{% extends 'boards/base.html' %}
+{% load i18n %}
+{% load board_extras %}
+{% load bootstrap %}
+
+{% block title %}{% trans "Modify Permissions" %} | {{ site.name }}{% endblock %}
+
+{% block content %}
+    <h1>
+        {% blocktrans trimmed with board_title=board.board_title %}
+            Modify Permissions for <i>{{ board_title }}</i>
+        {% endblocktrans %}
+    </h1>
+
+    <div class="alert alert-warning">
+        <b>{% trans "Warning" %}</b>
+        {% blocktrans trimmed %}
+            Read permissions include access to both new information and historic information.
+        {% endblocktrans %}
+    </div>
+
+    <form action="{% url 'openach:edit_permissions' board.id %}" method="post">
+        {% csrf_token %}
+        {{ form|bootstrap }}
+        <div class="form-group">
+            <div>
+                <a class="btn btn-default" href="{{ board|board_url }}">{% trans "Return to Board" %}</a>
+                <button type="submit" class="btn btn-primary">{% trans "Modify Permissions" %}</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}
