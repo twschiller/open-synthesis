@@ -15,32 +15,32 @@ class BoardRecommendationProvider(RecommendationProvider):
     """A class that specifies how to retrieve the various informations for recommendations and similarities"""
 
     @classmethod
-    def get_users(self):
+    def get_users(cls):
         """Return all users with evaluations."""
         return User.objects.filter(is_active=True, evaluations__isnull=False).distinct()
 
     @classmethod
-    def get_items(self):
+    def get_items(cls):
         """Return items that have been evaluated."""
         return Board.objects.all()
 
     @classmethod
-    def get_ratings(self, obj):
+    def get_ratings(cls, obj):
         """Return all ratings (evaluations) for given item."""
         return Evaluation.objects.filter(board=obj)
 
     @classmethod
-    def get_rating_score(self, rating):
+    def get_rating_score(cls, rating):
         """Return the rating score (evaluation value)."""
         return rating.value
 
     @classmethod
-    def get_rating_user(self, rating):
+    def get_rating_user(cls, rating):
         """Return the user who performed the rating (evaluation)."""
         return rating.user
 
     @classmethod
-    def get_rating_item(self, rating):
+    def get_rating_item(cls, rating):
         """Return the rated (evaluated) object."""
         return rating.board
 
