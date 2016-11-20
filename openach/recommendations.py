@@ -2,8 +2,8 @@ from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from recommends.providers import RecommendationProvider
 from recommends.providers import recommendation_registry
-
 from .models import Board, Evaluation
+
 
 class BoardRecommendationProvider(RecommendationProvider):
 
