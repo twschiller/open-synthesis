@@ -12,7 +12,7 @@ from .models import Board, Evaluation
 
 
 class BoardRecommendationProvider(RecommendationProvider):
-    """A class that specifies how to retrieve the various informations for recommendations and similarities"""
+    """A class that specifies how to retrieve the various informations for recommendations and similarities."""
 
     @classmethod
     def get_users(cls):
