@@ -1,6 +1,5 @@
 import datetime
 import logging
-import pandas as pd
 import os
 
 from django.conf import settings

@@ -6,6 +6,7 @@ from recommends.providers import recommendation_registry
 from .models import Board, Evaluation
 
 class BoardRecommendationProvider(RecommendationProvider):
+
     def get_users(self):
         return User.objects.filter(is_active=True, evaluations__isnull=False).distinct()
 
