@@ -39,4 +39,6 @@ celery~=3.1.24
 redis~=2.10.5
 beautifulsoup4~=4.5.1
 tldextract~=2.0.2
+numpy~=1.11.0
+pandas~=0.19.1
 django-recommends~=0.4.0

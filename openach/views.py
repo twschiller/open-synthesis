@@ -30,7 +30,7 @@ from django.views.decorators.http import require_http_methods, require_safe, eta
 from field_history.models import FieldHistory
 from notifications.signals import notify
 
-from recommends.providers import RecommendationProvider, recommendation_registry
+from recommends.providers import recommendation_registry
 from recommends.tasks import recommends_precompute
 
 from .auth import check_edit_authorization
