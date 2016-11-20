@@ -36,11 +36,6 @@ class BoardRecommendationProvider(RecommendationProvider):
         return rating.value
 
     @classmethod
-    def get_rating_site(self, rating):
-        """ Return the site of the rating."""
-        return Site.objects.get_current()
-
-    @classmethod
     def get_rating_user(self, rating):
         """ Return the user who performed the rating (evaluation)."""
         return rating.user
