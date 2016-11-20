@@ -14,8 +14,7 @@ from .models import Board, Evaluation
 
 class BoardRecommendationProvider(RecommendationProvider):
     """ A class that specifies how to retrieve the various informations(boards, users, evaluations)
-        necessary for computing recommendations and similarities for a set of objects
-    
+        necessary for computing recommendations and similarities for a set of objects    
     For more information, please see:
         https://django-recommends.readthedocs.io/en/latest/providers.html
     """
