@@ -1,0 +1,19 @@
+{% block title %}
+  <h2>{% trans "People who evaluated/viewed similar boards also viewed these recommended boards" %}</h2>
+{% endblock %}
+
+{% block content %}
+{% if recommendations_list %}
+<div class="row">
+    {% for board in recommendations_list %}
+    <div class="col-xs-6 col-lg-4">
+        <h4><a href="{{ board|board_url }}">{{ board.board_title }}</a></h4>
+        <h5>{{ board.pub_date|timesince }}</h5>
+        <h5>{{ board.board_desc }}</h5>
+        <h5>{{ contributors|dict_get:board.id|default_if_none:0 }}</h5>
+        <h5>{{ evaluators|dict_get:board.id|default_if_none:0 }}</h5>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

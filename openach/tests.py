@@ -1,5 +1,7 @@
 import datetime
 import logging
+import pandas as pd
+import os
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -7,13 +9,16 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import mail
 from django.core.management import call_command
-from django.test import TestCase, Client
+from django.test import TestCase, Client, TransactionTestCase
 from django.urls import reverse
 from django.utils import timezone
 from django_comments.models import Comment
 from field_history.models import FieldHistory
 from notifications.signals import notify
 from unittest.mock import patch, PropertyMock
+
+from recommends.providers import RecommendationProvider, recommendation_registry
+from recommends.tasks import recommends_precompute
 
 from .digest import create_digest_email, send_digest_emails
 from .metrics import hypothesis_sort_key, evidence_sort_key
@@ -66,7 +71,6 @@ class UtilMethodTests(TestCase):
         """Test that first_instances() only preserves the first occurrence in the list."""
         self.assertEqual(first_occurrences(['a', 'a']), ['a'])
         self.assertEqual(first_occurrences(['a', 'b', 'a']), ['a', 'b'])
-
 
 class BoardMethodTests(TestCase):
 
@@ -465,7 +469,7 @@ class BoardListingTests(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
+        self.user = User.objects.create_user('test1', 'test1@thebeatles.com', 'johnpassword')
 
     def test_can_show_board_listing_no_page(self):
         """Test that board listing renders when no page number is provided."""
@@ -1817,3 +1821,154 @@ class CeleryTestCase(TestCase):
 
         self.assertEquals(result.get(), 16)
         self.assertTrue(result.successful())
+
+class BoardTestMixin:
+
+    def setUp(self):
+        super().setUp()
+        self._load_users()
+        self._load_boards()
+        self._load_evidence()
+        self._load_hypotheses()
+        self._load_evaluations()        
+        self.client = Client()
+        self.user = User.objects.get(id=2)
+        self.board = Board.objects.get(id=4)
+        self.similar_board = Board.objects.get(id=5)
+
+        self.provider = recommendation_registry.get_provider_for_content(Board)
+        recommends_precompute()
+
+    def save_evaluation_from_row(self, evaluation_row):
+        evaluation = Evaluation()
+        evaluation.id = evaluation_row[0]
+        evaluation.user = User.objects.get(id=evaluation_row[1])
+        evaluation.board = Board.objects.get(id=evaluation_row[2])
+        evaluation.value = evaluation_row[3]
+        evaluation.evidence = Evidence.objects.get(id=evaluation_row[4])
+        evaluation.hypothesis = Hypothesis.objects.get(id=evaluation_row[5])
+        evaluation.timestamp = timezone.now()
+        evaluation.save()
+
+    def save_evidence_from_row(self, evidence_row):
+        evidence = Evidence()
+        evidence.id = evidence_row[0]
+        evidence.board = Board.objects.get(id=evidence_row[1])
+        evidence.creator = User.objects.get(id=evidence_row[2])
+        evidence.evidence_desc = evidence_row[3]
+        evidence.event_date = None
+        evidence.save()
+
+    def save_hypothesis_from_row(self, hypothesis_row):
+        hypothesis = Hypothesis()
+        hypothesis.id = hypothesis_row[0]        
+        hypothesis.creator = User.objects.get(id=hypothesis_row[1])
+        hypothesis.board = Board.objects.get(id=hypothesis_row[2])
+        hypothesis.hypothesis_text = hypothesis_row[3]
+        hypothesis.submit_date = timezone.now()        
+        hypothesis.save()
+        
+    def save_user_from_row(self, user_row):
+        user = User()
+        user.id = user_row[0]
+        user.username = user_row[1]
+        user.email = user_row[2]
+        user.password = user_row[3]
+        user.save()
+
+    def save_board_from_row(self, board_row):
+        board = Board()
+        board.id = board_row[0]
+        board.board_title = board_row[1]
+        board.pub_date = timezone.now()
+        board.save()
+        
+    def _load_boards(self):
+        boards_df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data/boards.csv'))
+        boards_df.apply(
+            self.save_board_from_row,
+            axis=1
+        )
+
+    def _load_hypotheses(self):
+        hypothesis_df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data/hypothesis.csv'))
+        hypothesis_df.apply(
+            self.save_hypothesis_from_row,
+            axis=1
+        )
+
+    def _load_evaluations(self):
+        evaluations_df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data/evaluations.csv'))
+        evaluations_df.apply(
+            self.save_evaluation_from_row,
+            axis=1
+        )
+
+    def _load_evidence(self):
+        evidence_df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data/evidence.csv'))
+        evidence_df.apply(
+            self.save_evidence_from_row,
+            axis=1
+        )
+
+    def _load_users(self):        
+        users_df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data/users.csv'))
+        users_df.apply(
+            self.save_user_from_row,
+            axis=1
+        )        
+
+class BoardRecommendationTests(BoardTestMixin, TransactionTestCase):
+
+    results = {
+        'len_recommended': 5,
+        'len_similar_to_board': 7
+    }
+
+    def isObjectWithIdExists(self, object_id):
+        return Board.objects.filter(id=object_id).exists()
+
+    def test_similarities(self):
+        # test similarities objects
+        similar_to_board = self.provider.storage.get_similarities_for_object(self.board)
+        self.assertEquals(len(similar_to_board), self.results['len_similar_to_board'])
+        self.assertNotEquals(len(similar_to_board), 0)        
+        #self.assertTrue(self.similar_board in [s.related_object for s in similar_to_board])
+        
+        # Make sure we didn't get all 0s
+        zero_values = list(filter(lambda x: x.score == 0, similar_to_board))
+        self.assertNotEquals(len(zero_values), len(similar_to_board))
+
+    def test_similarities_raw_ids(self):
+        # test similarities raw ids
+        similar_to_board_ids = self.provider.storage.get_similarities_for_object(self.board, raw_id=True)
+        self.assertNotEquals(len(similar_to_board_ids), 0)
+        self.assertEquals(len(similar_to_board_ids), self.results['len_similar_to_board'])
+        
+        similar_to_board_related_ids = [item['related_object_id'] for item in similar_to_board_ids]
+        self.assertTrue(self.similar_board.id in similar_to_board_related_ids)
+        self.assertTrue(all([self.isObjectWithIdExists(related_object_id) for related_object_id in similar_to_board_related_ids]))
+
+    def test_recommendation(self):
+        # test recommendations
+        recommendations = self.provider.storage.get_recommendations_for_user(self.user)
+        self.assertNotEquals(len(recommendations), 0)
+        self.assertEquals(len(recommendations), self.results['len_recommended'])
+        self.assertTrue(self.similar_board in [s.object for s in recommendations])
+        
+        # Make sure we didn't get all 0s
+        zero_scores = list(filter(lambda x: x.score == 0, recommendations))
+        self.assertNotEquals(len(zero_scores), len(recommendations))
+        
+        # Make sure we don't recommend item that the user already have
+        self.assertFalse(self.board in [e.board for e in Evaluation.objects.filter(user=self.user)])
+
+    def test_recommendation_raw_ids(self):
+        # test recommendation raw ids
+        recommendation_ids = self.provider.storage.get_recommendations_for_user(self.user, raw_id=True)
+        self.assertNotEquals(len(recommendation_ids), 0)
+        self.assertEquals(len(recommendation_ids), self.results['len_recommended'])
+        
+        recommendation_object_ids = [item['object_id'] for item in recommendation_ids]
+        self.assertTrue(self.similar_board.id in recommendation_object_ids)
+        self.assertTrue(all([self.isObjectWithIdExists(object_id) for object_id in recommendation_object_ids]))

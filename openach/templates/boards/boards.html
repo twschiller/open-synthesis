@@ -16,5 +16,6 @@
       <a class="btn btn-primary" href="{% url 'openach:create_board' %}">{% trans "Create Board" %}</a>
     </h1>
 
+    {% include 'boards/_user_recommendations_list.html' %}
     {% include 'boards/_board_table.html' %}
 {% endblock %}

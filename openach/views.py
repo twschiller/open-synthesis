@@ -30,6 +30,9 @@ from django.views.decorators.http import require_http_methods, require_safe, eta
 from field_history.models import FieldHistory
 from notifications.signals import notify
 
+from recommends.providers import RecommendationProvider, recommendation_registry
+from recommends.tasks import recommends_precompute
+
 from .auth import check_edit_authorization
 from .decorators import cache_if_anon, cache_on_auth, account_required
 from .donate import bitcoin_donation_url, make_qr_code
@@ -145,13 +148,19 @@ def user_board_listing(request, account_id):
     query = request.GET.get('query')
     verb, board_list = queries.get(query, queries[None])(user)
     desc = _('List of intelligence boards user {username} has {verb}').format(username=user.username, verb=verb)
+    
+    # Get recommendations for user
+    provider = recommendation_registry.get_provider_for_content(Board)
+    recommends_precompute()
+    recommendations = provider.storage.get_recommendations_for_user(user)
     context = {
         'user': user,
         'boards': make_paginator(request, board_list),
         'contributors': cache.get_or_set('contributor_count', generate_contributor_count(), metric_timeout_seconds),
         'evaluators': cache.get_or_set('evaluator_count', generate_evaluator_count(), metric_timeout_seconds),
         'meta_description': desc,
-        'verb': verb
+        'verb': verb,
+        'recommendations_list': recommendations
     }
     return render(request, 'boards/user_boards.html', context)
 
@@ -652,7 +661,7 @@ def evaluate(request, board_id, evidence_id):
                     pass
             BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
                 'is_evaluator': True,
-            })
+            })            
 
         messages.success(request, _('Recorded evaluations for evidence: {desc}').format(desc=evidence.evidence_desc))
         return HttpResponseRedirect(reverse('openach:detail', args=(board_id,)))

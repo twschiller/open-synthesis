@@ -113,6 +113,8 @@ INSTALLED_APPS = [
     'notifications',
     # invitations must appear after allauth: https://github.com/bee-keeper/django-invitations#allauth-integration
     'invitations',
+    'recommends',
+    'recommends.storages.djangoorm'
 ]
 
 
