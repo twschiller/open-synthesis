@@ -18,9 +18,9 @@ from unittest.mock import patch, PropertyMock
 from .digest import create_digest_email, send_digest_emails
 from .metrics import hypothesis_sort_key, evidence_sort_key
 from .metrics import inconsistency, consistency, proportion_na, proportion_unevaluated
-from .metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, calc_disagreement
+from .metrics import mean_na_neutral_vote, aggregate_vote, diagnosticity, calc_disagreement
 from .models import Board, Evidence, Hypothesis, Evaluation, Eval, ProjectNews, BoardFollower, URL_MAX_LENGTH
-from .models import UserSettings, DigestFrequency
+from .models import UserSettings, DigestFrequency, AuthLevels, BoardPermissions
 from .sitemap import BoardSitemap
 from .tasks import example_task, parse_metadata, fetch_source_metadata
 from .util import first_occurrences
@@ -285,6 +285,7 @@ class SitemapTests(TestCase):
         self.client = Client()
         self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
         self.board = create_board('Test Board', days=-5)
+        self.board.permissions.read_board = AuthLevels.anyone
         self.evidence = Evidence.objects.create(
             board=self.board,
             creator=self.user,
@@ -299,10 +300,17 @@ class SitemapTests(TestCase):
             )
         ]
 
-    def test_can_get_items(self):
+    def test_can_get_public_items(self):
         """Test that we can get all the boards."""
         sitemap = BoardSitemap()
-        self.assertEqual(len(sitemap.items()), 1, 'Sitemap included removed board')
+        self.assertEqual(len(sitemap.items()), 1)
+
+    def test_cannot_get_private_items(self):
+        """Test that the sitemap doesn't include non-public boards."""
+        self.board.permissions.read_board = AuthLevels.registered.value
+        self.board.permissions.save()
+        sitemap = BoardSitemap()
+        self.assertEqual(len(sitemap.items()), 0)
 
     def test_cannot_get_removed_items(self):
         """Test that the sitemap doesn't include removed boards."""
@@ -1202,7 +1210,12 @@ def create_board(board_title, days):
     :param days: negative for boards published in the past, positive for boards that have yet to be published
     """
     time = timezone.now() + datetime.timedelta(days=days)
-    return Board.objects.create(board_title=board_title, pub_date=time)
+    board = Board.objects.create(board_title=board_title, pub_date=time)
+    BoardPermissions.objects.create(
+        board=board,
+        read_board=AuthLevels.anyone.value
+    )
+    return board
 
 
 class IndexViewTests(TestCase):
@@ -1304,27 +1317,27 @@ class AboutViewTests(TestCase):
 class ConsensusTests(TestCase):
 
     def test_no_votes_has_no_consensus(self):
-        """Test that consensus_vote() returns None if no votes have been cast."""
-        self.assertIsNone(consensus_vote([]))
+        """Test that aggregate_vote() returns None if no votes have been cast."""
+        self.assertIsNone(aggregate_vote([]))
 
     def test_na_consensus_for_single_vote(self):
-        """Test that consensus_vote() returns N/A if only a single N/A vote is cast"""
-        self.assertEqual(consensus_vote([Eval.not_applicable]), Eval.not_applicable)
+        """Test that aggregate_vote() returns N/A if only a single N/A vote is cast"""
+        self.assertEqual(aggregate_vote([Eval.not_applicable]), Eval.not_applicable)
 
     def test_none_na_consensus_for_single_vote(self):
-        """Test that consensus_vote() returns the evaluation if only a single vote is cast."""
-        self.assertEqual(consensus_vote([Eval.consistent]), Eval.consistent)
+        """Test that aggregate_vote() returns the evaluation if only a single vote is cast."""
+        self.assertEqual(aggregate_vote([Eval.consistent]), Eval.consistent)
 
     def test_equal_na_vs_non_na(self):
-        """Test that consensus_vote() returns an evaluation when an equal number of N/A and non-N/A votes have been cast."""
+        """Test that aggregate_vote() returns an evaluation when an equal number of N/A and non-N/A votes have been cast."""
         for vote in [Eval.very_inconsistent, Eval.neutral, Eval.very_consistent]:
-            self.assertEqual(consensus_vote([vote, Eval.not_applicable]), vote)
-            self.assertEqual(consensus_vote([Eval.not_applicable, vote]), vote)
+            self.assertEqual(aggregate_vote([vote, Eval.not_applicable]), vote)
+            self.assertEqual(aggregate_vote([Eval.not_applicable, vote]), vote)
 
     def test_round_toward_neutral(self):
-        """Test that consensus_vote() rounds the vote toward a neutral assessment."""
-        self.assertEqual(consensus_vote([Eval.consistent, Eval.very_consistent]), Eval.consistent)
-        self.assertEqual(consensus_vote([Eval.inconsistent, Eval.very_inconsistent]), Eval.inconsistent)
+        """Test that aggregate_vote() rounds the vote toward a neutral assessment."""
+        self.assertEqual(aggregate_vote([Eval.consistent, Eval.very_consistent]), Eval.consistent)
+        self.assertEqual(aggregate_vote([Eval.inconsistent, Eval.very_inconsistent]), Eval.inconsistent)
 
 
 class EvidenceOrderingTests(TestCase):
