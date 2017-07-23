@@ -16,7 +16,7 @@ To this end, the platform and its governance aims to be:
 2. Transparent
 3. Meritocratic
 
-Our approach is to take best practices from the intelligence and business communities and adapt them work with internet 
+Our approach is to take best practices from the intelligence and business communities and adapt them to work with internet 
 communities.
 
 ## Analysis of Competing Hypotheses (ACH)
