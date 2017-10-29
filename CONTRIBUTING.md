@@ -12,7 +12,7 @@ We appreciate all pull requests. However, before working on an enhancement/featu
 
 ## Local Development
 
-To perform local development, you'll need Python 3.5, [pip](https://pip.pypa.io/en/stable/installing/),
+To perform local development, you'll need Python 3.6, [pip](https://pip.pypa.io/en/stable/installing/),
 and [virtualenv](https://virtualenv.pypa.io/en/stable/), [node](https://nodejs.org/en/download/package-manager/), and 
 [npm](https://www.npmjs.com/). To create your own deployment, you may also want
 the [Heroku Toolbelt](https://devcenter.heroku.com/articles/getting-started-with-python#introduction).
