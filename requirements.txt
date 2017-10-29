@@ -16,7 +16,7 @@ django-pipeline==1.6.13
 django-pylibmc==0.6.1
 django-webpack-loader==0.5.0
 Django==1.11.6
-gunicorn==19.6.0
+gunicorn==19.7.1
 nplusone==0.8.1
 oauthlib==2.0.6
 pillow==4.3.0
