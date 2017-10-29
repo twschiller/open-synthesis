@@ -52,7 +52,7 @@ Detailed instructions for deploying your own instance can be found on the
 
 ## Copyright
 
-Copyright (C) 2016 Open Synthesis Contributors. See CONTRIBUTING.md file at the top-level directory of this 
+Copyright (C) 2016, 2017 Open Synthesis Contributors. See CONTRIBUTING.md file at the top-level directory of this 
 distribution.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public 

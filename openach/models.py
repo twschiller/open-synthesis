@@ -103,6 +103,10 @@ class Board(models.Model):
         """Return the canonical URL for view board details, excluding the slug."""
         return reverse('openach:detail', args=(self.id,))
 
+    def has_follower(self, user):
+        """Return true iff user follows this board."""
+        return self.followers.filter(user=user).exists()
+
 
 class BoardFollower(models.Model):
     """Follower relationship between a user and a board."""

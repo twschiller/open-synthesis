@@ -26,5 +26,4 @@ ratings:
 
 exclude_paths:
 - "openach/migrations/*"
-- "openach/tests.py"
-
+- "openach/tests/*"
