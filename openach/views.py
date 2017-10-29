@@ -708,10 +708,9 @@ def certbot(dummy_request, challenge_key):  # pragma: no cover
 
 @require_safe
 @etag(lambda r: getattr(settings, 'DONATE_BITCOIN_ADDRESS', ''))
-@cache_page(60 * 60)
+@cache_page(60 * 60) # NOTE: if only etag is set, Django doesn't include cache headers
 def bitcoin_qrcode(request):
     """Return a QR Code for donating via Bitcoin."""
-    # NOTE: if only etag is set, Django doesn't include cache headers
     address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
     if address:
         raw = make_qr_code(bitcoin_donation_url(get_current_site(request).name, address))
