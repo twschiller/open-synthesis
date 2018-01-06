@@ -313,7 +313,7 @@ LOGGING = {
 
 # Email Options using sendgrid-django
 if env('SENDGRID_API_KEY'):  # pragma: no cover
-    EMAIL_BACKEND = "sgbackend.SendGridBackend"
+    EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
     SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 else:
     logger.warning("SendGrid not configured: SENDGRID_API_KEY")
