@@ -199,6 +199,9 @@ def detail(request, board_id, dummy_board_slug=None):
     board = get_object_or_404(Board, pk=board_id)
     permissions = board.permissions.for_user(request.user)
 
+    if view_type == 'comparison' and not request.user.is_authenticated:
+        raise PermissionDenied()
+
     if 'read_board' not in permissions:
         raise PermissionDenied()
 
@@ -209,7 +212,7 @@ def detail(request, board_id, dummy_board_slug=None):
         else 'all'
     ))
 
-    all_votes = list(board.evaluation_set.select_related('user'))
+    all_votes = list(board.evaluation_set.all())
 
     # calculate aggregate and disagreement for each evidence/hypothesis pair
     agg_votes = all_votes
@@ -296,7 +299,6 @@ def create_board(request):
                 board.creator = request.user
                 board.pub_date = timezone.now()
                 board.save()
-                BoardPermissions.objects.create(board=board)
                 for hypothesis_key in ['hypothesis1', 'hypothesis2']:
                     Hypothesis.objects.create(
                         board=board,
@@ -769,10 +771,9 @@ def certbot(dummy_request, challenge_key):  # pragma: no cover
 
 @require_safe
 @etag(lambda r: getattr(settings, 'DONATE_BITCOIN_ADDRESS', ''))
-@cache_page(60 * 60)
+@cache_page(60 * 60) # NOTE: if only etag is set, Django doesn't include cache headers
 def bitcoin_qrcode(request):
     """Return a QR Code for donating via Bitcoin."""
-    # NOTE: if only etag is set, Django doesn't include cache headers
     address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
     if address:
         raw = make_qr_code(bitcoin_donation_url(get_current_site(request).name, address))

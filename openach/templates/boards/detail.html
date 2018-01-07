@@ -95,11 +95,13 @@
                                     {% trans "Disagreement" %}
                                 </a>
                             </li>
-                            <li>
-                                <a href="{{ board|board_url }}?{% url_replace request 'view_type' 'comparison' %}">
-                                    {% trans "Comparison" %}
-                                </a>
-                            </li>
+                            {% if request.user.is_authenticated %}
+                                <li>
+                                    <a href="{{ board|board_url }}?{% url_replace request 'view_type' 'comparison' %}">
+                                        {% trans "Comparison" %}
+                                    </a>
+                                </li>
+                            {% endif %}
                         </ul>
                     </div>
                     {% if board.has_collaborators %}

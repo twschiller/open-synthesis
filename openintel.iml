@@ -7,7 +7,7 @@
         <option name="settingsModule" value="openintel/settings.py" />
         <option name="manageScript" value="manage.py" />
         <option name="environment" value="&lt;map/&gt;" />
-        <option name="commandsToSkip" value="" />
+        <option name="doNotUseTestRunner" value="false" />
       </configuration>
     </facet>
   </component>

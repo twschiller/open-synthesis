@@ -43,6 +43,10 @@
       "description": "A secret key for verifying the integrity of signed cookies",
       "generator": "secret"
     },
+    "SENDGRID_API_KEY": {
+      "description": "API key for sending email digest and invite emails via SendGrid",
+      "required": false
+    },
     "DEBUG": {
       "description": "Whether or not the application is running in DEBUG mode (DO NOT ENABLE IN PRODUCTION)",
       "value": "False",

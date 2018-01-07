@@ -63,8 +63,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     EVIDENCE_REQUIRE_SOURCE=(bool, True),
     EDIT_REMOVE_ENABLED=(bool, True),
     INVITE_REQUIRED=(bool, False),
-    SENDGRID_USERNAME=(str, None),
-    SENDGRID_PASSWORD=(str, None),
+    SENDGRID_API_KEY=(str, None),
     SLUG_MAX_LENGTH=(int, 72),
     TWITTER_ACCOUNT=(str, None),
     DONATE_BITCOIN_ADDRESS=(str, None),
@@ -312,13 +311,11 @@ LOGGING = {
 }
 
 # Email Options using sendgrid-django
-if env('SENDGRID_USERNAME') and env('SENDGRID_PASSWORD'):  # pragma: no cover
-    EMAIL_BACKEND = "sgbackend.SendGridBackend"
-    # NOTE: django library uses _USER while Heroku uses _USERNAME
-    SENDGRID_USER = env('SENDGRID_USERNAME')
-    SENDGRID_PASSWORD = env('SENDGRID_PASSWORD')
+if env('SENDGRID_API_KEY'):  # pragma: no cover
+    EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+    SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 else:
-    logger.warning("SendGrid not configured: SENDGRID_USER, SENDGRID_PASSWORD")
+    logger.warning("SendGrid not configured: SENDGRID_API_KEY")
 
 # Instance configuration
 SITE_NAME = env('SITE_NAME')

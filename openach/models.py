@@ -66,7 +66,7 @@ class AuthLevels(Enum):
 
 
 class BoardModelManager(RemovableModelManager):  # pylint: disable=too-few-public-methods
-    """Query manage for permissioned boards."""
+    """Query manager for permissioned boards."""
 
     def user_readable(self, user):
         """Queryset for boards that the user has read permissions for."""
@@ -78,10 +78,10 @@ class BoardModelManager(RemovableModelManager):  # pylint: disable=too-few-publi
         else:
             public = Q(permissions__read_board=AuthLevels.anyone.key)
             registered = Q(permissions__read_board=AuthLevels.registered.key)
-            created = Q(creator=user)
+            created = Q(permissions__board__creator=user)
             collab = (
                 Q(permissions__read_board=AuthLevels.collaborators.key) &
-                Q(permissions__collaborators_contains=user)
+                Q(permissions__collaborators=user)
             )
             return base.filter(public | registered | created | collab)
 
@@ -176,6 +176,9 @@ class Board(models.Model):
         """Return True if the board has collaborators set."""
         return self.permissions.collaborators.exists()
 
+    def has_follower(self, user):
+        """Return true iff user follows this board."""
+        return self.followers.filter(user=user).exists()
 
 class BoardPermissions(models.Model):
     """Permissions for the board."""
@@ -185,6 +188,19 @@ class BoardPermissions(models.Model):
         (AuthLevels.collaborators.key, _('Collaborators')),
         (AuthLevels.registered.key, _('Registered Users')),
         (AuthLevels.anyone.key, _('Public')),
+    ]
+
+    PERMISSION_NAMES = [
+        'read_board',
+        'read_comments',
+        'add_comments',
+        'add_elements',
+        'edit_elements'
+    ]
+
+    PERMISSION_NAMES_READ = [
+        'read_board',
+        'read_comments',
     ]
 
     board = models.OneToOneField(Board, related_name='permissions')
@@ -221,6 +237,11 @@ class BoardPermissions(models.Model):
         default=AuthLevels.collaborators.key,
     )
 
+    def make_public(self):
+        for permission in self.PERMISSION_NAMES:
+            setattr(self, permission, AuthLevels.anyone.key)
+        self.save()
+
     def for_user(self, user):
         """Return board authorization scheme for the given user.
 
@@ -228,9 +249,9 @@ class BoardPermissions(models.Model):
         access should be controlled via the ACCOUNT_REQUIRED settings.
         """
         allowed = (
-            ['read_board', 'read_comments', 'add_comments', 'add_elements', 'edit_elements']
+            BoardPermissions.PERMISSION_NAMES
             if user.is_authenticated
-            else ['read_board', 'read_comments']
+            else BoardPermissions.PERMISSION_NAMES_READ
         )
 
         if user.id == self.board.creator_id or user.is_staff:
@@ -259,13 +280,13 @@ class BoardPermissions(models.Model):
         if getattr(settings, 'ACCOUNT_REQUIRED', True) and self.read_board == AuthLevels.collaborators.anyone.key:
             errors['read_board'] = _('Cannot set permission to public because site permits only registered users')
         if self.add_comments > self.read_comments:
-            errors['add_comments'] = _('Cannot be more permissive than the read comments permission')
+            errors['add_comments'] = _('Cannot be more permissive than the "read comments" permission')
         if self.edit_elements > self.add_elements:
-            errors['edit_elements'] = _('Cannot be more permissive than the add elements permission')
+            errors['edit_elements'] = _('Cannot be more permissive than the "add elements" permission')
         if self.read_comments > self.read_board:
-            errors['read_comments'] = _('Cannot be more permissive than the read board permission')
-        if self.add_elements > self.read_comments:
-            errors['add_elements'] = _('Cannot be more permissive than the read board permission')
+            errors['read_comments'] = _('Cannot be more permissive than the "read board" permission')
+        if self.add_elements > self.read_board:
+            errors['add_elements'] = _('Cannot be more permissive than the "read board" permission')
 
         if len(errors) > 0:
             raise ValidationError(errors)
