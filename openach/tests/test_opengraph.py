@@ -1,9 +1,8 @@
 from django.utils import timezone
 from unittest.mock import patch, PropertyMock
 
-from openach.models import Evidence
+from openach.models import Evidence, EvidenceSource
 from openach.tasks import parse_metadata, fetch_source_metadata
-from openach.views import EvidenceSource
 
 from .common import PrimaryUserTestCase, create_board
 

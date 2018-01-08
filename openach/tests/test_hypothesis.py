@@ -1,7 +1,7 @@
 from django.urls import reverse
 
 from openach.models import Hypothesis
-from openach.views import HypothesisForm
+from openach.forms import HypothesisForm
 
 from .common import PrimaryUserTestCase, create_board, add_follower
 

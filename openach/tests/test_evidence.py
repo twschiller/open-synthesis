@@ -7,7 +7,8 @@ from django.utils import timezone
 from django_comments.models import Comment
 
 from openach.models import Evidence, Hypothesis, Evaluation, URL_MAX_LENGTH
-from openach.views import EvidenceSource, EvidenceSourceTag, AnalystSourceTag, EvidenceForm
+from openach.models import EvidenceSource, EvidenceSourceTag, AnalystSourceTag
+from openach.forms import EvidenceForm
 
 from .common import PrimaryUserTestCase, create_board, add_follower, remove
 

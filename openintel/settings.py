@@ -441,3 +441,7 @@ elif env.get_value('REDIS_URL', cast=str, default=None):
     logger.info('No CELERY_BROKER_URL specified, using REDIS_URL for Celery broker and result backend')
     CELERY_BROKER_URL = env('REDIS_URL')
     CELERY_RESULT_BACKEND = env('REDIS_URL')
+
+PAGE_CACHE_TIMEOUT_SECONDS = 60
+
+BOARD_SEARCH_RESULTS_MAX = 5

@@ -4,7 +4,7 @@ from notifications.signals import notify
 
 from openach.models import Board, Evidence, Hypothesis, Evaluation, Eval
 from openach.models import DigestFrequency
-from openach.views import SettingsForm
+from openach.forms import SettingsForm
 
 
 from .common import PrimaryUserTestCase

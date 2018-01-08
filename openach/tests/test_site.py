@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from openach.models import ProjectNews
-from openach.views import bitcoin_donation_url
+from openach.views.site import bitcoin_donation_url
 from .common import create_board
 
 

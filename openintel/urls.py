@@ -18,10 +18,10 @@ from django.contrib import admin
 from django.views.generic import TemplateView
 from django.contrib.sitemaps.views import sitemap
 from django.conf import settings
-from openach import views
-from openach.sitemap import BoardSitemap
 import notifications.urls
 
+from openach import views
+from openach.sitemap import BoardSitemap
 
 ACCOUNT_REQUIRED = getattr(settings, 'ACCOUNT_REQUIRED', False)
 
@@ -34,17 +34,17 @@ sitemaps = {  # pylint: disable=invalid-name
 
 urlpatterns = [  # pylint: disable=invalid-name
     url(r'^admin/', admin.site.urls),
-    url(r'robots\.txt', views.robots, name='robots'),
+    url(r'robots\.txt', views.site.robots, name='robots'),
     url(r'contribute\.json', TemplateView.as_view(template_name='contribute.json', content_type='application/json')),
-    url(r'^accounts/(?P<account_id>[0-9]+)/$', views.profile, name='profile'),
-    url(r'^accounts/profile/', views.private_profile, name='private_profile'),
+    url(r'^accounts/(?P<account_id>[0-9]+)/$', views.profiles.profile, name='profile'),
+    url(r'^accounts/profile/', views.profiles.private_profile, name='private_profile'),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^comments/', include('django_comments.urls')),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications')),
     url(r'^invitations/', include('invitations.urls', namespace='invitations')),
     url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'', include('openach.urls')),
-    url(r'\.well-known/acme-challenge/(?P<challenge_key>[a-zA-Z0-9\-_]+)$', views.certbot),
+    url(r'\.well-known/acme-challenge/(?P<challenge_key>[a-zA-Z0-9\-_]+)$', views.site.certbot),
 ]
 
 if not ACCOUNT_REQUIRED:  # pylint: disable=invalid-name

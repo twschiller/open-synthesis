@@ -3,7 +3,7 @@ from django.utils import timezone
 from notifications.signals import notify
 
 from openach.models import Board, Evidence, Hypothesis, BoardFollower
-from openach.views import notify_edit, notify_add
+from openach.views.notifications import notify_edit, notify_add
 
 from .common import PrimaryUserTestCase
 

@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from openach.digest import create_digest_email, send_digest_emails
 from openach.models import Evidence, Hypothesis, BoardFollower, DigestFrequency
-from openach.views import notify_add
+from openach.views.notifications import notify_add
 
 from .common import PrimaryUserTestCase, create_board
 

@@ -1,7 +1,7 @@
 from django.urls import reverse
 
-from openach.models import Evidence, URL_MAX_LENGTH
-from openach.views import EvidenceSource, EvidenceSourceForm
+from openach.models import Evidence, EvidenceSource, URL_MAX_LENGTH
+from openach.forms import EvidenceSourceForm
 
 from .common import PrimaryUserTestCase, create_board
 

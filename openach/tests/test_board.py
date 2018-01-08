@@ -6,8 +6,8 @@ from django.utils import timezone
 from django_comments.models import Comment
 from field_history.models import FieldHistory
 
-from openach.models import Board, Evidence, Hypothesis, Evaluation, Eval, AuthLevels
-from openach.views import BoardForm, BoardPermissions
+from openach.models import Board, Evidence, Hypothesis, Evaluation, Eval, AuthLevels, BoardPermissions
+from openach.forms import BoardForm
 
 from .common import PrimaryUserTestCase, create_board, remove
 
@@ -412,11 +412,7 @@ class BoardListingTests(PrimaryUserTestCase):
 
     def test_user_public_board_view(self):
         """Test board listing for user that created a public board."""
-<<<<<<< HEAD
-        Board.objects.create(
-=======
         board = Board.objects.create(
->>>>>>> master
             creator=self.user,
             board_title='Board Title',
             board_desc='Description',
@@ -427,21 +423,13 @@ class BoardListingTests(PrimaryUserTestCase):
         self.assertContains(response, 'Board Title', status_code=200)
 
     def test_user_hide_private_boards(self):
-<<<<<<< HEAD
         board = Board.objects.create(
-=======
-        Board.objects.create(
->>>>>>> master
             creator=self.user,
             board_title='Board Title',
             board_desc='Description',
-            pub_date=timezone.now()
+            pub_date=timezone.now(),
         )
-<<<<<<< HEAD
         board.permissions.update_all(AuthLevels.collaborators)
-=======
->>>>>>> master
-        # not accessible, since board defaults to collaborators only:
         response = self.client.get(reverse('openach:user_boards', args=(self.user.id, ))+'?query=created')
         self.assertNotContains(response, 'Board Title', status_code=200)
 
