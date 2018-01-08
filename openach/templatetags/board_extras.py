@@ -13,7 +13,7 @@ from django.template.defaulttags import register
 from django.urls import reverse  # pylint: disable=no-name-in-module
 import tldextract
 
-from openach.models import Evaluation, Eval
+from openach.models import Evaluation, Eval, AuthLevels
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -23,6 +23,12 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 def get_class(obj):
     """Return the class name of obj."""
     return obj.__class__.__name__
+
+
+@register.filter
+def contains(collection, element):
+    """Return True if collection contains element."""
+    return element in collection
 
 
 @register.filter
@@ -101,23 +107,27 @@ def disagreement_style(value):
 
 
 @register.simple_tag
-def comparison_style(user, consensus):
+def comparison_style(user, aggregate):
     """Return the CSS class name for the analysis cell given a user evaluation and the consensus evaluation.
 
     Requires that the user disagrees with the consensus. If the user roughly agrees, return the weak consistent
     or inconsistent CSS class. Otherwise, return the dispute style depending on the distance between the evaluations.
     """
-    if user == consensus:
-        raise ValueError("user evaluation must differ from consensus")
+    if user == aggregate:
+        raise ValueError('user evaluation must differ from consensus')
+    if user is None:
+        raise ValueError('user evaluation cannot be None')
+    if aggregate is None:
+        raise ValueError('aggregate evaluation cannot be None')
 
-    diff = abs(user.value - consensus.value)
-    non_na = user.value > 0 and consensus.value > 0
+    diff = abs(user.value - aggregate.value)
+    non_na = user.value > 0 and aggregate.value > 0
 
-    if non_na and user.value < 3 and consensus.value < 3:
+    if non_na and user.value < 3 and aggregate.value < 3:
         return 'eval-inconsistent'
-    elif non_na and user.value > 3 and consensus.value > 3:
+    elif non_na and user.value > 3 and aggregate.value > 3:
         return 'eval-consistent'
-    elif user.value == 0 or consensus.value == 0:
+    elif user.value == 0 or aggregate.value == 0:
         return 'disagree-mild-dispute'
     elif diff >= 3:
         return 'disagree-extreme-dispute'
@@ -200,6 +210,12 @@ def url_replace(request, field, value):
     dict_ = request.GET.copy()
     dict_[field] = value
     return dict_.urlencode()
+
+
+@register.filter
+def is_private(board):
+    """Return True iff the board is only readable by the owner and/or collaborators."""
+    return board.permissions.read_board in [AuthLevels.board_creator.key, AuthLevels.collaborators.key]
 
 
 @register.filter

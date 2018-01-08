@@ -33,6 +33,7 @@ urlpatterns = [  # pylint: disable=invalid-name
     url(r'^boards/create$', views.create_board, name='create_board'),
     url(r'^boards/(?P<board_id>[0-9]+)/history/', views.board_history, name='board_history'),
     url(r'^boards/(?P<board_id>[0-9]+)/edit/', views.edit_board, name='edit_board'),
+    url(r'^boards/(?P<board_id>[0-9]+)/permissions/', views.edit_permissions, name='edit_permissions'),
     url(r'^boards/(?P<board_id>[0-9]+)/evidence/add', views.add_evidence, name='add_evidence'),
     url(r'^evidence/(?P<evidence_id>[0-9]+)/sources/add', views.add_source, name='add_source'),
     url(r'^evidence/(?P<evidence_id>[0-9]+)/edit/', views.edit_evidence, name='edit_evidence'),

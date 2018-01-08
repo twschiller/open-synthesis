@@ -11,14 +11,18 @@ USERNAME_PRIMARY = 'john'
 USERNAME_OTHER = 'paul'
 
 
-def create_board(board_title, days):
+def create_board(board_title, days = 0, public = True):
     """Create a board with the given title and publishing date offset.
 
     :param board_title: the board title
     :param days: negative for boards published in the past, positive for boards that have yet to be published
+    :param public: true if all permissions should be set to public (see make_public)
     """
     time = timezone.now() + datetime.timedelta(days=days)
-    return Board.objects.create(board_title=board_title, pub_date=time)
+    board = Board.objects.create(board_title=board_title, pub_date=time)
+    if public:
+        board.permissions.make_public()
+    return board
 
 
 def remove(model):
@@ -48,6 +52,9 @@ class PrimaryUserTestCase(TestCase):
 
     def login(self):
         self.client.login(username=USERNAME_PRIMARY, password=PASSWORD)
+
+    def login_other(self):
+        self.client.login(username=USERNAME_OTHER, password=PASSWORD)
 
     def logout(self):
         self.client.logout()

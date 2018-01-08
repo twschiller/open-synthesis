@@ -6,8 +6,8 @@ from django.utils import timezone
 from django_comments.models import Comment
 from field_history.models import FieldHistory
 
-from openach.models import Board, Evidence, Hypothesis, Evaluation, Eval
-from openach.views import BoardForm
+from openach.models import Board, Evidence, Hypothesis, Evaluation, Eval, AuthLevels
+from openach.views import BoardForm, BoardPermissions
 
 from .common import PrimaryUserTestCase, create_board, remove
 
@@ -67,6 +67,7 @@ class BoardFormTests(PrimaryUserTestCase):
     def test_can_show_edit_form(self):
         """Test that a logged in user can view the board edit form."""
         board = Board.objects.create(board_title='Board #1', creator=self.user, pub_date=timezone.now())
+        board.permissions.make_public()
         self.login()
         response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
         self.assertEqual(response.status_code, 200)
@@ -76,15 +77,15 @@ class BoardFormTests(PrimaryUserTestCase):
     def test_staff_edit_form_has_remove_button(self):
         """Test that the edit form contains a remove button for staff."""
         board = Board.objects.create(board_title='Board #1', creator=self.user, pub_date=timezone.now())
+        board.permissions.make_public()
         self.user.is_staff = True
         self.user.save()
         self.login()
         response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
         self.assertContains(response, 'Remove Board', status_code=200)
 
-    def test_non_owner_cannot_edit(self):
-        """Test that the form is not displayed to the user that did not create the board."""
-        setattr(settings, 'EDIT_AUTH_ANY', False)
+    def test_board_meta_edit_permissions(self):
+        """Test that with default permissions, the non-creator cannot edit the board permissions."""
         board = Board.objects.create(board_title='Board #1', creator=None, pub_date=timezone.now())
         self.login()
         response = self.client.get(reverse('openach:edit_board', args=(board.id,)))
@@ -93,6 +94,7 @@ class BoardFormTests(PrimaryUserTestCase):
     def test_can_submit_edit_form(self):
         """Test that a logged in user can edit a board by submitting the form."""
         board = Board.objects.create(board_title='Board #1', creator=self.user, pub_date=timezone.now())
+        board.permissions.make_public()
 
         # board initially has 3 changed fields: title, description, and if it has been removed
         self.assertEqual(FieldHistory.objects.get_for_model(board).count(), 3)
@@ -114,6 +116,7 @@ class BoardFormTests(PrimaryUserTestCase):
     def test_can_remove_board(self):
         """Test that staff can mark a board as removed via the form."""
         board = Board.objects.create(board_title='Board #1', creator=self.user, pub_date=timezone.now())
+        board.permissions.make_public()
         self.user.is_staff = True
         self.user.save()
         self.login()
@@ -127,6 +130,7 @@ class BoardFormTests(PrimaryUserTestCase):
     def test_non_owner_cannot_remove_board(self):
         """Test that a random user can't delete the board using a POST request."""
         board = Board.objects.create(board_title='Board #1', creator=None, pub_date=timezone.now())
+        board.permissions.make_public()
         self.login()
         response = self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
             'remove': 'remove'
@@ -136,6 +140,7 @@ class BoardFormTests(PrimaryUserTestCase):
     def test_can_view_board_history(self):
         """Test that the board history shows a change in board title and description."""
         board = Board.objects.create(board_title='Board #1', creator=self.user, pub_date=timezone.now())
+        board.permissions.make_public()
         self.login()
         self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
             'board_title': 'New Board Title',
@@ -150,6 +155,7 @@ class BoardFormTests(PrimaryUserTestCase):
     def test_can_view_evidence_history(self):
         """Test that the board history shows the history of evidence that has been removed."""
         board = Board.objects.create(board_title='Board #1', creator=self.user, pub_date=timezone.now())
+        board.permissions.make_public()
         evidence = Evidence.objects.create(board=board, evidence_desc='Evidence')
         remove(evidence)
         response = self.client.get(reverse('openach:board_history', args=(board.id,)))
@@ -199,6 +205,56 @@ class BoardDetailTests(PrimaryUserTestCase):
 
         for hypothesis in self.hypotheses:
             self.assertContains(response, hypothesis.hypothesis_text)
+
+    def test_board_read_permission_without_creator(self):
+        """Test that anonymous users cannot view board without creators when registration is required for board."""
+        self.board.permissions.update_all(AuthLevels.registered)
+        response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+        self.assertEqual(response.status_code, 403)
+
+    def test_board_read_permissions(self):
+        """Test that only users with necessary permissions can access the board."""
+        self.board.creator = self.user
+        self.board.save()
+
+        def expect_success():
+            response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+            self.assertEqual(response.status_code, 200)
+
+        def expect_fail():
+            response = self.client.get(reverse('openach:detail', args=(self.board.id,)))
+            self.assertEqual(response.status_code, 403)
+
+        # succeed b/c anyone can access
+        self.board.permissions.update_all(AuthLevels.anyone)
+        expect_success()
+
+        # fail because user is not logged in
+        self.board.permissions.update_all(AuthLevels.registered)
+        expect_fail()
+
+        # succeed because non-collaborator user is logged in
+        self.login_other()
+        expect_success()
+
+        # fail because non-collaborator
+        self.board.permissions.update_all(AuthLevels.collaborators)
+        expect_fail()
+
+        # add other user as collaborator
+        self.board.permissions.collaborators.add(self.other)
+        self.board.permissions.save()
+
+        # succeed because user is now a collaborator
+        expect_success()
+
+        # fail because user is not creator
+        self.board.permissions.update_all(AuthLevels.board_creator)
+        expect_fail()
+
+        # succeed because now logged in as creator
+        self.login()
+        expect_success()
 
     def test_can_display_board_with_no_assessments(self):
         """Test that the detail view renders for a board with no assessments."""
@@ -354,13 +410,54 @@ class BoardListingTests(PrimaryUserTestCase):
         response = self.client.get(reverse('openach:boards') + '?page=2')
         self.assertContains(response, 'Test Board 15', status_code=200)
 
-    def test_user_board_view(self):
-        """Test board listing for user that created a board."""
+    def test_user_public_board_view(self):
+        """Test board listing for user that created a public board."""
+        board = Board.objects.create(
+            creator=self.user,
+            board_title='Board Title',
+            board_desc='Description',
+            pub_date=timezone.now()
+        )
+        board.permissions.make_public()
+        response = self.client.get(reverse('openach:user_boards', args=(self.user.id, ))+'?query=created')
+        self.assertContains(response, 'Board Title', status_code=200)
+
+    def test_user_hide_private_boards(self):
         Board.objects.create(
             creator=self.user,
             board_title='Board Title',
             board_desc='Description',
             pub_date=timezone.now()
         )
+        # not accessible, since board defaults to collaborators only:
         response = self.client.get(reverse('openach:user_boards', args=(self.user.id, ))+'?query=created')
-        self.assertContains(response, 'Board Title', status_code=200)
+        self.assertNotContains(response, 'Board Title', status_code=200)
+
+class BoardEditPermissionsTests(PrimaryUserTestCase):
+
+    def test_can_edit_board_permissions(self):
+        """Test that the board owner can edit the board permissions via form."""
+        board = Board.objects.create(
+            creator=self.user,
+            board_title='Board Title',
+            board_desc='Description',
+            pub_date=timezone.now()
+        )
+        self.login()
+        response = self.client.post(reverse('openach:edit_permissions', args=(board.id, )), data={
+            **{p: AuthLevels.registered.key for p in BoardPermissions.PERMISSION_NAMES},
+            'collaborators': [],
+        })
+        self.assertEqual(response.status_code, 302)
+
+        board.permissions.refresh_from_db()
+
+        for p in BoardPermissions.PERMISSION_NAMES:
+            self.assertEqual(getattr(board.permissions, p), AuthLevels.registered.key, f'failed for: {p}')
+
+    def test_edit_permissions_permission(self):
+        board = create_board('Board Title')
+        board.permissions.update_all(AuthLevels.board_creator)
+        self.login()
+        response = self.client.post(reverse('openach:edit_permissions', args=(board.id, )))
+        self.assertEqual(response.status_code, 403)

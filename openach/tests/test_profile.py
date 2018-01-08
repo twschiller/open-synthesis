@@ -22,6 +22,7 @@ class ProfileTests(PrimaryUserTestCase):
             creator=user,
             pub_date=timezone.now(),
         )
+        self.board.permissions.make_public()
 
     def _add_hypothesis(self, user=None):
         self.hypothesis = Hypothesis.objects.create(
@@ -51,7 +52,7 @@ class ProfileTests(PrimaryUserTestCase):
         response = self.client.get(reverse('profile', args=(self.user.id,)))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'boards/public_profile.html')
-        self.assertContains(response, 'User {}'.format(self.user.username))
+        self.assertContains(response, f'User {self.user.username}')
         self.assertNotContains(response, 'View All')
         self.assertContains(response, 'has not contributed to any boards')
         self.assertContains(response, 'has not evaluated any boards')
@@ -69,12 +70,14 @@ class ProfileTests(PrimaryUserTestCase):
     def test_public_activity_creator_max_display(self):
         """Test that at most 3 boards are shown on the profile."""
         for x in range(1, 10):
-            Board.objects.create(
-                board_title='Title #{}'.format(x),
+            board = Board.objects.create(
+                board_title=f'Title #{x}',
                 board_desc='Description',
                 creator=self.user,
                 pub_date=timezone.now(),
             )
+            board.permissions.make_public()
+
         response = self.client.get(reverse('profile', args=(self.user.id,)))
         self.assertContains(response, 'Title #', count=3, status_code=200)
 
@@ -179,5 +182,3 @@ class ProfileTests(PrimaryUserTestCase):
         self.assertEqual(response.status_code, 200)
         self.user.settings.refresh_from_db()
         self.assertEqual(self.user.settings.digest_frequency, DigestFrequency.weekly.key)
-
-

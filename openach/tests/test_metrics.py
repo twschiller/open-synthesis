@@ -2,34 +2,34 @@ from django.test import TestCase
 
 from openach.metrics import hypothesis_sort_key, evidence_sort_key
 from openach.metrics import inconsistency, consistency, proportion_na, proportion_unevaluated
-from openach.metrics import mean_na_neutral_vote, consensus_vote, diagnosticity, calc_disagreement
+from openach.metrics import mean_na_neutral_vote, aggregate_vote, diagnosticity, calc_disagreement
 from openach.models import Eval
 
 
 class ConsensusTests(TestCase):
 
     def test_no_votes_has_no_consensus(self):
-        """Test that consensus_vote() returns None if no votes have been cast."""
-        self.assertIsNone(consensus_vote([]))
+        """Test that aggregate_vote() returns None if no votes have been cast."""
+        self.assertIsNone(aggregate_vote([]))
 
     def test_na_consensus_for_single_vote(self):
-        """Test that consensus_vote() returns N/A if only a single N/A vote is cast"""
-        self.assertEqual(consensus_vote([Eval.not_applicable]), Eval.not_applicable)
+        """Test that aggregate_vote() returns N/A if only a single N/A vote is cast"""
+        self.assertEqual(aggregate_vote([Eval.not_applicable]), Eval.not_applicable)
 
     def test_none_na_consensus_for_single_vote(self):
-        """Test that consensus_vote() returns the evaluation if only a single vote is cast."""
-        self.assertEqual(consensus_vote([Eval.consistent]), Eval.consistent)
+        """Test that aggregate_vote() returns the evaluation if only a single vote is cast."""
+        self.assertEqual(aggregate_vote([Eval.consistent]), Eval.consistent)
 
     def test_equal_na_vs_non_na(self):
         """Test that consensus_vote() returns an evaluation when an equal number of N/A and non-N/A votes have been cast."""
         for vote in [Eval.very_inconsistent, Eval.neutral, Eval.very_consistent]:
-            self.assertEqual(consensus_vote([vote, Eval.not_applicable]), vote)
-            self.assertEqual(consensus_vote([Eval.not_applicable, vote]), vote)
+            self.assertEqual(aggregate_vote([vote, Eval.not_applicable]), vote)
+            self.assertEqual(aggregate_vote([Eval.not_applicable, vote]), vote)
 
     def test_round_toward_neutral(self):
         """Test that consensus_vote() rounds the vote toward a neutral assessment."""
-        self.assertEqual(consensus_vote([Eval.consistent, Eval.very_consistent]), Eval.consistent)
-        self.assertEqual(consensus_vote([Eval.inconsistent, Eval.very_inconsistent]), Eval.inconsistent)
+        self.assertEqual(aggregate_vote([Eval.consistent, Eval.very_consistent]), Eval.consistent)
+        self.assertEqual(aggregate_vote([Eval.inconsistent, Eval.very_inconsistent]), Eval.inconsistent)
 
 
 class EvidenceOrderingTests(TestCase):

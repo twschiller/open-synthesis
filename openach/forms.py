@@ -9,7 +9,7 @@ from django import forms
 from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Board, Evidence, EvidenceSource, Hypothesis, UserSettings
+from .models import Board, BoardPermissions, Evidence, EvidenceSource, Hypothesis, UserSettings
 from .models import HYPOTHESIS_MAX_LENGTH
 
 
@@ -34,11 +34,22 @@ class BoardCreateForm(BoardForm):
         max_length=HYPOTHESIS_MAX_LENGTH,
         help_text=_('A hypothesis providing a potential answer to the topic question')
     )
+
     hypothesis2 = forms.CharField(
         label=_('Hypothesis #2'),
         max_length=HYPOTHESIS_MAX_LENGTH,
         help_text=_('An alternative hypothesis providing a potential answer to the topic question')
     )
+
+
+class BoardPermissionForm(forms.ModelForm):
+    """Form for setting/modifying board permissions."""
+
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Form meta options."""
+
+        model = BoardPermissions
+        fields = ['read_board', 'read_comments', 'add_comments', 'add_elements', 'edit_elements', 'edit_board', 'collaborators']
 
 
 class EvidenceForm(forms.ModelForm):

@@ -2,21 +2,26 @@
 {% load board_extras %}
 {% load i18n %}
 
-{% block title %}{% trans "Assess Evidence" %} | {{ site.name }}{% endblock %}
+{% block title %}{% trans "Evaluate Evidence" %} | {{ site.name }}{% endblock %}
 
 {% block content %}
 
-    <h1>{% trans "Assess Evidence" %}</h1>
+    <h1>{% trans "Evaluate Evidence" %}</h1>
 
     <p>
       <b>{% trans "Instructions:" %}</b>
       {% url 'openach:evidence_detail' evidence.id as evidence_url %}
       {% blocktrans trimmed %}
-        Assess the consistency of each hypothesis with respect to the following evidence. Assume
-        that the evidence is valid. You can assess the validity of the evidence (and its sources) on the
-        <a href="{{ evidence_url }}">evidence detail page</a>. If the evidence does not
-        apply to a hypothesis, select N/A.
+          Evaluate the consistency of each hypothesis with respect to the following evidence. We've hidden your previous
+          evaluations and randomized the order of the hypotheses in order to prevent bias.  If the evidence does not
+          apply to a hypothesis, select N/A.
       {% endblocktrans %}
+    </p>
+    <p>
+        {% blocktrans trimmed %}
+            <i>Assume that the evidence is valid. You can evaluate the validity of the evidence (and its sources) on
+            the <a href="{{ evidence_url }}">evidence detail page</a>.</i>
+        {% endblocktrans %}
     </p>
 
     <div class="well">{{ evidence.evidence_desc }}</div>

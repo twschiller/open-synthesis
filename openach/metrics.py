@@ -4,6 +4,8 @@ import collections
 import logging
 import itertools
 
+from django.contrib.auth.models import AnonymousUser
+
 from .models import Eval, Hypothesis, Evidence, Evaluation, Board
 from .util import partition, first_occurrences
 
@@ -49,7 +51,7 @@ def calc_disagreement(evaluations):
         return None
 
 
-def consensus_vote(evaluations):
+def aggregate_vote(evaluations):
     """Return the consensus evaluation given a an iterable of evaluations, or None if no evaluations.
 
     Calculated as (1) whether or not the evidence is applicable, and (2) if the evidence is applicable, how consistent
@@ -66,7 +68,7 @@ def consensus_vote(evaluations):
         return Eval.not_applicable
     else:
         consensus = round(statistics.mean([v.value for v in rated_votes]))
-        return Eval.for_value(round(consensus))
+        return Eval(round(consensus))
 
 
 def inconsistency(evaluations):
@@ -97,7 +99,7 @@ def consistency(evaluations):
 
 def _proportion_value(evaluations, eval_):
     """Return proportion of evaluations where consensus is eval_."""
-    consensuses = map(consensus_vote, evaluations)   # pylint: disable=bad-builtin
+    consensuses = map(aggregate_vote, evaluations)   # pylint: disable=bad-builtin
     na, other = partition(eval_.__ne__, consensuses)
     na = list(na)
     other = list(other)
@@ -188,30 +190,46 @@ def generate_evaluator_count():
     return {k: len(v) for k, v in voter_count.items()}
 
 
-def user_boards_created(user):
+def user_boards_created(user, viewing_user=AnonymousUser):
     """Return queryset of boards created by user in reverse creation order (most recently created first)."""
-    return Board.objects.filter(creator=user).order_by('-pub_date')
+    return Board.objects.user_readable(viewing_user).filter(creator=user)
 
 
-def user_boards_contributed(user, include_removed=False):
+def user_boards_contributed(user, include_removed=False, viewing_user=AnonymousUser):
     """Return list of boards contributed to by the user in reverse order (most recent contributions first).
 
     :param user: the user
     :param include_removed: True iff boards that have been removed should be included in the result
+    :param viewing_user: user for calculating permissions
     """
     # basic approach: (1) merge, (2) sort, and (3) add making sure there's no duplicate boards
-    def _boards(klass):
-        models = klass.objects.filter(creator=user).order_by('-submit_date').select_related('board')
+    def _boards(class_):
+        models = (
+            class_.objects.filter(creator=user)
+            .order_by('-submit_date')
+            .select_related('board', 'board__permissions')
+        )
         return [(x.submit_date, x.board) for x in models if include_removed or not x.board.removed]
     contributions = sorted(itertools.chain(_boards(Evidence), _boards(Hypothesis)), key=lambda x: x[0], reverse=True)
-    return first_occurrences(c[1] for c in contributions if include_removed or not c[1].removed)
+    boards = [
+        board
+        for date, board in contributions
+        if (include_removed or not board.removed) and board.can_read(viewing_user)
+    ]
+    return first_occurrences(boards)
 
 
-def user_boards_evaluated(user, include_removed=False):
+def user_boards_evaluated(user, include_removed=False, viewing_user=AnonymousUser):
     """Return list of boards evaluated by user in reverse order of evaluation (most recently evaluated first).
 
     :param user: the user
     :param include_removed: True iff boards that have been removed should be included in the result
+    :param viewing_user: user for calculating permissions
     """
-    evaluations = Evaluation.objects.filter(user=user).order_by('-timestamp').select_related('board')
-    return first_occurrences(e.board for e in evaluations if include_removed or not e.board.removed)
+    evaluations = Evaluation.objects.filter(user=user).order_by('-timestamp')
+    boards = [
+        e.board
+        for e in evaluations.select_related('board', 'board__permissions')
+        if (include_removed or not e.board.removed) and e.board.can_read(viewing_user)
+    ]
+    return first_occurrences(boards)

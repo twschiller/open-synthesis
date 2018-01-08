@@ -11,6 +11,13 @@ body {
     overflow-y: visible;
 }
 
+.private-indicator {
+    font-weight: 400;
+    color: whitesmoke;
+    background-color: lightblue;
+    padding: 2px 5px 2px 5px;
+}
+
 .source-tag {
     background-color: #5bc0de;
     color: white;
@@ -56,16 +63,24 @@ body {
     text-align: center;
     vertical-align: middle;
 }
-.ach-table>thead>tr>th:first-child {
+
+.ach-table>thead>tr>th:nth-child(1) {
     width: 300px;
 }
-.ach-table>thead>tr>th:not(first-child) {
+.ach-table>thead>tr>th:nth-child(n+2) {
     width: 150px;
 }
-.ach-table>tbody>tr>td:first-child {
-    width: 425px;
+
+.ach-table>tbody>tr>td:nth-child(2) {
+    width: 55px;
+    border-left: 0;
+    vertical-align: middle;
 }
-.ach-table>tbody>tr>td:not(first-child) {
+.ach-table>tbody>tr>td:nth-child(1) {
+    width: 300px;
+    border-right: 0;
+}
+.ach-table>tbody>tr>td:nth-child(n+3) {
     width: 150px;
 }
 

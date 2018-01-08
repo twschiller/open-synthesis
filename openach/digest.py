@@ -1,12 +1,12 @@
 """Methods for creating/sending notification digests."""
-import logging
 import collections
+import logging
 
-from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
-from django.template.loader import render_to_string
-from django.core.mail import EmailMultiAlternatives, get_connection
 from django.contrib.sites.models import Site
+from django.core.mail import EmailMultiAlternatives, get_connection
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 from .models import DigestStatus, Board, UserSettings, DigestFrequency
 
@@ -19,6 +19,9 @@ def notification_digest(user, start, end):
 
     Notifications are grouped by target, e.g., board.
 
+    For boards that a user no longer has access to, notifications are included if the user had access to that board
+    at the time of the notification.
+
     :param user: the user
     :param start: the start datetime for the the digest
     :param end: the end datetime for the digest
@@ -28,8 +31,11 @@ def notification_digest(user, start, end):
     for notification in notifications:
         if notification.target and notification.actor.id != user.id:
             by_target[notification.target].append(notification)
-
-    new_boards = Board.objects.all().filter(pub_date__gt=start, pub_date__lt=end).exclude(creator_id=user.id)
+    new_boards = (
+        Board.objects.user_readable(user)
+        .filter(pub_date__gt=start, pub_date__lt=end)
+        .exclude(creator_id=user.id)
+    )
     if notifications.exists() or new_boards.exists():
         return {
             'new_boards': new_boards,
