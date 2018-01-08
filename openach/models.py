@@ -211,13 +211,13 @@ class BoardPermissions(models.Model):
     read_board = models.PositiveSmallIntegerField(
         choices=AUTH_CHOICES,
         help_text=_('Who can view the board?'),
-        default=AuthLevels.collaborators.key,
+        default=AuthLevels.anyone.key,
     )
 
     read_comments = models.PositiveSmallIntegerField(
         choices=AUTH_CHOICES,
         help_text=_('Who can view board comments?'),
-        default=AuthLevels.collaborators.key,
+        default=AuthLevels.anyone.key,
     )
 
     add_comments = models.PositiveSmallIntegerField(
