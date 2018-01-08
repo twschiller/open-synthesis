@@ -412,23 +412,23 @@ class BoardListingTests(PrimaryUserTestCase):
 
     def test_user_public_board_view(self):
         """Test board listing for user that created a public board."""
-        board = Board.objects.create(
-            creator=self.user,
-            board_title='Board Title',
-            board_desc='Description',
-            pub_date=timezone.now()
-        )
-        board.permissions.make_public()
-        response = self.client.get(reverse('openach:user_boards', args=(self.user.id, ))+'?query=created')
-        self.assertContains(response, 'Board Title', status_code=200)
-
-    def test_user_hide_private_boards(self):
         Board.objects.create(
             creator=self.user,
             board_title='Board Title',
             board_desc='Description',
             pub_date=timezone.now()
         )
+        response = self.client.get(reverse('openach:user_boards', args=(self.user.id, ))+'?query=created')
+        self.assertContains(response, 'Board Title', status_code=200)
+
+    def test_user_hide_private_boards(self):
+        board = Board.objects.create(
+            creator=self.user,
+            board_title='Board Title',
+            board_desc='Description',
+            pub_date=timezone.now()
+        )
+        board.permissions.update_all(AuthLevels.collaborators)
         # not accessible, since board defaults to collaborators only:
         response = self.client.get(reverse('openach:user_boards', args=(self.user.id, ))+'?query=created')
         self.assertNotContains(response, 'Board Title', status_code=200)
