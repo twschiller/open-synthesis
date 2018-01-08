@@ -199,10 +199,10 @@ def detail(request, board_id, dummy_board_slug=None):
     board = get_object_or_404(Board, pk=board_id)
     permissions = board.permissions.for_user(request.user)
 
-    if view_type == 'comparison' and not request.user.is_authenticated:
+    if 'read_board' not in permissions:
         raise PermissionDenied()
 
-    if 'read_board' not in permissions:
+    if view_type == 'comparison' and not request.user.is_authenticated:
         raise PermissionDenied()
 
     vote_type = request.GET.get('vote_type', default=(
@@ -319,7 +319,10 @@ def create_board(request):
 def edit_board(request, board_id):
     """Return a board edit view, or handle the form submission."""
     board = get_object_or_404(Board, pk=board_id)
-    check_edit_authorization(request, board)
+
+    if 'edit_board' not in board.permissions.for_user(request.user):
+        raise PermissionDenied()
+
     allow_remove = request.user.is_staff and getattr(settings, 'EDIT_REMOVE_ENABLED', True)
 
     if request.method == 'POST':
@@ -355,7 +358,7 @@ def edit_permissions(request, board_id):
     """View board permissions form and handle form submission."""
     board = get_object_or_404(Board, pk=board_id)
 
-    if not (request.user.is_staff or request.user.id == board.creator_id):
+    if 'edit_board' not in board.permissions.for_user(request.user):
         raise PermissionDenied()
 
     if request.method == 'POST':

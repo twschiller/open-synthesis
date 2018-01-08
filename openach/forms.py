@@ -49,7 +49,7 @@ class BoardPermissionForm(forms.ModelForm):
         """Form meta options."""
 
         model = BoardPermissions
-        fields = ['read_board', 'read_comments', 'add_comments', 'add_elements', 'edit_elements', 'collaborators']
+        fields = ['read_board', 'read_comments', 'add_comments', 'add_elements', 'edit_elements', 'edit_board', 'collaborators']
 
 
 class EvidenceForm(forms.ModelForm):

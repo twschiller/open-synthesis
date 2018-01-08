@@ -16,6 +16,7 @@ def create_board(board_title, days = 0, public = True):
 
     :param board_title: the board title
     :param days: negative for boards published in the past, positive for boards that have yet to be published
+    :param public: true if all permissions should be set to public (see make_public)
     """
     time = timezone.now() + datetime.timedelta(days=days)
     board = Board.objects.create(board_title=board_title, pub_date=time)
@@ -51,6 +52,9 @@ class PrimaryUserTestCase(TestCase):
 
     def login(self):
         self.client.login(username=USERNAME_PRIMARY, password=PASSWORD)
+
+    def login_other(self):
+        self.client.login(username=USERNAME_OTHER, password=PASSWORD)
 
     def logout(self):
         self.client.logout()

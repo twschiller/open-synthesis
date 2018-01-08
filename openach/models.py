@@ -195,7 +195,8 @@ class BoardPermissions(models.Model):
         'read_comments',
         'add_comments',
         'add_elements',
-        'edit_elements'
+        'edit_elements',
+        'edit_board',
     ]
 
     PERMISSION_NAMES_READ = [
@@ -233,13 +234,24 @@ class BoardPermissions(models.Model):
 
     edit_elements = models.PositiveSmallIntegerField(
         choices=AUTH_CHOICES,
-        help_text=_('Who can edit hypotheses and evidence that they themselves did not add?'),
+        help_text=_('Who can edit hypotheses, evidence, and sources?'),
         default=AuthLevels.collaborators.key,
+    )
+
+    edit_board = models.PositiveSmallIntegerField(
+        choices=AUTH_CHOICES,
+        help_text=_('Who can edit the board title, description, and permissions?'),
+        default=AuthLevels.board_creator.key,
     )
 
     def make_public(self):
         for permission in self.PERMISSION_NAMES:
             setattr(self, permission, AuthLevels.anyone.key)
+        self.save()
+
+    def update_all(self, auth_level):
+        for permission in self.PERMISSION_NAMES:
+            setattr(self, permission, auth_level.key)
         self.save()
 
     def for_user(self, user):
@@ -248,24 +260,26 @@ class BoardPermissions(models.Model):
         If user is not authenticated, only the read_board and read_comments can be made available. NOTE: global public
         access should be controlled via the ACCOUNT_REQUIRED settings.
         """
-        allowed = (
+        max_allowed = (
             BoardPermissions.PERMISSION_NAMES
             if user.is_authenticated
             else BoardPermissions.PERMISSION_NAMES_READ
         )
 
-        if user.id == self.board.creator_id or user.is_staff:
-            # user is the board owner/creator or an admin
-            return set(allowed + ['edit_board'])
+        is_owner = self.board.creator_id is not None and user.id == self.board.creator_id
+
+        if user.is_staff or is_owner:
+            return set(max_allowed)
         else:
-            collab = self.collaborators.filter(pk=user.id).exists()
+            is_collaborator = self.collaborators.filter(pk=user.id).exists()
 
             def check_allowed(permission):
                 level = getattr(self, permission, AuthLevels.board_creator.key)
                 return level == AuthLevels.anyone.key or \
-                    (level == AuthLevels.collaborators.key and collab)
+                       (level == AuthLevels.registered.key and user.is_authenticated) or \
+                       (level == AuthLevels.collaborators.key and is_collaborator)
 
-            return set(filter(check_allowed, allowed))
+            return set(filter(check_allowed, max_allowed))
 
     def clean(self):
         """Validate the BoardPermissions model.
@@ -287,6 +301,8 @@ class BoardPermissions(models.Model):
             errors['read_comments'] = _('Cannot be more permissive than the "read board" permission')
         if self.add_elements > self.read_board:
             errors['add_elements'] = _('Cannot be more permissive than the "read board" permission')
+        if self.edit_board > self.edit_elements:
+            errors['edit_board'] = _('Cannot be more permissive than the "edit elements" permission')
 
         if len(errors) > 0:
             raise ValidationError(errors)
