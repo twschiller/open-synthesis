@@ -210,7 +210,7 @@ class BoardPermissions(models.Model):
 
     read_board = models.PositiveSmallIntegerField(
         choices=AUTH_CHOICES,
-        help_text=_('Who can view and evaluate the board?'),
+        help_text=_('Who can view the board?'),
         default=AuthLevels.anyone.key,
     )
 
