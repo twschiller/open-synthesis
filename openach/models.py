@@ -190,6 +190,12 @@ class BoardPermissions(models.Model):
         (AuthLevels.anyone.key, _('Public')),
     ]
 
+    AUTH_CHOICES_REGISTERED = [
+        (AuthLevels.board_creator.key, _('Only Me')),
+        (AuthLevels.collaborators.key, _('Collaborators')),
+        (AuthLevels.registered.key, _('Registered Users')),
+    ]
+
     PERMISSION_NAMES = [
         'read_board',
         'read_comments',
@@ -221,35 +227,40 @@ class BoardPermissions(models.Model):
     )
 
     add_comments = models.PositiveSmallIntegerField(
-        choices=AUTH_CHOICES,
+        choices=AUTH_CHOICES_REGISTERED,
         help_text=_('Who can comment on the board?'),
         default=AuthLevels.collaborators.key,
     )
 
     add_elements = models.PositiveSmallIntegerField(
-        choices=AUTH_CHOICES,
+        choices=AUTH_CHOICES_REGISTERED,
         help_text=_('Who can add hypotheses, evidence, and sources?'),
         default=AuthLevels.collaborators.key,
     )
 
     edit_elements = models.PositiveSmallIntegerField(
-        choices=AUTH_CHOICES,
+        choices=AUTH_CHOICES_REGISTERED,
         help_text=_('Who can edit hypotheses, evidence, and sources?'),
         default=AuthLevels.collaborators.key,
     )
 
     edit_board = models.PositiveSmallIntegerField(
-        choices=AUTH_CHOICES,
+        choices=AUTH_CHOICES_REGISTERED,
         help_text=_('Who can edit the board title, description, and permissions?'),
         default=AuthLevels.board_creator.key,
     )
 
     def make_public(self):
+        """Set permissions to the most permissive permission scheme."""
         for permission in self.PERMISSION_NAMES:
-            setattr(self, permission, AuthLevels.anyone.key)
+            if permission in self.PERMISSION_NAMES_READ and not getattr(settings, 'ACCOUNT_REQUIRED', False):
+                setattr(self, permission, AuthLevels.anyone.key)
+            else:
+                setattr(self, permission, AuthLevels.registered.key)
         self.save()
 
     def update_all(self, auth_level):
+        """Set all permissions to  auth_level"""
         for permission in self.PERMISSION_NAMES:
             setattr(self, permission, auth_level.key)
         self.save()

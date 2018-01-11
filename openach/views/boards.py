@@ -274,7 +274,8 @@ def create_board(request):
                 for hypothesis_key in ['hypothesis1', 'hypothesis2']:
                     Hypothesis.objects.create(
                         board=board,
-                        hypothesis_text=form.cleaned_data[hypothesis_key]
+                        hypothesis_text=form.cleaned_data[hypothesis_key],
+                        creator=request.user,
                     )
                 BoardFollower.objects.update_or_create(board=board, user=request.user, defaults={
                     'is_creator': True,
