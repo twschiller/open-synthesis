@@ -180,6 +180,81 @@ class Board(models.Model):
         """Return true iff user follows this board."""
         return self.followers.filter(user=user).exists()
 
+
+class Team(models.Model):
+    """Analysis team."""
+
+    creator = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='+'
+    )
+
+    owner = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='+',
+    )
+
+    name = models.CharField(max_length=64, unique=True)
+
+    description = models.TextField(blank=True)
+
+    url = models.URLField(null=True, blank=True)
+
+    members = models.ManyToManyField(User, blank=True, editable=False)
+
+    public = models.BooleanField(
+        default=True,
+        help_text=_('Whether or not the team is visible to non-members')
+    )
+
+    invitation_required = models.BooleanField(default=True)
+
+    create_timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('openach:view_team', args=(self.id,))
+
+
+class TeamRequest(models.Model):
+    """Request to join a team or invitation to a team.
+
+    - If inviter and invitee is set, the request is an invitation to join the team.
+    - If the invitee is set, the request is a request to join a team.
+    """
+
+    class Meta:
+        unique_together = (('team', 'inviter', 'invitee'),)
+
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+
+    inviter = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        related_name='+',
+    )
+
+    invitee = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        related_name='team_invites',
+    )
+
+    create_timestamp = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        if self.inviter is None and self.invitee is None:
+            raise ValidationError(_('Team membership request must have an initiator'))
+
+
 class BoardPermissions(models.Model):
     """Permissions for the board."""
 
@@ -213,6 +288,8 @@ class BoardPermissions(models.Model):
     board = models.OneToOneField(Board, related_name='permissions')
 
     collaborators = models.ManyToManyField(User, blank=True)
+
+    teams = models.ManyToManyField(Team, blank=True)
 
     read_board = models.PositiveSmallIntegerField(
         choices=AUTH_CHOICES,
@@ -505,6 +582,9 @@ class Evaluation(models.Model):
 
 class ProjectNews(models.Model):
     """A news alert for the front page."""
+
+    class Meta:
+        verbose_name_plural = 'project news'
 
     content = models.CharField(max_length=1024)
     pub_date = models.DateTimeField('date published')

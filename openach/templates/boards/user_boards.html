@@ -18,7 +18,9 @@
 {% block content %}
     <h1>
         {% if user == request.user %}
-            {% trans "Boards you have {{ verb }}" %}
+            {% blocktrans %}
+                Boards you have {{ verb }}
+            {% endblocktrans %}
         {% else %}
           {% blocktrans trimmed with username=user.username %}
             Boards <i>{{ username }}</i> has {{ verb }}

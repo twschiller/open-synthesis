@@ -29,6 +29,14 @@ urlpatterns = [  # pylint: disable=invalid-name
     url(r'^accounts/(?P<account_id>[0-9]+)/boards/', views.boards.user_board_listing, name='user_boards'),
     url(r'^accounts/notifications/clear', views.notifications.clear_notifications, name='clear_notifications'),
     url(r'^accounts/notifications/', views.notifications.notifications, name='notifications'),
+
+    url(r'^teams/create$', views.teams.create_team, name='create_team'),
+    url(r'^teams/$', views.teams.team_listing, name='teams'),
+    url(r'^teams/(?P<team_id>[0-9]+)/join/$', views.teams.join_team, name='join_team'),
+    url(r'^teams/(?P<team_id>[0-9]+)/$', views.teams.view_team, name='view_team'),
+    url(r'^teams/(?P<team_id>[0-9]+)/members/(?P<member_id>[0-9]+)/revoke/$', views.teams.revoke_membership, name='revoke_membership'),
+    url(r'^teams/invitations/(?P<invite_id>[0-9]+)/$', views.teams.decide_invitation, name='decide_invitation'),
+
     url(r'^boards/(?P<board_id>[0-9]+)/$', views.boards.detail, name='detail'),
     url(r'^boards/create$', views.boards.create_board, name='create_board'),
     url(r'^boards/(?P<board_id>[0-9]+)/history/', views.boards.board_history, name='board_history'),

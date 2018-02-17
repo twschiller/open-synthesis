@@ -1,0 +1,26 @@
+{% extends 'boards/base.html' %}
+{% load bootstrap %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Team" %} | {{ site.name }}{% endblock %}
+
+{% block content %}
+    <h1>{% trans "Create Team" %}</h1>
+
+    <p>
+        {% blocktrans trimmed %}
+            To create a team, enter a team name, and optionally provide a description and URL.
+            You will be able to invite team members once you've created the team.
+        {% endblocktrans %}
+    </p>
+
+    <form action="{% url 'openach:create_team' %}" method="post">
+        {% csrf_token %}
+        {{ form|bootstrap }}
+        <div class="form-group">
+            <div>
+                <button type="submit" class="btn btn-primary">{% trans "Create Team" %}</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

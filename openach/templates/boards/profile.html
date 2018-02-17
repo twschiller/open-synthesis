@@ -69,6 +69,24 @@
 
         <div class="col-md-5">
 
+            {% if team_invites|length > 0 %}
+                <div class="panel panel-info">
+                    <div class="panel-heading clearfix">
+                        {% if user_invites|length > 5 %}
+                            <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_invites' user.id %}">
+                                {% trans "View All" %}
+                            </a>
+                        {% endif %}
+                        <h3 class="panel-title">{% trans "Team Invitations" %}</h3>
+                    </div>
+                    <ul class="list-group">
+                        {% for invite in team_invites %}
+                            <li class="list-group-item"><a href="{{ invite.team.get_absolute_url }}">{{ invite.team.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
             <div class="panel panel-default">
                 <div class="panel-heading clearfix">
                     <div class="btn-group pull-right">

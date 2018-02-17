@@ -9,7 +9,7 @@ from django import forms
 from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Board, BoardPermissions, Evidence, EvidenceSource, Hypothesis, UserSettings
+from .models import Board, BoardPermissions, Evidence, EvidenceSource, Hypothesis, UserSettings, Team
 from .models import HYPOTHESIS_MAX_LENGTH
 
 
@@ -119,3 +119,11 @@ class SettingsForm(forms.ModelForm):
 
         model = UserSettings
         fields = ['digest_frequency']
+
+
+class TeamCreateForm(forms.ModelForm):
+    """Form for creating a new team."""
+
+    class Meta:
+        model = Team
+        fields = ['name', 'description', 'url', 'public', 'invitation_required']

@@ -5,7 +5,7 @@ For more information, please see:
 """
 from django.contrib import admin
 
-from .models import Board, Evidence, Hypothesis, EvidenceSourceTag, ProjectNews
+from .models import Board, Evidence, Hypothesis, EvidenceSourceTag, ProjectNews, Team
 
 
 class HypothesisInline(admin.StackedInline):
@@ -31,3 +31,4 @@ class BoardAdmin(admin.ModelAdmin):
 admin.site.register(Board, BoardAdmin)
 admin.site.register(EvidenceSourceTag)
 admin.site.register(ProjectNews)
+admin.site.register(Team)
