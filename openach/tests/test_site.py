@@ -18,9 +18,9 @@ class IndexViewTests(TestCase):
         self.assertIsNotNone(response.context, 'Context was not returned with index view response')
 
     def test_can_show_index_no_news(self):
-        """Test that a reasonable message is displayed if there is no project news."""
+        """Test that news panel isn't shown if there's not news to show."""
         response = self.client.get(reverse('openach:index'))
-        self.assertContains(response, 'No project news.')
+        self.assertNotContains(response, 'Project News')
 
     def test_do_not_show_future_news(self):
         """Test that the project news doesn't show news that's scheduled for release in the future."""
@@ -29,7 +29,7 @@ class IndexViewTests(TestCase):
             pub_date=timezone.now() + datetime.timedelta(days=5)
         )
         response = self.client.get(reverse('openach:index'))
-        self.assertContains(response, 'No project news.')
+        self.assertNotContains(response, 'Project News')
 
     def test_show_published_news(self):
         """Test that the index view shows published project news."""
