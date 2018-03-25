@@ -128,7 +128,8 @@ class ProfileTests(PrimaryUserTestCase):
         self.login()
         response = self.client.get(reverse('profile', args=(self.user.id,)))
         self.assertTemplateUsed(response, 'boards/profile.html')
-        self.assertContains(response, 'View All', count=1, status_code=200)
+        # don't show because there's no boards
+        # self.assertContains(response, 'View All', count=1)
         self.assertContains(response, 'You have not contributed to any boards.')
         self.assertContains(response, 'You have not evaluated any boards.')
 
@@ -140,7 +141,8 @@ class ProfileTests(PrimaryUserTestCase):
         self.login()
         response = self.client.get(reverse('profile', args=(self.user.id,)))
         self.assertTemplateUsed(response, 'boards/profile.html')
-        self.assertContains(response, 'View All', count=1)
+        # don't show because there's no boards
+        # self.assertContains(response, 'View All', count=1)
         self.assertContains(response, 'You have not created any boards.')
         self.assertContains(response, 'You have not evaluated any boards.')
 

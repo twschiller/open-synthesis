@@ -9,9 +9,8 @@ from django import forms
 from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Board, BoardPermissions, Evidence, EvidenceSource, Hypothesis, UserSettings
+from .models import User, Board, BoardPermissions, Evidence, EvidenceSource, Hypothesis, UserSettings, Team, TeamRequest
 from .models import HYPOTHESIS_MAX_LENGTH
-
 
 class BoardForm(forms.ModelForm):
     """Board form."""
@@ -49,7 +48,17 @@ class BoardPermissionForm(forms.ModelForm):
         """Form meta options."""
 
         model = BoardPermissions
-        fields = ['read_board', 'read_comments', 'add_comments', 'add_elements', 'edit_elements', 'edit_board', 'collaborators']
+        fields = ['read_board', 'read_comments', 'add_comments', 'add_elements', 'edit_elements', 'edit_board', 'collaborators', 'teams']
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # NOTE: a user who doesn't have access to a team can see the team name here if it's already a collaborator
+        # on the board. In the future, might want to hide those team names here
+        team_ids = set(Team.objects.user_visible(user=user).values_list('id', flat=True)) | set(kwargs['instance'].teams.values_list('id', flat=True))
+        self.fields['teams'].queryset = Team.objects.filter(id__in=team_ids)
+        self.fields['collaborators'].label = _('User Collaborators')
+        self.fields['teams'].label = _('Team Collaborators')
 
 
 class EvidenceForm(forms.ModelForm):
@@ -119,3 +128,24 @@ class SettingsForm(forms.ModelForm):
 
         model = UserSettings
         fields = ['digest_frequency']
+
+
+class TeamCreateForm(forms.ModelForm):
+    """Form for creating/editing a new team."""
+
+    class Meta:
+        model = Team
+        fields = ['name', 'description', 'url', 'public', 'invitation_required']
+
+
+class TeamInviteForm(forms.Form):
+    """Form for creating/editing a new team."""
+
+    members = forms.ModelMultipleChoiceField(User.objects.all())
+
+    def __init__(self, *args, team=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        member_ids = set(team.members.values_list('id', flat=True))
+        pending_ids = set(TeamRequest.objects.filter(team=team).values_list('invitee', flat=True))
+        self.fields['members'].queryset = User.objects.exclude(pk__in=member_ids | pending_ids).order_by('username')

@@ -52,22 +52,20 @@
         </div>
 
         <div class="col-md-5">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">{% trans "Project News" %}</h3>
-                </div>
-                <ul class="list-group">
-                    {% if latest_project_news %}
+            {% if latest_project_news %}
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">{% trans "Project News" %}</h3>
+                    </div>
+                    <ul class="list-group">
                         {% for headline in latest_project_news %}
                             <li class="list-group-item">
                                 {{ headline.pub_date|date }}: {{ headline.content|urlize }}
                             </li>
                         {% endfor %}
-                    {% else %}
-                        <li class="list-group-item">{% trans "No project news." %}</li>
-                    {% endif %}
-                </ul>
-            </div>
+                    </ul>
+                </div>
+            {% endif %}
 
             <div class="panel panel-default">
                 <div class="panel-heading">

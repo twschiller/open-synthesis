@@ -30,7 +30,9 @@
                         <div class="btn-group pull-right">
                             <form method="post" action="{% url 'openach:clear_notifications' %}">
                                 {% csrf_token %}
+                                {% if notifications|length > 5 %}
                                 <a class="btn btn-default btn-sm" href="{% url 'openach:notifications' %}">{% trans "View All" %}</a>
+                                {% endif %}
                                 <input class="btn btn-default btn-sm" name="clear" type="submit" value="{% trans "Clear" %}"/>
                             </form>
                         </div>
@@ -68,11 +70,10 @@
         </div> <!-- col -->
 
         <div class="col-md-5">
-
             <div class="panel panel-default">
                 <div class="panel-heading clearfix">
                     <div class="btn-group pull-right">
-                        {% if boards_created %}
+                        {% if boards_created and boards_created|length > 3 %}
                             <a class="btn btn-default btn-sm" href="{% url 'openach:user_boards' request.user.id %}?query=created">
                                 {% trans "View All" %}
                             </a>
@@ -96,7 +97,7 @@
 
             <div class="panel panel-default">
                 <div class="panel-heading clearfix">
-                    {% if boards_contributed %}
+                    {% if boards_contributed and boards_contributed|length > 3 %}
                         <a class="btn btn-default btn-sm pull-right" href="{% url 'openach:user_boards' request.user.id %}?query=contributed">
                             {% trans "View All" %}
                         </a>

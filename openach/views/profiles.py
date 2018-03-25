@@ -54,7 +54,7 @@ def public_profile(request, account_id):
         'boards_created': user_boards_created(user, viewing_user=request.user)[:5],
         'boards_contributed': user_boards_contributed(user, viewing_user=request.user),
         'board_voted': user_boards_evaluated(user, viewing_user=request.user),
-        'meta_description': _("Account profile for user {name}").format(name=user),
+        'meta_description': _('Account profile for user {name}').format(name=user),
     }
     return render(request, 'boards/public_profile.html', context)
 

@@ -32,11 +32,13 @@ from .util import make_paginator
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
+BOARD_SEARCH_RESULTS_MAX = getattr(settings, 'BOARD_SEARCH_RESULTS_MAX', 5)
 PAGE_CACHE_TIMEOUT_SECONDS = getattr(settings, 'PAGE_CACHE_TIMEOUT_SECONDS', 60)
 DEBUG = getattr(settings, 'DEBUG', False)
 
 @require_safe
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
+@account_required
 def board_listing(request):
     """Return a paginated board listing view showing all boards and their popularity."""
     board_list = Board.objects.user_readable(request.user).order_by('-pub_date')
@@ -53,6 +55,7 @@ def board_listing(request):
 
 @require_safe
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
+@account_required
 def user_board_listing(request, account_id):
     """Return a paginated board listing view for account with account_id."""
     metric_timeout_seconds = 60 * 2
@@ -104,20 +107,12 @@ def detail(request, board_id, dummy_board_slug=None):
     if view_type == 'comparison' and not request.user.is_authenticated:
         raise PermissionDenied()
 
-    vote_type = request.GET.get('vote_type', default=(
-        'collab'
-        # rewrite to avoid unnecessary lookup if key is present?
-        if board.permissions.collaborators.filter(pk=request.user.id).exists()
-        else 'all'
-    ))
-
-    all_votes = list(board.evaluation_set.all())
+    collaborator_ids = board.collaborator_ids()
+    vote_type = request.GET.get('vote_type', default=('collab' if request.user.id in collaborator_ids else 'all'))
 
     # calculate aggregate and disagreement for each evidence/hypothesis pair
-    agg_votes = all_votes
-    if vote_type == 'collab':
-        collaborators = set([c.id for c in board.permissions.collaborators.all()])
-        agg_votes = [v for v in all_votes if v.user_id in collaborators]
+    all_votes = list(board.evaluation_set.all())
+    agg_votes = [x for x in all_votes if x.user_id in collaborator_ids] if vote_type == 'collab' else all_votes
 
     def _pair_key(evaluation):
         return evaluation.evidence_id, evaluation.hypothesis_id
@@ -231,6 +226,7 @@ def evaluate(request, board_id, evidence_id):
         }
         return render(request, 'boards/evaluate.html', context)
 
+
 @require_safe
 @account_required
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
@@ -335,12 +331,12 @@ def edit_permissions(request, board_id):
         raise PermissionDenied()
 
     if request.method == 'POST':
-        form = BoardPermissionForm(request.POST, instance=board.permissions)
+        form = BoardPermissionForm(request.POST, instance=board.permissions, user=request.user)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(reverse('openach:detail', args=(board.id,)))
     else:
-        form = BoardPermissionForm(instance=board.permissions)
+        form = BoardPermissionForm(instance=board.permissions, user=request.user)
 
     context = {
         'board': board,
@@ -348,10 +344,11 @@ def edit_permissions(request, board_id):
     }
     return render(request, 'boards/edit_permissions.html', context)
 
+
 @require_safe
+@account_required
 def board_search(request):
     """Return filtered boards list data in json format."""
-    BOARD_SEARCH_RESULTS_MAX=getattr(settings, 'BOARD_SEARCH_RESULTS_MAX', 5)
     query = request.GET.get('query', '')
     search = Q(board_title__contains=query) | Q(board_desc__contains=query)
     queryset = Board.objects.user_readable(request.user).filter(search)[:BOARD_SEARCH_RESULTS_MAX]

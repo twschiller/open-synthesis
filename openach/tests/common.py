@@ -4,11 +4,15 @@ from django.contrib.auth.models import User
 from django.test import TestCase, Client
 from django.utils import timezone
 
-from openach.models import Board, BoardFollower, UserSettings
+from openach.models import Board, BoardFollower
 
 PASSWORD = 'commonpassword'
 USERNAME_PRIMARY = 'john'
 USERNAME_OTHER = 'paul'
+
+HTTP_OK = 200
+HTTP_FORBIDDEN = 403
+HTTP_REDIRECT = 302
 
 
 def create_board(board_title, days = 0, public = True):
@@ -43,12 +47,13 @@ def add_follower(board):
 
 class PrimaryUserTestCase(TestCase):
 
+    def assertStatus(self, response, expected_status):
+        self.assertEquals(response.status_code, expected_status)
+
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(USERNAME_PRIMARY, f'{USERNAME_PRIMARY}@thebeatles.com', PASSWORD)
         self.other = User.objects.create_user(USERNAME_OTHER, f'{USERNAME_OTHER}@thebeatles.com', PASSWORD)
-        UserSettings.objects.create(user=self.user)
-        UserSettings.objects.create(user=self.other)
 
     def login(self):
         self.client.login(username=USERNAME_PRIMARY, password=PASSWORD)

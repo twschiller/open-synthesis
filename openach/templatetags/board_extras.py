@@ -31,6 +31,12 @@ def contains(collection, element):
     return element in collection
 
 
+@register.simple_tag
+def contains_tag(collection, element):
+    """Return True if collection contains element."""
+    return element in collection
+
+
 @register.filter
 def dict_get(dictionary, key):
     """Return the value for key in dictionary or None."""

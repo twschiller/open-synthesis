@@ -36,5 +36,6 @@ class AccountAdapter(InvitationsAdapter):
     def save_user(self, request, user, form, commit=True):
         """Initialize default settings for user when on signup."""
         saved = super().save_user(request, user, form, commit)
-        UserSettings.objects.create(user=saved)
+        # user settings is created using signal
+        # UserSettings.objects.create(user=saved)
         return saved

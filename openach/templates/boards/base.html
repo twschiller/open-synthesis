@@ -42,6 +42,7 @@
                     <li><a href="{% url 'openach:index' %}">{% trans "Home" %}</a></li>
                     <li><a href="{% url 'openach:about' %}">{% trans "About" %}</a></li>
                     <li><a href="{% url 'openach:boards' %}">{% trans "Boards" %}</a></li>
+                    <li><a href="{% url 'openach:teams' %}">{% trans "Teams" %}</a></li>
                     {% if request.user.is_authenticated %}
                         <li>
                             <a href="/accounts/profile">{% trans "Profile" %}

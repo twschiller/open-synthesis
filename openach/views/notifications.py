@@ -40,6 +40,7 @@ def notify_followers(board, actor, verb, action_object):
         if follow.user != actor and board.can_read(follow.user):
             notify.send(actor, recipient=follow.user, actor=actor, verb=verb, action_object=action_object, target=board)
 
+
 def notify_add(board, actor, action_object):
     """Notify board followers of an addition."""
     notify_followers(board, actor, 'added', action_object)

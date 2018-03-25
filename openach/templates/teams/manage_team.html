@@ -1,0 +1,44 @@
+{% extends 'boards/base.html' %}
+{% load board_extras %}
+{% load i18n %}
+{% load notifications_tags %}
+{% load bootstrap %}
+
+{% block title %}{% trans "Team" %} | {{ site.name }}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-7">
+            {% include 'teams/_details.html' %}
+
+            <div class="panel panel-default">
+                <div class="panel-heading clearfix">
+                    <div class="btn-group pull-right">
+                        <a class="btn btn-default btn-sm" href="{% url 'openach:invite_members' team.id %}">{% trans "Invite Users" %}</a>
+                    </div>
+                    <h3 class="panel-title">{% trans "Membership Requests" %}</h3>
+                </div>
+                <ul class="list-group">
+                    {% for invite in member_requests %}
+                        <li class="list-group-item">
+                            <form method="POST" action="{% url "openach:decide_invitation" invite.id %}">
+                                {% csrf_token %}
+                                <a href="{% url 'profile' invite.invitee.id %}">{{ invite.invitee.username }}</a>
+                                <div class="pull-right">
+                                    <input class="btn btn-primary btn-xs" type="submit" name="accept" value="{% trans "Accept" %}">
+                                    <input class="btn btn-danger btn-xs" type="submit" name="reject" value="{% trans "Reject" %}">
+                                </div>
+                            </form>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">{% trans "No membership requests" %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            {% include 'teams/_member_panel.html' %}
+        </div>
+    </div>
+{% endblock %}

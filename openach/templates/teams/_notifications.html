@@ -1,0 +1,32 @@
+{% load board_extras %}
+{% load i18n %}
+
+{% with obj=notification.action_object target=notification.target actor=notification.actor timesince=notification.timesince %}
+
+    {% url 'profile' notification.actor.id as actor_url %}
+
+    {% if notification.verb == 'remove' %}
+        {% blocktrans trimmed with team_url=obj.get_absolute_url %}
+            <a href="{{ actor_url }}">{{ actor }}</a> removed you from team <a href="{{ team_url }}">{{ obj }}</a> {{ timesince }} ago.
+        {% endblocktrans %}
+    {% elif notification.verb == 'request_membership' %}
+        {% blocktrans trimmed with team_url=target.get_absolute_url %}
+            <a href="{{ actor_url }}">{{ actor }}</a> requested to join team <a href="{{ team_url }}">{{ target }}</a> {{ timesince }} ago.
+        {% endblocktrans %}
+    {% elif notification.verb == 'accept' %}
+        {% blocktrans trimmed with team_url=obj.get_absolute_url %}
+            <a href="{{ actor_url }}">{{ actor }}</a> accepted your membership request for team <a href="{{ team_url }}">{{ obj }}</a> {{ timesince }} ago.
+        {% endblocktrans %}
+    {% elif notification.verb == 'reject' %}
+        {% blocktrans trimmed with team_url=obj.get_absolute_url %}
+            <a href="{{ actor_url }}">{{ actor }}</a> rejected your membership request for team <a href="{{ team_url }}">{{ obj }}</a> {{ timesince }} ago.
+        {% endblocktrans %}
+    {% elif notification.verb == 'invite' %}
+        {% blocktrans trimmed with team_url=obj.get_absolute_url %}
+            <a href="{{ actor_url }}">{{ actor }}</a> invited you to team <a href="{{ team_url }}">{{ obj }}</a> {{ timesince }} ago.
+        {% endblocktrans %}
+    {% else %}
+        {{ notification }}
+    {% endif %}
+
+{% endwith %}

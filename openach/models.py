@@ -161,6 +161,20 @@ class Board(models.Model):
         """Return the canonical URL for view board details, excluding the slug."""
         return reverse('openach:detail', args=(self.id,))
 
+    def is_collaborator(self, user):
+        """Return True if the user is a collaborator on the board.
+
+        Checks for direct collaboration and collaboration via a team.
+        """
+        return self.permissions.collaborators.filter(pk=user.id).exists() or \
+               self.permissions.teams.filter(pk__in=user.team_set.values_list('id', flat=True)).exists()
+
+    def collaborator_ids(self):
+        """Return set of collaborator ids for the board."""
+        direct = set(self.permissions.collaborators.values_list('id', flat=True))
+        team = set(Team.objects.filter(pk__in=self.permissions.teams.all()).values_list('members__id', flat=True).distinct())
+        return direct | team
+
     def can_read(self, user):
         """Return True if user can read the board."""
         if user.is_staff or user == self.creator:
@@ -170,15 +184,110 @@ class Board(models.Model):
             read = self.permissions.read_board
             return read == AuthLevels.anyone.key or \
                 (user.is_authenticated and read == AuthLevels.registered.key) or \
-                (read == AuthLevels.collaborators and self.permissions.collaborators.filter(pk=user.id).exists())
+                (read == AuthLevels.collaborators and self.is_collaborator(user))
 
     def has_collaborators(self):
         """Return True if the board has collaborators set."""
-        return self.permissions.collaborators.exists()
+        return self.permissions.collaborators.exists() or self.permissions.teams.exists()
 
     def has_follower(self, user):
         """Return true iff user follows this board."""
         return self.followers.filter(user=user).exists()
+
+
+# https://docs.djangoproject.com/en/1.10/topics/db/managers/
+class TeamModelManager(models.Manager):  # pylint: disable=too-few-public-methods
+
+    def user_visible(self, user):
+        """Return teams visible to the given user.
+
+        Includes public teams and teams the user is a member of or invited to.
+        """
+        if user is None or not user.is_authenticated:
+            return super().get_queryset().filter(public=True)
+        else:
+            user_teams = user.team_set.values_list('id', flat=True)
+            invited = TeamRequest.objects.filter(inviter__isnull=False, invitee=user).values_list('team', flat=True)
+            return super().get_queryset().filter(Q(public=True) | Q(id__in=user_teams) | Q(id__in=invited))
+
+
+class Team(models.Model):
+    """Analysis team."""
+
+    objects = TeamModelManager()
+
+    creator = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='+'
+    )
+
+    owner = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='+',
+    )
+
+    name = models.CharField(max_length=64, unique=True)
+
+    description = models.TextField(blank=True)
+
+    url = models.URLField(null=True, blank=True)
+
+    members = models.ManyToManyField(User, blank=True, editable=False)
+
+    public = models.BooleanField(
+        default=True,
+        help_text=_('Whether or not the team is visible to non-members')
+    )
+
+    invitation_required = models.BooleanField(default=True)
+
+    create_timestamp = models.DateTimeField(auto_now_add=True)
+
+    field_history = FieldHistoryTracker(['name', 'description', 'url', 'public', 'invitation_required'])
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('openach:view_team', args=(self.id,))
+
+
+class TeamRequest(models.Model):
+    """Request to join a team or invitation to a team.
+
+    - If inviter and invitee is set, the request is an invitation to join the team.
+    - If the invitee is set, the request is a request to join a team.
+    """
+
+    class Meta:
+        unique_together = (('team', 'inviter', 'invitee'),)
+
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+
+    inviter = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        related_name='+',
+    )
+
+    invitee = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        related_name='team_invites',
+    )
+
+    create_timestamp = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        if self.inviter is None and self.invitee is None:
+            raise ValidationError(_('Team membership request must have an initiator'))
+
 
 class BoardPermissions(models.Model):
     """Permissions for the board."""
@@ -213,6 +322,8 @@ class BoardPermissions(models.Model):
     board = models.OneToOneField(Board, related_name='permissions')
 
     collaborators = models.ManyToManyField(User, blank=True)
+
+    teams = models.ManyToManyField(Team, blank=True)
 
     read_board = models.PositiveSmallIntegerField(
         choices=AUTH_CHOICES,
@@ -505,6 +616,9 @@ class Evaluation(models.Model):
 
 class ProjectNews(models.Model):
     """A news alert for the front page."""
+
+    class Meta:
+        verbose_name_plural = 'project news'
 
     content = models.CharField(max_length=1024)
     pub_date = models.DateTimeField('date published')
