@@ -7,33 +7,12 @@
 {% block title %}{% trans "Team" %} | {{ site.name }}{% endblock %}
 
 {% block content %}
-
-    <h2>Team: {{ team.name }}</h2>
-    {% blocktrans trimmed with team.creator as creator and team.create_timestamp|date as pub_date %}
-        Team created by <a href="{{ creator.get_absolute_url }}">{{ creator }}</a> on {{ pub_date }}.
-    {% endblocktrans %}
-
-    {% if team.url %}
-        <a href="{{ team.url }}">Team Homepage</a>
-    {% endif %}
-
-    {% if team.description %}
-        <div class="well">{{ team.description }}</div>
-    {% endif %}
-
-
-    {% if not is_member %}
-        <form method="POST" action="{% url "openach:join_team" team.id %}">
-            {% csrf_token %}
-        {% if pending_request %}
-            <input class="btn btn-default" type=submit value="{% trans 'Membership Pending' %}" disabled>
-        {% elif pending_invitation %}
-            <input class="btn btn-default" type=submit value="{% trans 'Accept Invitation' %}">
-        {% elif team.invitation_required %}
-            <input class="btn btn-default" type=submit value="{% trans 'Request Membership' %}">
-        {% else %}
-            <input class="btn btn-default" type=submit value="{% trans 'Join Team' %}">
-        {% endif %}
-        </form>
-    {% endif %}
+    <div class="row">
+        <div class="col-md-7">
+            {% include 'teams/_details.html' %}
+        </div>
+        <div class="col-md-5">
+            {% include 'teams/_member_panel.html' %}
+        </div>
+    </div>
 {% endblock %}

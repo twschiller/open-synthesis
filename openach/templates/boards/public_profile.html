@@ -53,7 +53,7 @@
                             </li>
                         {% endfor %}
                     {% else %}
-                        <li>
+                        <li class="list-group-item">
                           {% blocktrans trimmed with username=user.username %}
                             User {{ username }} has not created any boards
                           {% endblocktrans %}
@@ -77,7 +77,7 @@
                             <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
                         {% endfor %}
                     {% else %}
-                        <li>
+                        <li class="list-group-item">
                           {% blocktrans trimmed with username=user.username %}
                             User {{ username }} has not contributed to any boards
                           {% endblocktrans %}
@@ -101,7 +101,7 @@
                             <li class="list-group-item"><a href="{{ board|board_url }}">{{ board.board_title }}</a></li>
                         {% endfor %}
                     {% else %}
-                        <li>
+                        <li class="list-group-item">
                           {% blocktrans trimmed with username=user.username %}
                             User {{ username }} has not evaluated any boards
                           {% endblocktrans %}

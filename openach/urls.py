@@ -33,7 +33,11 @@ urlpatterns = [  # pylint: disable=invalid-name
     url(r'^teams/create$', views.teams.create_team, name='create_team'),
     url(r'^teams/$', views.teams.team_listing, name='teams'),
     url(r'^teams/(?P<team_id>[0-9]+)/join/$', views.teams.join_team, name='join_team'),
+    url(r'^teams/(?P<team_id>[0-9]+)/leave/$', views.teams.leave_team, name='leave_team'),
     url(r'^teams/(?P<team_id>[0-9]+)/$', views.teams.view_team, name='view_team'),
+    url(r'^teams/(?P<team_id>[0-9]+)/edit/$', views.teams.edit_team, name='edit_team'),
+    url(r'^teams/(?P<team_id>[0-9]+)/members/$', views.teams.team_members, name='team_members'),
+    url(r'^teams/(?P<team_id>[0-9]+)/members/invite/$', views.teams.invite_members, name='invite_members'),
     url(r'^teams/(?P<team_id>[0-9]+)/members/(?P<member_id>[0-9]+)/revoke/$', views.teams.revoke_membership, name='revoke_membership'),
     url(r'^teams/invitations/(?P<invite_id>[0-9]+)/$', views.teams.decide_invitation, name='decide_invitation'),
 

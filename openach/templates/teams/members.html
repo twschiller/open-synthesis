@@ -1,0 +1,29 @@
+{% extends 'boards/base.html' %}
+{% load board_extras %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Team Members" %} | {{ site.name }}{% endblock %}
+
+{% block content %}
+    <h1>
+        {% blocktrans with team_name=team.name %}Team Members for <i>{{ team_name }}</i>{% endblocktrans %}
+    </h1>
+    <ul class="list-group">
+        {% for member in members %}
+            <li class="list-group-item">
+                {% if is_owner and member.id != team.owner.id %}
+                    {# FIXME: should ideally pass a "next" parameter to server can redirect back to same page #}
+                    <form method="POST" action="{% url 'openach:revoke_membership' team.id member.id %}">
+                        {% csrf_token %}
+                        <a href="{% url 'profile' member.id %}">{{ member.username }}</a>
+                        <input class="btn btn-danger btn-xs pull-right" type="submit" value="Remove">
+                    </form>
+                {% else %}
+                    <a href="{% url 'profile' member.id %}">{{ member.username }}</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    {% include 'boards/common/_pagenav.html' with paged=members %}
+{% endblock %}

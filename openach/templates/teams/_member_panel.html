@@ -1,0 +1,53 @@
+{% load i18n %}
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <div class="btn-group pull-right">
+            {% if team.owner != request.user %}
+                {% if not is_member %}
+                    <form method="POST" action="{% url "openach:join_team" team.id %}">
+                        {% csrf_token %}
+                        {% if team.members.all|length > 10 %}
+                            <a class="btn btn-default btn-sm" href="{% url 'openach:team_members' team.id %}">{% trans "View All" %}</a>
+                        {% endif %}
+                        {% if pending_request %}
+                            <input class="btn btn-default btn-sm" type=submit value="{% trans 'Membership Pending' %}" disabled>
+                        {% elif pending_invitation %}
+                            <input class="btn btn-default btn-sm" type=submit value="{% trans 'Accept Invitation' %}">
+                        {% elif team.invitation_required %}
+                            <input class="btn btn-default btn-sm" type=submit value="{% trans 'Request Membership' %}">
+                        {% else %}
+                            <input class="btn btn-default btn-sm" type=submit value="{% trans 'Join Team' %}">
+                        {% endif %}
+                    </form>
+                {% else %}
+                    <form method="POST" action="{% url "openach:leave_team" team.id %}">
+                        {% csrf_token %}
+                        {% if team.members.all|length > 10 %}
+                            <a class="btn btn-default btn-sm" href="{% url 'openach:team_members' team.id %}">{% trans "View All" %}</a>
+                        {% endif %}
+                        <input class="btn btn-danger btn-sm" type=submit value="{% trans 'Leave Team' %}">
+                    </form>
+                {% endif %}
+            {% endif %}
+        </div>
+        <h3 class="panel-title">{% trans "Team Members" %}</h3>
+    </div>
+    <ul class="list-group">
+        {% for member in team.members.all|slice:":10" %}
+            <li class="list-group-item">
+                {% if member.id != team.owner.id and request.user == team.owner %}
+                    <form method="POST" action="{% url 'openach:revoke_membership' team.id member.id %}">
+                        {% csrf_token %}
+                        <a href="{% url 'profile' member.id %}">{{ member.username }}</a>
+                        <input class="btn btn-danger btn-xs pull-right" type="submit" value="Remove">
+                    </form>
+                {% else %}
+                    <a href="{% url 'profile' member.id %}">{{ member.username }}</a>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li class="list-group-item">{% trans "Team has no members" %}</li>
+        {% endfor %}
+    </ul>
+</div>

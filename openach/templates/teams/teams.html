@@ -6,13 +6,13 @@
 {% block title %}{% trans "Teams" %} | {{ site.name }}{% endblock %}
 
 {% block opengraph %}
-    <meta property="og:title" content="{{ site.name }} {% trans "Intelligence Teams" %}" />
+    <meta property="og:title" content="{{ site.name }} {% trans "Team Listing" %}" />
     <meta property="og:url" content="{{ request|canonical_reverse:'openach:teams' }}" />
 {% endblock %}
 
 {% block content %}
     <h1>
-        {% trans "Public Intelligence Teams" %}
+        {% trans "Intelligence Teams" %}
         <a class="btn btn-primary" href="{% url 'openach:create_team' %}">{% trans "Create Team" %}</a>
     </h1>
 

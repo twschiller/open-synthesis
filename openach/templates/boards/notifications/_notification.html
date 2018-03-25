@@ -1,34 +1,11 @@
-{% load board_extras %}
 {% load i18n %}
 
-{% if notification.verb == 'added' %}
-    {% if notification.action_object|get_class == 'Hypothesis' %}
-      {% blocktrans trimmed with notification.actor.id as actor_id and notification.actor.username as actor_username and notification.action_object as action_name and notification.target|board_url as custom_url and notification.target as target and notification.timesince as timesince %}
-        <a href="/accounts/{{ actor_id }}">{{ actor_username }}</a>
-        added hypothesis '{{ action_name }}' to board <a href="{{ custom_url }}">{{ target }}</a> {{ timesince }} ago.
-      {% endblocktrans %}
-    {% elif  notification.action_object|get_class == 'Evidence' %}
-      {% blocktrans trimmed with notification.actor.id as actor_id and notification.actor.username as actor_username and notification.action_object as action_name and notification.target|board_url as custom_url and notification.target as target and notification.timesince as timesince %}
-        <a href="/accounts/{{ actor_id }}">{{ actor_username }}</a>
-        added evidence '{{ action_name }}' to board <a href="{{ custom_url }}">{{ target }}</a> {{ timesince }} ago.
-      {% endblocktrans %}
-    {% else %}
-        {{ notification }}
-    {% endif %}
-{% elif notification.verb == 'edited' %}
-    {% if notification.action_object|get_class == 'Hypothesis' %}
-      {% blocktrans trimmed with notification.actor.id as actor_id and notification.actor.username as actor_username and notification.action_object as action_name and notification.target|board_url as custom_url and notification.target as target and notification.timesince as timesince %}
-        <a href="/accounts/{{ actor_id }}">{{ actor_username }}</a>
-        edited hypothesis '{{ action_name }}' on board <a href="{{ custom_url }}">{{ target }}</a> {{ timesince }} ago.
-      {% endblocktrans %}
-    {% elif  notification.action_object|get_class == 'Evidence' %}
-      {% blocktrans trimmed with notification.actor.id as actor_id and notification.actor.username as actor_username and notification.action_object as action_name and notification.target|board_url as custom_url and notification.target as target and notification.timesince as timesince %}
-        <a href="/accounts/{{ actor_id }}">{{ actor_username }}</a>
-        edited evidence '{{ action_name }}' on board <a href="{{ custom_url }}">{{ target }}</a> {{ timesince }} ago.
-      {% endblocktrans %}
-    {% else %}
-        {{ notification }}
-    {% endif %}
+{% if notification.action_object|get_class == 'Hypothesis' %}
+    {% include 'boards/notifications/_boards.html' %}
+{% elif notification.action_object|get_class == 'Evidence' %}
+    {% include 'boards/notifications/_boards.html' %}
+{% elif notification.action_object|get_class == 'Team' or notification.target|get_class == 'Team' %}
+    {% include 'teams/_notifications.html' %}
 {% else %}
     {{ notification }}
 {% endif %}

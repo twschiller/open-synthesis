@@ -1,4 +1,6 @@
 {% load i18n %}
+{% load board_extras %}
+
 <table class="table table-hover">
     <thead>
     <tr>
@@ -13,7 +15,19 @@
         <tr>
             <td>
                 <a href="{{ team.get_absolute_url }}">{{ team.name }}</a>
-                {% if team.invitation_required %}
+                {% contains_tag user_teams team.id as is_member %}
+                {% contains_tag user_pending team.id as is_pending %}
+                {% contains_tag user_invites team.id as has_invite %}
+                {% contains_tag user_owns team.id as is_owner %}
+                {% if is_owner %}
+                    <span class="label label-info">{% trans "Owner" %}</span>
+                {% elif is_member %}
+                    <span class="label label-info">{% trans "Member" %}</span>
+                {% elif has_invite %}
+                    <span class="label label-info">{% trans "Invited" %}</span>
+                {% elif is_pending %}
+                    <span class="label label-info">{% trans "Membership Pending" %}</span>
+                {% elif team.invitation_required %}
                     <span class="label label-info">{% trans "Invite-Only" %}</span>
                 {% endif %}
             </td>

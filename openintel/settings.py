@@ -42,15 +42,15 @@ env = environ.Env(  # pylint: disable=invalid-name
     DEBUG=(bool, False),
     ENABLE_CACHE=(bool, True),
     ENVIRONMENT_NAME=(str, None),
-    DJANGO_LOG_LEVEL=(str, "ERROR"),
-    APP_LOG_LEVEL=(str, "ERROR"),
+    DJANGO_LOG_LEVEL=(str, 'ERROR'),
+    APP_LOG_LEVEL=(str, 'ERROR'),
     CERTBOT_PUBLIC_KEY=(str, None),
     CERTBOT_SECRET_KEY=(str, None),
     SESSION_COOKIE_SECURE=(bool, True),
     CSRF_COOKIE_SECURE=(bool, True),
     CSRF_COOKIE_HTTPONLY=(bool, True),
-    X_FRAME_OPTIONS=(str, "DENY"),
-    ALLOWED_HOSTS=(str, "*"),
+    X_FRAME_OPTIONS=(str, 'DENY'),
+    ALLOWED_HOSTS=(str, '*'),
     SECURE_SSL_REDIRECT=(bool, True),
     SECURE_BROWSER_XSS_FILTER=(bool, True),
     SECURE_CONTENT_TYPE_NOSNIFF=(bool, True),
@@ -59,7 +59,9 @@ env = environ.Env(  # pylint: disable=invalid-name
     ROLLBAR_ACCESS_TOKEN=(str, None),
     ROLLBAR_ENABLED=(bool, False),
     ACCOUNT_REQUIRED=(bool, False),
+    # https://django-allauth.readthedocs.io/en/latest/configuration.html
     ACCOUNT_EMAIL_REQUIRED=(bool, True),
+    ACCOUNT_EMAIL_VERIFICATION=(str, 'mandatory'), # "mandatory", "optional", or "none"
     EVIDENCE_REQUIRE_SOURCE=(bool, True),
     EDIT_REMOVE_ENABLED=(bool, True),
     INVITE_REQUIRED=(bool, False),
@@ -345,7 +347,8 @@ else:
 # Authentication Options:
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = env('ACCOUNT_EMAIL_REQUIRED')
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+ACCOUNT_EMAIL_VERIFICATION = env('ACCOUNT_EMAIL_VERIFICATION')
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
 # https://stackoverflow.com/questions/22700041/django-allauth-sends-verification-emails-from-webmasterservername
 DEFAULT_FROM_EMAIL = env.get_value('DEFAULT_FROM_EMAIL', default=ADMIN_EMAIL_ADDRESS)
 ACCOUNT_ADAPTER = 'openach.account_adapters.AccountAdapter'

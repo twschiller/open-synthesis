@@ -1,0 +1,44 @@
+{% load i18n %}
+
+
+<div class="panel panel-primary">
+    <div class="panel-heading clearfix">
+        {% if requst.user.is_authenticated and request.user == team.owner %}
+            <div class="btn-group pull-right">
+                <a class="btn btn-default btn-sm" href="{% url 'openach:edit_team' team.id %}">{% trans "Edit Details" %}</a>
+            </div>
+        {% endif %}
+        <h3 class="panel-title">
+            {% blocktrans trimmed with team_name=team.name %}
+                Intelligence Team {{ team_name }}
+            {% endblocktrans %}
+        </h3>
+    </div>
+    <div class="panel-body">
+        {% if team.description %}
+            {{ team.description }}
+        {% else %}
+            <i>{% blocktrans %}This team has no description.{% endblocktrans %}</i>
+        {% endif %}
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item">
+            {% if team.creator %}
+                {% url 'profile' team.creator.id as creator_url %}
+                {% blocktrans trimmed with creator=team.creator pub_date=team.create_timestamp|date %}
+                    Team created by <a href="{{ creator_url }}">{{ creator }}</a> on {{ pub_date }}.
+                {% endblocktrans %}
+            {% else %}
+                {% blocktrans trimmed with pub_date=team.create_timestamp|date %}
+                    Team created on {{ pub_date }}.
+                {% endblocktrans %}
+            {% endif %}
+            {% if team.url %}
+                {% blocktrans with team_url=team.url%}
+                    <a href="{{ team_url }}" target="_blank">Team Homepage</a>
+                {% endblocktrans %}
+            {% endif %}
+        </li>
+    </ul>
+</div>
+

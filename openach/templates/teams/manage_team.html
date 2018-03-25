@@ -7,51 +7,38 @@
 {% block title %}{% trans "Team" %} | {{ site.name }}{% endblock %}
 
 {% block content %}
+    <div class="row">
+        <div class="col-md-7">
+            {% include 'teams/_details.html' %}
 
-    <h2>Team: {{ team.name }}</h2>
-    {% blocktrans trimmed with team.creator as creator and team.create_timestamp|date as pub_date %}
-    Team created by <a href="{{ creator.get_absolute_url }}">{{ creator }}</a> on {{ pub_date }}.
-    {% endblocktrans %}
+            <div class="panel panel-default">
+                <div class="panel-heading clearfix">
+                    <div class="btn-group pull-right">
+                        <a class="btn btn-default btn-sm" href="{% url 'openach:invite_members' team.id %}">{% trans "Invite Users" %}</a>
+                    </div>
+                    <h3 class="panel-title">{% trans "Membership Requests" %}</h3>
+                </div>
+                <ul class="list-group">
+                    {% for invite in member_requests %}
+                        <li class="list-group-item">
+                            <form method="POST" action="{% url "openach:decide_invitation" invite.id %}">
+                                {% csrf_token %}
+                                <a href="{% url 'profile' invite.invitee.id %}">{{ invite.invitee.username }}</a>
+                                <div class="pull-right">
+                                    <input class="btn btn-primary btn-xs" type="submit" name="accept" value="{% trans "Accept" %}">
+                                    <input class="btn btn-danger btn-xs" type="submit" name="reject" value="{% trans "Reject" %}">
+                                </div>
+                            </form>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">{% trans "No membership requests" %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
 
-    <a class="btn btn-default" href="">{% trans "Edit Details" %}</a>
-
-    {% if team.url %}
-        <a href="{{ team.url }}">Team Homepage</a>
-    {% endif %}
-
-    {% if team.description %}
-        <div class="well">{{ team.description }}</div>
-    {% endif %}
-
-    <h3>Membership Requests</h3>
-    <ul>
-        {% for invite in member_requests %}
-            <li>{{ invite.invitee.username }}
-                <form method="POST" action="{% url "openach:decide_invitation" invite.id %}">
-                    {% csrf_token %}
-                    <input class="btn btn-primary" type="submit" name="accept" value="{% trans "Accept" %}">
-                    <input class="btn btn-danger" type="submit" name="reject" value="{% trans "Reject" %}">
-                </form>
-            </li>
-        {% empty %}
-            <li>{% trans "No membership requests" %}</li>
-        {% endfor %}
-    </ul>
-
-    <h3>Members list</h3>
-    <ul>
-        {% for member in team.members.all %}
-            <li>
-                <a href="{{ member.get_absolute_url }}">{{ member.username }}</a>
-                <form method="POST" action="{% url 'openach:revoke_membership' team.id member.id %}">
-                    {% csrf_token %}
-                    <input class="btn btn-danger" type="submit" value="Remove">
-                </form>
-            </li>
-        {% empty %}
-            <li>{% trans "No members" %}</li>
-        {% endfor %}
-    </ul>
-
-
+        <div class="col-md-5">
+            {% include 'teams/_member_panel.html' %}
+        </div>
+    </div>
 {% endblock %}

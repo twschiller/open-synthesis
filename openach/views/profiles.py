@@ -12,7 +12,6 @@ from django.views.decorators.http import require_http_methods, require_safe
 from openach.decorators import account_required
 from openach.forms import SettingsForm
 from openach.metrics import user_boards_contributed, user_boards_created, user_boards_evaluated
-from openach.models import TeamRequest
 
 PAGE_CACHE_TIMEOUT_SECONDS = getattr(settings, 'PAGE_CACHE_TIMEOUT_SECONDS', 60)
 
@@ -41,7 +40,6 @@ def private_profile(request):
         'meta_description': _('Account profile for user {name}').format(name=user),
         'notifications': request.user.notifications.unread(),
         'settings_form': form,
-        'team_invites': TeamRequest.objects.filter(invitee=user).order_by('-create_timestamp')[:5],
     }
     return render(request, 'boards/profile.html', context)
 
@@ -56,7 +54,7 @@ def public_profile(request, account_id):
         'boards_created': user_boards_created(user, viewing_user=request.user)[:5],
         'boards_contributed': user_boards_contributed(user, viewing_user=request.user),
         'board_voted': user_boards_evaluated(user, viewing_user=request.user),
-        'meta_description': _("Account profile for user {name}").format(name=user),
+        'meta_description': _('Account profile for user {name}').format(name=user),
     }
     return render(request, 'boards/public_profile.html', context)
 
