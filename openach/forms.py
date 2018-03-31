@@ -6,6 +6,7 @@ For more information, please see:
 """
 
 from django import forms
+from django.db.models.functions import Lower
 from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
@@ -56,7 +57,8 @@ class BoardPermissionForm(forms.ModelForm):
         # NOTE: a user who doesn't have access to a team can see the team name here if it's already a collaborator
         # on the board. In the future, might want to hide those team names here
         team_ids = set(Team.objects.user_visible(user=user).values_list('id', flat=True)) | set(kwargs['instance'].teams.values_list('id', flat=True))
-        self.fields['teams'].queryset = Team.objects.filter(id__in=team_ids)
+        self.fields['teams'].queryset = Team.objects.filter(id__in=team_ids).order_by(Lower('name'))
+        self.fields['collaborators'].queryset = User.objects.all().order_by(Lower('username'))
         self.fields['collaborators'].label = _('User Collaborators')
         self.fields['teams'].label = _('Team Collaborators')
 
@@ -158,4 +160,4 @@ class TeamInviteForm(forms.Form):
 
         member_ids = set(team.members.values_list('id', flat=True))
         pending_ids = set(TeamRequest.objects.filter(team=team).values_list('invitee', flat=True))
-        self.fields['members'].queryset = User.objects.exclude(pk__in=member_ids | pending_ids).order_by('username')
+        self.fields['members'].queryset = User.objects.exclude(pk__in=member_ids | pending_ids).order_by(Lower('username'))

@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 from django.db import transaction
+from django.db.models.functions import Lower
 from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
@@ -215,7 +216,7 @@ def leave_team(request, team_id):
 @account_required
 def team_listing(request):
     """Return a listing of teams visible to the user."""
-    team_list = Team.objects.user_visible(request.user).order_by('name')
+    team_list = Team.objects.user_visible(request.user).order_by(Lower('name'))
     desc = _('List of teams on {name} and summary information').format(name=get_current_site(request).name)  # nopep8
 
     user_teams = set()
@@ -253,6 +254,6 @@ def team_members(request, team_id):
 
     return render(request, 'teams/members.html', {
         'team': team,
-        'members': make_paginator(request, team.members.order_by('username')),
+        'members': make_paginator(request, team.members.order_by(Lower('username'))),
         'is_owner': team.owner == request.user,
     })
