@@ -23,7 +23,7 @@
     {% for target, for_target in notifications.items %}
         <h3>
           {% blocktrans trimmed with site.domain as site_domain and target|board_url as custom_url and target.board_title as board_title %}
-          Board <a href="https://{{ site.domain }}{{ custom_url }}">{{ board_title }}</a>
+          Board <a href="https://{{ site_domain }}{{ custom_url }}">{{ board_title }}</a>
           {% endblocktrans %}
         </h3>
         <ul>
