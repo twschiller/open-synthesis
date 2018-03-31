@@ -53,7 +53,7 @@
             </div>
         {% endif %}
 
-        {% if board.creator_id == request.user_id  or request.user.is_staff %}
+        {% if board.creator_id == request.user.id  or request.user.is_staff %}
             <div class="btn-group" role="group" aria-label="{% trans "Administrator Actions" %}">
                 <a class="btn btn-default btn-sm" href="{% url 'openach:edit_permissions' board.id %}">
                     {% trans "Modify Permissions" %}

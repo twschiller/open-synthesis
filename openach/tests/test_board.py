@@ -99,7 +99,13 @@ class BoardFormTests(PrimaryUserTestCase):
         # board initially has 3 changed fields: title, description, and if it has been removed
         self.assertEqual(FieldHistory.objects.get_for_model(board).count(), 3)
 
+        response = self.client.get(reverse('openach:detail', args=(board.id,)))
+        self.assertNotContains(response, 'Modify Permissions')
+
         self.login()
+
+        response = self.client.get(reverse('openach:detail', args=(board.id,)))
+        self.assertContains(response, 'Modify Permissions')
 
         response = self.client.post(reverse('openach:edit_board', args=(board.id,)), data={
             'board_title': 'New Board Title',
