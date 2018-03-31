@@ -70,7 +70,14 @@ class TeamTests(PrimaryUserTestCase):
     def test_edit_team(self):
         """Test that a team owner can edit a team's details."""
         self.team = Team.objects.create(name='Team', owner=self.user)
+
+        response = self.client.get(reverse('openach:view_team', args=(self.team.id,)))
+        self.assertNotContains(response, 'Edit Details')
+
         self.login()
+
+        response = self.client.get(reverse('openach:view_team', args=(self.team.id,)))
+        self.assertContains(response, 'Edit Details')
 
         response = self.client.get(reverse('openach:edit_team', args=(self.team.id,)))
         self.assertContains(response, 'Edit Team')
