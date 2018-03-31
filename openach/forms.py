@@ -61,6 +61,12 @@ class BoardPermissionForm(forms.ModelForm):
         self.fields['teams'].label = _('Team Collaborators')
 
 
+def make_optional_label(field):
+    """Modify label of field to indicate that the field is optional."""
+    # FIXME: need to figure out how to internationalize this logic
+    field.label += ' (Optional)'
+
+
 class EvidenceForm(forms.ModelForm):
     """Form for modifying the basic evidence information."""
 
@@ -72,6 +78,10 @@ class EvidenceForm(forms.ModelForm):
         widgets = {
             'event_date': forms.DateInput(attrs={'class': 'date', 'data-provide': 'datepicker'})
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        make_optional_label(self.fields['event_date'])
 
 
 class EvidenceSourceForm(forms.ModelForm):
@@ -101,12 +111,12 @@ class EvidenceSourceForm(forms.ModelForm):
             for field_name in ['source_url', 'source_date']:
                 field = self.fields[field_name]
                 field.required = False
-                field.label += ' (Optional)'
+                make_optional_label(field)
 
     def clean(self):
         """Validate that a date is provided if a URL is provided."""
         cleaned_data = super(EvidenceSourceForm, self).clean()
-        if cleaned_data.get('evidence_url') and not cleaned_data.get('evidence_date'):
+        if cleaned_data.get('source_url') and not cleaned_data.get('source_date'):
             raise ValidationError(_('Provide a date for the source.'), code='invalid')
 
 

@@ -69,7 +69,7 @@ def add_evidence(request, board_id):
 
     if request.method == 'POST':
         evidence_form = EvidenceForm(request.POST)
-        source_form = EvidenceSourceForm(request.POST)
+        source_form = EvidenceSourceForm(request.POST, require=require_source)
         if evidence_form.is_valid() and source_form.is_valid():
             with transaction.atomic():
                 evidence = evidence_form.save(commit=False)

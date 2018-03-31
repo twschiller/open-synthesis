@@ -486,7 +486,11 @@ class Evidence(models.Model):
 
     event_date = models.DateField(
         'evidence event date',
+        # Don't require evidence date because some evidence doesn't have a fixed start date. However, it can be useful
+        # to sort evidence by when it occurred, therefore in the future we might want to allow setting a year, month,
+        # or complete date
         null=True,
+        blank=True,
         help_text=_('The date the event occurred or started')
     )
 
