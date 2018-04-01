@@ -12,7 +12,7 @@
     <h2>{% trans "New Boards" %}</h2>
     <ul>
         {% for board in new_boards %}
-          <li><a href="https://{{ site.domain }}{{ board|board_url }}">{{ board.board_title }}:</a></li>
+          <li><a href="https://{{ site.domain }}{{ board|board_url }}">{{ board.board_title }}</a></li>
         {% endfor %}
     </ul>
 {% endif %}
