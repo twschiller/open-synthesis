@@ -9,7 +9,6 @@ import math
 
 from django.utils.translation import ugettext_lazy as _
 from django.template.defaulttags import register
-# NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
 from django.urls import reverse  # pylint: disable=no-name-in-module
 import tldextract
 
