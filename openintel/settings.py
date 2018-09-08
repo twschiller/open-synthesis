@@ -66,6 +66,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     EVIDENCE_REQUIRE_SOURCE=(bool, True),
     EDIT_REMOVE_ENABLED=(bool, True),
     INVITE_REQUIRED=(bool, False),
+    SENDGRID_USERNAME=(str, None),
     SENDGRID_API_KEY=(str, None),
     SLUG_MAX_LENGTH=(int, 72),
     TWITTER_ACCOUNT=(str, None),
@@ -314,12 +315,19 @@ LOGGING = {
     },
 }
 
-# Email Options using sendgrid-django
+# Email Options using sendgrid-django or smtp
+# https://sendgrid.com/docs/for-developers/sending-email/django/
 if env('SENDGRID_API_KEY'):  # pragma: no cover
-    EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+    EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
     SENDGRID_API_KEY = env('SENDGRID_API_KEY')
+elif env('SENDGRID_USERNAME'):
+    EMAIL_HOST = 'smtp.sendgrid.net'
+    EMAIL_HOST_USER = env('SENDGRID_USERNAME')
+    EMAIL_HOST_PASSWORD = env('SENDGRID_PASSWORD')
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
 else:
-    logger.warning("SendGrid not configured: SENDGRID_API_KEY")
+    logger.warning('SendGrid not configured: SENDGRID_API_KEY or SENDGRID_USERNAME')
 
 # Instance configuration
 SITE_NAME = env('SITE_NAME')
@@ -429,6 +437,7 @@ def _get_cache():
                 'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
             }
         }
+
 
 # https://docs.djangoproject.com/en/1.10/topics/cache/
 CACHES = _get_cache()
