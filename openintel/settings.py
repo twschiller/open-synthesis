@@ -136,8 +136,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'csp.middleware.CSPMiddleware',
-    # MinifyHTMLMiddleware needs to be after all middleware that may modify the HTML
-    'pipeline.middleware.MinifyHTMLMiddleware',
     # Rollbar middleware needs to be last so it can wrap the exceptions
     'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 ]
@@ -395,13 +393,6 @@ CSP_DEFAULT_SRC = ["'self'"]
 
 # SEO Configuration
 SLUG_MAX_LENGTH = env('SLUG_MAX_LENGTH')
-
-# django-pipeline configuration for static files
-# https://django-pipeline.readthedocs.io/en/latest/configuration.html
-# We're currently just using it for its HTML minification middleware
-PIPELINE = {
-    'PIPELINE_ENABLED': not DEBUG,
-}
 
 
 def _get_cache():
