@@ -12,7 +12,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-# NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
 from django.urls import reverse, NoReverseMatch  # pylint: disable=no-name-in-module
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -124,12 +123,20 @@ class Board(models.Model):
                     'and evidence are relevant')
     )
 
-    creator = models.ForeignKey(User, null=True)
+    creator = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
     pub_date = models.DateTimeField('date published')
+
     removed = models.BooleanField(default=False)
+
     field_history = FieldHistoryTracker(['board_title', 'board_desc', 'removed'])
 
     objects = BoardModelManager()
+
     all_objects = models.Manager()
 
     def __str__(self):
@@ -273,6 +280,7 @@ class TeamRequest(models.Model):
         null=True,
         blank=True,
         related_name='+',
+        on_delete=models.CASCADE,
     )
 
     invitee = models.ForeignKey(
@@ -280,6 +288,7 @@ class TeamRequest(models.Model):
         null=True,
         blank=True,
         related_name='team_invites',
+        on_delete=models.CASCADE,
     )
 
     create_timestamp = models.DateTimeField(auto_now_add=True)
@@ -319,11 +328,21 @@ class BoardPermissions(models.Model):
         'read_comments',
     ]
 
-    board = models.OneToOneField(Board, related_name='permissions')
+    board = models.OneToOneField(
+        Board,
+        related_name='permissions',
+        on_delete=models.CASCADE,
+    )
 
-    collaborators = models.ManyToManyField(User, blank=True)
+    collaborators = models.ManyToManyField(
+        User,
+        blank=True,
+    )
 
-    teams = models.ManyToManyField(Team, blank=True)
+    teams = models.ManyToManyField(
+        Team,
+        blank=True,
+    )
 
     read_board = models.PositiveSmallIntegerField(
         choices=AUTH_CHOICES,
@@ -444,17 +463,35 @@ class BoardFollower(models.Model):
 class Hypothesis(models.Model):
     """An ACH matrix hypothesis."""
 
-    board = models.ForeignKey(Board, on_delete=models.CASCADE)
+    board = models.ForeignKey(
+        Board,
+        on_delete=models.CASCADE,
+    )
+
     hypothesis_text = models.CharField(
         'hypothesis',
-        max_length=HYPOTHESIS_MAX_LENGTH
+        max_length=HYPOTHESIS_MAX_LENGTH,
     )
-    creator = models.ForeignKey(User, null=True)
-    submit_date = models.DateTimeField('date added', auto_now_add=True)
-    removed = models.BooleanField(default=False)
+
+    creator = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
+    submit_date = models.DateTimeField(
+        'date added',
+        auto_now_add=True,
+    )
+
+    removed = models.BooleanField(
+        default=False,
+    )
+
     field_history = FieldHistoryTracker(['hypothesis_text', 'removed'])
 
     objects = RemovableModelManager()
+
     all_objects = models.Manager()
 
     class Meta:  # pylint: disable=too-few-public-methods
@@ -476,7 +513,11 @@ class Evidence(models.Model):
 
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
 
-    creator = models.ForeignKey(User, null=True)
+    creator = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
     evidence_desc = models.CharField(
         'evidence description',
@@ -524,7 +565,10 @@ class Evidence(models.Model):
 class EvidenceSource(models.Model):
     """A source for a piece of evidence in the ACH matrix."""
 
-    evidence = models.ForeignKey(Evidence, on_delete=models.CASCADE)
+    evidence = models.ForeignKey(
+        Evidence,
+        on_delete=models.CASCADE,
+    )
 
     source_url = models.URLField(
         'source website',
@@ -535,13 +579,13 @@ class EvidenceSource(models.Model):
     source_title = models.CharField(
         'source title',
         max_length=SOURCE_TITLE_MAX_LENGTH,
-        default=''
+        default='',
     )
 
     source_description = models.CharField(
         'source description',
         max_length=SOURCE_DESCRIPTION_MAX_LENGTH,
-        default=''
+        default='',
     )
 
     source_date = models.DateField(
@@ -550,9 +594,16 @@ class EvidenceSource(models.Model):
                     'Typically the date of the article or post'),
     )
 
-    uploader = models.ForeignKey(User)
+    uploader = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
-    submit_date = models.DateTimeField('date added', auto_now_add=True)
+    submit_date = models.DateTimeField(
+        'date added',
+        auto_now_add=True,
+    )
 
     corroborating = models.BooleanField()
 
@@ -625,8 +676,14 @@ class ProjectNews(models.Model):
         verbose_name_plural = 'project news'
 
     content = models.CharField(max_length=1024)
+
     pub_date = models.DateTimeField('date published')
-    author = models.ForeignKey(User, null=True)
+
+    author = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
 
 @unique
@@ -656,7 +713,11 @@ class UserSettings(models.Model):
         (DigestFrequency.weekly.key, _('Weekly')),
     )
 
-    user = models.OneToOneField(User, related_name='settings')
+    user = models.OneToOneField(
+        User,
+        related_name='settings',
+        on_delete=models.CASCADE,
+    )
 
     digest_frequency = models.PositiveSmallIntegerField(
         _('email digest frequency'),
@@ -669,6 +730,17 @@ class UserSettings(models.Model):
 class DigestStatus(models.Model):
     """Email digest status."""
 
-    user = models.OneToOneField(User)
-    last_success = models.DateTimeField(null=True, default=None)
-    last_attempt = models.DateTimeField(null=True, default=None)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+    )
+
+    last_success = models.DateTimeField(
+        null=True,
+        default=None,
+    )
+
+    last_attempt = models.DateTimeField(
+        null=True,
+        default=None,
+    )

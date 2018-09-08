@@ -1,19 +1,19 @@
 # core dependencies
 
-beautifulsoup4==4.6.0
-celery==4.1.0
+beautifulsoup4==4.6.3
+celery==4.2.1
 dj-database-url==0.5.0
-django-allauth==0.35.0
+django-allauth==0.37.1
 django-bootstrap-form==3.4
-django-contrib-comments==1.8.0
+django-contrib-comments==1.9.0
 django-csp==3.4
-django-environ==0.4.4
-django-field-history==0.6.0
+django-environ==0.4.5
+django-field-history==0.7.0
 django-invitations==1.9.2
-django-notifications-hq==1.3
+django-notifications-hq==1.5.0
 django-pipeline==1.6.14
-Django==1.11.11
-python-slugify==1.2.4
+Django==2.1.1
+python-slugify==1.2.6
 qrcode==6.0
 tldextract==2.2.0
 
@@ -21,47 +21,47 @@ tldextract==2.2.0
 # external services
 
 django-pylibmc==0.6.1
-django-sendgrid-v5==0.6.87
-psycopg2==2.7.4
+django-sendgrid-v5==0.6.893
+psycopg2==2.7.5
 pylibmc==1.5.2
 redis==2.10.6
-rollbar==0.13.18
+rollbar==0.14.4
 
 # web server
 
-gunicorn==19.7.1
-whitenoise==3.3.1
+gunicorn==19.9.0
+whitenoise==4.0
 
 
 # dev dependencies
 
-django-coverage-plugin==1.5.0
+django-coverage-plugin==1.6.0
 django-webpack-loader==0.6.0
 coverage==4.5.1
-nplusone==0.9.0
+nplusone==1.0.0
 
 
 # indirect dependencies
 
-amqp==2.2.2
-billiard==3.5.0.3
+amqp==2.3.2
+billiard==3.5.0.4
 blinker==1.4
-certifi==2018.1.18
+certifi==2018.8.24
 chardet==3.0.4
 defusedxml==0.5.0
-django-model-utils==3.1.1
-idna==2.6
+django-model-utils==3.1.2
+idna==2.7
 jsonfield==2.0.2
-kombu==4.1.0
-oauthlib==2.0.7
-python-http-client==3.0.0
+kombu==4.2.1
+oauthlib==2.1.0
+python-http-client==3.1.0
 python3-openid==3.1.0
-pytz==2018.3
+pytz==2018.5
 requests-file==1.4.3
 requests-oauthlib==0.8.0
-requests==2.18.4
+requests==2.19.1
 sendgrid==5.3.0
 six==1.11.0
 Unidecode==1.0.22
-urllib3==1.22
+urllib3==1.23
 vine==1.1.4

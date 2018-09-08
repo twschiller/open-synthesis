@@ -29,6 +29,7 @@ def _detect_command(cmd):
     # https://stackoverflow.com/questions/4088253/django-how-to-detect-test-environment
     return len(sys.argv) > 1 and sys.argv[1] == cmd
 
+
 TESTING = _detect_command('test')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -61,7 +62,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     ACCOUNT_REQUIRED=(bool, False),
     # https://django-allauth.readthedocs.io/en/latest/configuration.html
     ACCOUNT_EMAIL_REQUIRED=(bool, True),
-    ACCOUNT_EMAIL_VERIFICATION=(str, 'mandatory'), # "mandatory", "optional", or "none"
+    ACCOUNT_EMAIL_VERIFICATION=(str, 'mandatory'),  # 'mandatory', 'optional', or 'none'
     EVIDENCE_REQUIRE_SOURCE=(bool, True),
     EDIT_REMOVE_ENABLED=(bool, True),
     INVITE_REQUIRED=(bool, False),
@@ -115,12 +116,13 @@ INSTALLED_APPS = [
     'invitations',
 ]
 
+# See https://docs.djangoproject.com/en/2.1/topics/http/middleware/
 
-# This is using the pre-Django 1.10 middleware API. We'll need to update once the 3rd-party libraries are updated
-# to use the new API: https://docs.djangoproject.com/en/1.10/topics/http/middleware
-
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # whitenoise should be placed directly after the security middleware
+    # http://whitenoise.evans.io/en/stable/django.html#enable-whitenoise
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # LocaleMiddleware must come after SessionMiddleware and before CommonMiddleware
     # see: https://docs.djangoproject.com/en/1.10/topics/i18n/translation/#how-django-discovers-language-preference
@@ -135,14 +137,14 @@ MIDDLEWARE_CLASSES = [
     'csp.middleware.CSPMiddleware',
     # MinifyHTMLMiddleware needs to be after all middleware that may modify the HTML
     'pipeline.middleware.MinifyHTMLMiddleware',
-    # Rollbar middleware needs to be last
+    # Rollbar middleware needs to be last so it can wrap the exceptions
     'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 ]
 
 # Configure N+1 detection during DEBUG and TESTING; see https://github.com/jmcarp/nplusone
 if DEBUG or TESTING:
     INSTALLED_APPS.insert(0, 'nplusone.ext.django')
-    MIDDLEWARE_CLASSES.insert(0, 'nplusone.ext.django.NPlusOneMiddleware',)
+    MIDDLEWARE.insert(0, 'nplusone.ext.django.NPlusOneMiddleware',)
 
 NPLUSONE_RAISE = TESTING
 
@@ -263,7 +265,7 @@ STATICFILES_DIRS = (
 
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # https://github.com/owais/django-webpack-loader#default-configuration
 WEBPACK_LOADER = {
@@ -321,12 +323,16 @@ else:
 
 # Instance configuration
 SITE_NAME = env('SITE_NAME')
+
 SITE_DOMAIN = env('SITE_DOMAIN')
+
 ACCOUNT_REQUIRED = env('ACCOUNT_REQUIRED')
+
 if _detect_command('createadmin'):  # pragma: no cover
     # Load the admin credentials if the admin is creating a default account (e.g., when deploying with Heroku button)
     ADMIN_USERNAME = env('ADMIN_USERNAME')
     ADMIN_PASSWORD = env('ADMIN_PASSWORD')
+
 ADMIN_EMAIL_ADDRESS = env('ADMIN_EMAIL_ADDRESS')
 PRIVACY_URL = env('PRIVACY_URL')
 INVITE_REQUIRED = env('INVITE_REQUIRED')
@@ -337,6 +343,7 @@ TWITTER_ACCOUNT = env('TWITTER_ACCOUNT')
 DONATE_BITCOIN_ADDRESS = env('DONATE_BITCOIN_ADDRESS')
 BANNER_MESSAGE = env('BANNER_MESSAGE')
 DIGEST_WEEKLY_DAY = env('DIGEST_WEEKLY_DAY')
+
 if env('ENVIRONMENT_NAME'):
     ENVIRONMENT_NAME = env('ENVIRONMENT_NAME')
 elif DEBUG:

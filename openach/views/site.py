@@ -6,8 +6,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ImproperlyConfigured
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
-# NOTE: django.core.urlresolvers was deprecated in Django 1.10. Landscape is loading version 1.9.9 for some reason
-from django.urls import reverse  # pylint: disable=no-name-in-module
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_safe, etag
@@ -21,6 +20,7 @@ PAGE_CACHE_TIMEOUT_SECONDS = getattr(settings, 'PAGE_CACHE_TIMEOUT_SECONDS', 60)
 DEBUG = getattr(settings, 'DEBUG', False)
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+
 
 @require_safe
 @account_required
@@ -86,7 +86,7 @@ def certbot(dummy_request, challenge_key):  # pragma: no cover
 
 @require_safe
 @etag(lambda r: getattr(settings, 'DONATE_BITCOIN_ADDRESS', ''))
-@cache_page(60 * 60) # NOTE: if only etag is set, Django doesn't include cache headers
+@cache_page(60 * 60)  # NOTE: if only etag is set, Django doesn't include cache headers
 def bitcoin_qrcode(request):
     """Return a QR Code for donating via Bitcoin."""
     address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
