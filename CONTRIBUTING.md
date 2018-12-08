@@ -12,10 +12,19 @@ We appreciate all pull requests. However, before working on an enhancement/featu
 
 ## Local Development
 
-To perform local development, you'll need Python 3.6, [pip](https://pip.pypa.io/en/stable/installing/),
-and [virtualenv](https://virtualenv.pypa.io/en/stable/), [node](https://nodejs.org/en/download/package-manager/), and 
-[npm](https://www.npmjs.com/). To create your own deployment, you may also want
-the [Heroku Toolbelt](https://devcenter.heroku.com/articles/getting-started-with-python#introduction).
+### Requirements
+
+To perform local development, you'll need:
+* Python 3.6
+* [pip](https://pip.pypa.io/en/stable/installing/)
+* [virtualenv](https://virtualenv.pypa.io/en/stable/)
+* [node](https://nodejs.org/en/download/package-manager/)
+* [npm](https://www.npmjs.com/)
+* [libmemcached](https://libmemcached.org/) for using an external [memcached](https://memcached.org/) in-memory cache. Install on MacOSX Homebrew with `brew install libmemcached`. If you do not want to enable external caching during deployment, you can skip this requirement. However, you will have to exclude `pylibmc` from `requirements.txt` before installing the project Python requirements.
+
+To create your own deployment on Heroku, you may also want the [Heroku Toolbelt](https://devcenter.heroku.com/articles/getting-started-with-python#introduction).
+
+### Building
 
 Clone the repository and switch to the project directory:
 
