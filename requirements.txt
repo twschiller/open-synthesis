@@ -1,6 +1,6 @@
 # core dependencies
 
-beautifulsoup4==4.6.3
+beautifulsoup4==4.7.1
 celery==4.2.1
 dj-database-url==0.5.0
 django-allauth==0.39.1
@@ -20,8 +20,8 @@ tldextract==2.2.1
 # external services
 
 django-pylibmc==0.6.1
-django-sendgrid-v5==0.7.0
-psycopg2==2.7.6.1
+django-sendgrid-v5==0.7.1
+psycopg2-binary==2.7.7
 pylibmc==1.6.0
 redis==3.2.0
 rollbar==0.14.7
@@ -49,7 +49,7 @@ certifi==2018.11.29
 chardet==3.0.4
 defusedxml==0.5.0
 django-model-utils==3.1.2
-idna==2.7
+idna==2.8
 jsonfield==2.0.2
 kombu==4.4.0
 oauthlib==3.0.1
