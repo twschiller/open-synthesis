@@ -1,0 +1,64 @@
+Metadata-Version: 2.0
+Name: django-csp
+Version: 3.5
+Summary: Django Content Security Policy support.
+Home-page: http://github.com/mozilla/django-csp
+Author: Christopher Grebs
+Author-email: cg@webshox.org
+License: BSD
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Environment :: Web Environment :: Mozilla
+Classifier: Programming Language :: Python
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Framework :: Django
+Requires-Dist: Django (>=1.8)
+Provides-Extra: jinja2
+Requires-Dist: jinja2 (>=2.9.6); extra == 'jinja2'
+Provides-Extra: tests
+Requires-Dist: jinja2 (>=2.9.6); extra == 'tests'
+Requires-Dist: mock (==1.0.1); extra == 'tests'
+Requires-Dist: pep8 (==1.4.6); extra == 'tests'
+Requires-Dist: pytest (==2.9.1); extra == 'tests'
+Requires-Dist: pytest-django (==2.9.1); extra == 'tests'
+Requires-Dist: pytest-flakes (==1.0.1); extra == 'tests'
+Requires-Dist: pytest-pep8 (==1.0.6); extra == 'tests'
+
+
+.. image:: https://badge.fury.io/py/django_csp.svg
+   :target: https://pypi.python.org/pypi/django_csp
+
+.. image:: https://travis-ci.org/mozilla/django-csp.svg?branch=master
+   :target: https://travis-ci.org/mozilla/django-csp
+
+
+==========
+Django-CSP
+==========
+
+Django-CSP adds Content-Security-Policy_ headers to Django.
+
+The code lives on GitHub_, where you can report Issues_. The full
+documentation is available on ReadTheDocs_.
+
+
+
+.. _Content-Security-Policy: http://www.w3.org/TR/CSP/
+.. _GitHub: https://github.com/mozilla/django-csp
+.. _Issues: https://github.com/mozilla/django-csp/issues
+.. _ReadTheDocs: http://django-csp.readthedocs.org/
+
+

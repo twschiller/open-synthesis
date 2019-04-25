@@ -1,0 +1,321 @@
+# This file is distributed under the same license as the Django package.
+#
+# Translators:
+# Jannis Leidel <jannis@leidel.info>, 2011.
+msgid ""
+msgstr ""
+"Project-Id-Version: Django\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-30 19:54+0200\n"
+"PO-Revision-Date: 2012-02-14 13:24+0000\n"
+"Last-Translator: Jannis Leidel <jannis@leidel.info>\n"
+"Language-Team: English <en@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: django_comments/abstracts.py:26
+msgid "content type"
+msgstr "content type"
+
+#: django_comments/abstracts.py:29
+msgid "object ID"
+msgstr "object ID"
+
+#: django_comments/abstracts.py:57 django_comments/models.py:32
+msgid "user"
+msgstr "user"
+
+#: django_comments/abstracts.py:60
+msgid "user's name"
+msgstr "user's name"
+
+#: django_comments/abstracts.py:62
+msgid "user's email address"
+msgstr "user's email address"
+
+#: django_comments/abstracts.py:64
+msgid "user's URL"
+msgstr "user's URL"
+
+#. Translators: 'comment' is a noun here.
+#: django_comments/abstracts.py:66 django_comments/abstracts.py:86
+#: django_comments/models.py:37
+msgid "comment"
+msgstr "comment"
+
+#: django_comments/abstracts.py:69
+msgid "date/time submitted"
+msgstr "date/time submitted"
+
+#: django_comments/abstracts.py:70
+msgid "IP address"
+msgstr "IP address"
+
+#: django_comments/abstracts.py:71
+msgid "is public"
+msgstr "is public"
+
+#: django_comments/abstracts.py:72
+msgid ""
+"Uncheck this box to make the comment effectively disappear from the site."
+msgstr ""
+"Uncheck this box to make the comment effectively disappear from the site."
+
+#: django_comments/abstracts.py:74
+msgid "is removed"
+msgstr "is removed"
+
+#: django_comments/abstracts.py:75
+msgid ""
+"Check this box if the comment is inappropriate. A \"This comment has been "
+"removed\" message will be displayed instead."
+msgstr ""
+"Check this box if the comment is inappropriate. A \"This comment has been "
+"removed\" message will be displayed instead."
+
+#: django_comments/abstracts.py:87
+msgid "comments"
+msgstr "comments"
+
+#: django_comments/abstracts.py:132
+msgid ""
+"This comment was posted by an authenticated user and thus the name is read-"
+"only."
+msgstr ""
+"This comment was posted by an authenticated user and thus the name is read-"
+"only."
+
+#: django_comments/abstracts.py:143
+msgid ""
+"This comment was posted by an authenticated user and thus the email is read-"
+"only."
+msgstr ""
+"This comment was posted by an authenticated user and thus the email is read-"
+"only."
+
+#: django_comments/abstracts.py:171
+#, python-format
+msgid ""
+"Posted by %(user)s at %(date)s\n"
+"\n"
+"%(comment)s\n"
+"\n"
+"http://%(domain)s%(url)s"
+msgstr ""
+"Posted by %(user)s at %(date)s\n"
+"\n"
+"%(comment)s\n"
+"\n"
+"http://%(domain)s%(url)s"
+
+#: django_comments/admin.py:28
+msgid "Content"
+msgstr "Content"
+
+#: django_comments/admin.py:32
+msgid "Metadata"
+msgstr "Metadata"
+
+#: django_comments/admin.py:59
+msgid "flagged"
+msgid_plural "flagged"
+msgstr[0] "flagged"
+msgstr[1] "flagged"
+
+#: django_comments/admin.py:61
+msgid "Flag selected comments"
+msgstr "Flag selected comments"
+
+#: django_comments/admin.py:65
+msgid "approved"
+msgid_plural "approved"
+msgstr[0] "approved"
+msgstr[1] "approved"
+
+#: django_comments/admin.py:67
+msgid "Approve selected comments"
+msgstr "Approve selected comments"
+
+#: django_comments/admin.py:71
+msgid "removed"
+msgid_plural "removed"
+msgstr[0] "removed"
+msgstr[1] "removed"
+
+#: django_comments/admin.py:73
+msgid "Remove selected comments"
+msgstr "Remove selected comments"
+
+#: django_comments/admin.py:85
+#, fuzzy, python-format
+#| msgid "1 comment was successfully %(action)s."
+#| msgid_plural "%(count)s comments were successfully %(action)s."
+msgid "%(count)s comment was successfully %(action)s."
+msgid_plural "%(count)s comments were successfully %(action)s."
+msgstr[0] "1 comment was successfully %(action)s."
+msgstr[1] "%(count)s comments were successfully %(action)s."
+
+#: django_comments/feeds.py:16
+#, python-format
+msgid "%(site_name)s comments"
+msgstr "%(site_name)s comments"
+
+#: django_comments/feeds.py:22
+#, python-format
+msgid "Latest comments on %(site_name)s"
+msgstr "Latest comments on %(site_name)s"
+
+#: django_comments/forms.py:101
+msgctxt "Person name"
+msgid "Name"
+msgstr "Name"
+
+#: django_comments/forms.py:102
+msgid "Email address"
+msgstr "Email address"
+
+#: django_comments/forms.py:103
+msgid "URL"
+msgstr "URL"
+
+#. Translators: 'Comment' is a noun here.
+#: django_comments/forms.py:105
+msgid "Comment"
+msgstr "Comment"
+
+#: django_comments/forms.py:183
+#, python-format
+msgid "Watch your mouth! The word %s is not allowed here."
+msgid_plural "Watch your mouth! The words %s are not allowed here."
+msgstr[0] "Watch your mouth! The word %s is not allowed here."
+msgstr[1] "Watch your mouth! The words %s are not allowed here."
+
+#: django_comments/forms.py:187
+#: django_comments/templates/comments/preview.html:17
+msgid "and"
+msgstr "and"
+
+#: django_comments/forms.py:193
+msgid ""
+"If you enter anything in this field your comment will be treated as spam"
+msgstr ""
+"If you enter anything in this field your comment will be treated as spam"
+
+#. Translators: 'flag' is a noun here.
+#: django_comments/models.py:40
+msgid "flag"
+msgstr "flag"
+
+#: django_comments/models.py:39
+msgid "date"
+msgstr "date"
+
+#: django_comments/models.py:49
+msgid "comment flag"
+msgstr "comment flag"
+
+#: django_comments/models.py:50
+msgid "comment flags"
+msgstr "comment flags"
+
+#: django_comments/moderation.py:253
+#, python-format
+msgid "[%(site)s] New comment posted on \"%(object)s\""
+msgstr ""
+
+#: django_comments/templates/comments/approve.html:4
+msgid "Approve a comment"
+msgstr "Approve a comment"
+
+#: django_comments/templates/comments/approve.html:7
+msgid "Really make this comment public?"
+msgstr "Really make this comment public?"
+
+#: django_comments/templates/comments/approve.html:13
+msgid "Approve"
+msgstr "Approve"
+
+#: django_comments/templates/comments/approved.html:4
+msgid "Thanks for approving"
+msgstr "Thanks for approving"
+
+#: django_comments/templates/comments/approved.html:7
+#: django_comments/templates/comments/deleted.html:7
+#: django_comments/templates/comments/flagged.html:7
+msgid ""
+"Thanks for taking the time to improve the quality of discussion on our site"
+msgstr ""
+"Thanks for taking the time to improve the quality of discussion on our site"
+
+#: django_comments/templates/comments/delete.html:4
+msgid "Remove a comment"
+msgstr "Remove a comment"
+
+#: django_comments/templates/comments/delete.html:7
+msgid "Really remove this comment?"
+msgstr "Really remove this comment?"
+
+#: django_comments/templates/comments/delete.html:13
+msgid "Remove"
+msgstr "Remove"
+
+#: django_comments/templates/comments/deleted.html:4
+msgid "Thanks for removing"
+msgstr "Thanks for removing"
+
+#: django_comments/templates/comments/flag.html:4
+msgid "Flag this comment"
+msgstr "Flag this comment"
+
+#: django_comments/templates/comments/flag.html:7
+msgid "Really flag this comment?"
+msgstr "Really flag this comment?"
+
+#: django_comments/templates/comments/flag.html:13
+msgid "Flag"
+msgstr "Flag"
+
+#: django_comments/templates/comments/flagged.html:4
+msgid "Thanks for flagging"
+msgstr "Thanks for flagging"
+
+#: django_comments/templates/comments/form.html:18
+#: django_comments/templates/comments/preview.html:34
+msgid "Post"
+msgstr "Post"
+
+#: django_comments/templates/comments/form.html:19
+#: django_comments/templates/comments/preview.html:35
+msgid "Preview"
+msgstr "Preview"
+
+#: django_comments/templates/comments/posted.html:4
+msgid "Thanks for commenting"
+msgstr "Thanks for commenting"
+
+#: django_comments/templates/comments/posted.html:7
+msgid "Thank you for your comment"
+msgstr "Thank you for your comment"
+
+#: django_comments/templates/comments/preview.html:4
+#: django_comments/templates/comments/preview.html:14
+msgid "Preview your comment"
+msgstr "Preview your comment"
+
+#: django_comments/templates/comments/preview.html:12
+msgid "Please correct the error below"
+msgid_plural "Please correct the errors below"
+msgstr[0] "Please correct the error below"
+msgstr[1] "Please correct the errors below"
+
+#: django_comments/templates/comments/preview.html:17
+msgid "Post your comment"
+msgstr "Post your comment"
+
+#. Translators: This string follows the 'Post your comment' submit button.
+#: django_comments/templates/comments/preview.html:20
+msgid "or make changes"
+msgstr "or make changes"

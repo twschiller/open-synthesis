@@ -1,0 +1,315 @@
+# This file is distributed under the same license as the Django package.
+# 
+# Translators:
+# Translators:
+# Fulup <fulup.jakez@gmail.com>, 2012
+# Irriep Nala Novram <allannkorh@yahoo.fr>, 2018
+msgid ""
+msgstr ""
+"Project-Id-Version: django-contrib-comments\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-02-10 09:06+0100\n"
+"PO-Revision-Date: 2018-10-19 23:38+0000\n"
+"Last-Translator: Irriep Nala Novram <allannkorh@yahoo.fr>\n"
+"Language-Team: Breton (http://www.transifex.com/django/django-contrib-comments/language/br/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: br\n"
+"Plural-Forms: nplurals=5; plural=((n%10 == 1) && (n%100 != 11) && (n%100 !=71) && (n%100 !=91) ? 0 :(n%10 == 2) && (n%100 != 12) && (n%100 !=72) && (n%100 !=92) ? 1 :(n%10 ==3 || n%10==4 || n%10==9) && (n%100 < 10 || n% 100 > 19) && (n%100 < 70 || n%100 > 79) && (n%100 < 90 || n%100 > 99) ? 2 :(n != 0 && n % 1000000 == 0) ? 3 : 4);\n"
+
+#: admin.py:25
+msgid "Content"
+msgstr "Endalc'had"
+
+#: admin.py:28
+msgid "Metadata"
+msgstr "Metaroadennoù"
+
+#: admin.py:55
+msgid "flagged"
+msgid_plural "flagged"
+msgstr[0] "merket"
+msgstr[1] "merket"
+msgstr[2] "merket"
+msgstr[3] "merket"
+msgstr[4] "merket"
+
+#: admin.py:56
+msgid "Flag selected comments"
+msgstr "Merkañ an evezhiadennoù diuzet"
+
+#: admin.py:60
+msgid "approved"
+msgid_plural "approved"
+msgstr[0] "aprouet"
+msgstr[1] "aprouet"
+msgstr[2] "aprouet"
+msgstr[3] "aprouet"
+msgstr[4] "aprouet"
+
+#: admin.py:61
+msgid "Approve selected comments"
+msgstr "Aprouiñ an evezhiadennoù diuzet"
+
+#: admin.py:65
+msgid "removed"
+msgid_plural "removed"
+msgstr[0] "dilamet"
+msgstr[1] "dilamet"
+msgstr[2] "dilamet"
+msgstr[3] "dilamet"
+msgstr[4] "dilamet"
+
+#: admin.py:66
+msgid "Remove selected comments"
+msgstr "Dilemel an evezhiadennoù diuzet"
+
+#: admin.py:78
+#, python-format
+msgid "1 comment was successfully %(action)s."
+msgid_plural "%(count)s comments were successfully %(action)s."
+msgstr[0] "1 evezhiadenn a zo bet %(action)s gant berzh."
+msgstr[1] "%(count)s evezhiadenn a zo bet %(action)s gant berzh."
+msgstr[2] "%(count)s evezhiadenn a zo bet %(action)s gant berzh."
+msgstr[3] "%(count)s evezhiadenn a zo bet %(action)s gant berzh."
+msgstr[4] "%(count)s evezhiadenn a zo bet %(action)s gant berzh."
+
+#: feeds.py:14
+#, python-format
+msgid "%(site_name)s comments"
+msgstr "%(site_name)s evezhiadennoù"
+
+#: feeds.py:20
+#, python-format
+msgid "Latest comments on %(site_name)s"
+msgstr "Evezhiadennoù diwezhañ war %(site_name)s"
+
+#: forms.py:105
+msgctxt "Person name"
+msgid "Name"
+msgstr "Anv"
+
+#: forms.py:97
+msgid "Email address"
+msgstr "Chomlec'h postel"
+
+#: forms.py:98
+msgid "URL"
+msgstr "URL"
+
+#: forms.py:99
+msgid "Comment"
+msgstr "Evezhiadenn"
+
+#: forms.py:177
+#, python-format
+msgid "Watch your mouth! The word %s is not allowed here."
+msgid_plural "Watch your mouth! The words %s are not allowed here."
+msgstr[0] "Taolit evezh 'ta ouzh ar pezh a lavarit! Ar ger %s na vez ket aotreet amañ."
+msgstr[1] "Taolit evezh 'ta ouzh ar pezh a lavarit! Ar gerioù %s na vezont ket aotreet amañ."
+msgstr[2] "Taolit evezh 'ta ouzh ar pezh a lavarit! Ar gerioù %s na vezont ket aotreet amañ."
+msgstr[3] "Taolit evezh 'ta ouzh ar pezh a lavarit! Ar gerioù %s na vezont ket aotreet amañ."
+msgstr[4] "Taolit evezh 'ta ouzh ar pezh a lavarit! Ar gerioù %s na vezont ket aotreet amañ."
+
+#: forms.py:181 templates/comments/preview.html:16
+msgid "and"
+msgstr "ha/hag"
+
+#: forms.py:186
+msgid ""
+"If you enter anything in this field your comment will be treated as spam"
+msgstr ""
+
+#: models.py:23
+msgid "content type"
+msgstr "seurt danvez"
+
+#: models.py:25
+msgid "object ID"
+msgstr "ID objed"
+
+#: models.py:53 models.py:177
+msgid "user"
+msgstr "implijer"
+
+#: models.py:55
+msgid "user's name"
+msgstr "anv an implijer"
+
+#: models.py:56
+msgid "user's email address"
+msgstr "chomlec'h postel an implijer"
+
+#: models.py:57
+msgid "user's URL"
+msgstr "URL an implijer"
+
+#: models.py:59 models.py:79 models.py:178
+msgid "comment"
+msgstr "danvez"
+
+#: models.py:62
+msgid "date/time submitted"
+msgstr "deiziad/eur kaset"
+
+#: models.py:63
+msgid "IP address"
+msgstr "Chomlec'h IP"
+
+#: models.py:64
+msgid "is public"
+msgstr "zo foran"
+
+#: models.py:65
+msgid ""
+"Uncheck this box to make the comment effectively disappear from the site."
+msgstr ""
+
+#: models.py:67
+msgid "is removed"
+msgstr "zo bet dilamet"
+
+#: models.py:68
+msgid ""
+"Check this box if the comment is inappropriate. A \"This comment has been "
+"removed\" message will be displayed instead."
+msgstr ""
+
+#: models.py:80
+msgid "comments"
+msgstr "evezhiadennoù"
+
+#: models.py:124
+msgid ""
+"This comment was posted by an authenticated user and thus the name is read-"
+"only."
+msgstr ""
+
+#: models.py:134
+msgid ""
+"This comment was posted by an authenticated user and thus the email is read-"
+"only."
+msgstr ""
+
+#: models.py:160
+#, python-format
+msgid ""
+"Posted by %(user)s at %(date)s\n"
+"\n"
+"%(comment)s\n"
+"\n"
+"http://%(domain)s%(url)s"
+msgstr ""
+
+#: models.py:179
+msgid "flag"
+msgstr "merker"
+
+#: models.py:180
+msgid "date"
+msgstr "deiziad"
+
+#: models.py:190
+msgid "comment flag"
+msgstr "banniel evezhiadenn"
+
+#: models.py:191
+msgid "comment flags"
+msgstr "bannieloù evezhiadenn"
+
+#: moderation.py:253
+#, python-format
+msgid "[%(site)s] New comment posted on \"%(object)s\""
+msgstr "[%(site)s] Evezhiadenn nevez embannet war \"%(object)s\""
+
+#: templates/comments/approve.html:4
+msgid "Approve a comment"
+msgstr "aprouiñ un evezhiadenn"
+
+#: templates/comments/approve.html:7
+msgid "Really make this comment public?"
+msgstr "Lakaat an evezhiadenn-mañ foran da vat?"
+
+#: templates/comments/approve.html:12
+msgid "Approve"
+msgstr "Aprouiñ"
+
+#: templates/comments/approved.html:4
+msgid "Thanks for approving"
+msgstr "Trugarez da vezañ aprouet"
+
+#: templates/comments/approved.html:7 templates/comments/deleted.html:7
+#: templates/comments/flagged.html:7
+msgid ""
+"Thanks for taking the time to improve the quality of discussion on our site"
+msgstr ""
+
+#: templates/comments/delete.html:4
+msgid "Remove a comment"
+msgstr "Diverkañ un evezhiadenn"
+
+#: templates/comments/delete.html:7
+msgid "Really remove this comment?"
+msgstr "Dilemel an evezhiadenn-mañ da vat?"
+
+#: templates/comments/delete.html:12
+msgid "Remove"
+msgstr "Dilemel"
+
+#: templates/comments/deleted.html:4
+msgid "Thanks for removing"
+msgstr "Trugarez evit an diverkadenn-mañ"
+
+#: templates/comments/flag.html:4
+msgid "Flag this comment"
+msgstr "Bannielañ an evezhiadenn-mañ"
+
+#: templates/comments/flag.html:7
+msgid "Really flag this comment?"
+msgstr "Bannielañ an evezhiadenn-mañ da vat?"
+
+#: templates/comments/flag.html:12
+msgid "Flag"
+msgstr "Banniel"
+
+#: templates/comments/flagged.html:4
+msgid "Thanks for flagging"
+msgstr "Trugarez da vezañ bannielaet"
+
+#: templates/comments/form.html:17 templates/comments/preview.html:32
+msgid "Post"
+msgstr "Kas"
+
+#: templates/comments/form.html:18 templates/comments/preview.html:33
+msgid "Preview"
+msgstr "Rakwelet"
+
+#: templates/comments/posted.html:4
+msgid "Thanks for commenting"
+msgstr "Trugarez da vezañ roet ho menno"
+
+#: templates/comments/posted.html:7
+msgid "Thank you for your comment"
+msgstr "Trugarez evit hoc'h evezhiadenn"
+
+#: templates/comments/preview.html:4 templates/comments/preview.html.py:13
+msgid "Preview your comment"
+msgstr "Rakwelet hoc'h evezhiadenn"
+
+#: templates/comments/preview.html:11
+msgid "Please correct the error below"
+msgid_plural "Please correct the errors below"
+msgstr[0] "Reizhit ar fazi dindan mar plij"
+msgstr[1] "Reizhit ar fazioù dindan mar plij"
+msgstr[2] "Reizhit ar fazioù dindan mar plij"
+msgstr[3] "Reizhit ar fazioù dindan mar plij"
+msgstr[4] "Reizhit ar fazioù dindan mar plij"
+
+#: templates/comments/preview.html:16
+msgid "Post your comment"
+msgstr "Embann hoc'h evezhiadenn"
+
+#: templates/comments/preview.html:16
+msgid "or make changes"
+msgstr "pe merkit evel cheñchet"

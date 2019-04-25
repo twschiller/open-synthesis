@@ -1,0 +1,308 @@
+# This file is distributed under the same license as the Django package.
+# 
+# Translators:
+# Translators:
+# GunChleoc, 2016
+msgid ""
+msgstr ""
+"Project-Id-Version: django-contrib-comments\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-02-10 09:06+0100\n"
+"PO-Revision-Date: 2017-09-22 17:55+0000\n"
+"Last-Translator: GunChleoc\n"
+"Language-Team: Gaelic, Scottish (http://www.transifex.com/django/django-contrib-comments/language/gd/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: gd\n"
+"Plural-Forms: nplurals=4; plural=(n==1 || n==11) ? 0 : (n==2 || n==12) ? 1 : (n > 2 && n < 20) ? 2 : 3;\n"
+
+#: admin.py:25
+msgid "Content"
+msgstr "Susbaint"
+
+#: admin.py:28
+msgid "Metadata"
+msgstr "Meata-dàta"
+
+#: admin.py:55
+msgid "flagged"
+msgid_plural "flagged"
+msgstr[0] "le bratach ris"
+msgstr[1] "le bratach ris"
+msgstr[2] "le bratach ris"
+msgstr[3] "le bratach ris"
+
+#: admin.py:56
+msgid "Flag selected comments"
+msgstr "Cuir bratach ris na beachdan a thagh thu"
+
+#: admin.py:60
+msgid "approved"
+msgid_plural "approved"
+msgstr[0] "air aontachadh ris"
+msgstr[1] "air aontachadh riutha"
+msgstr[2] "air aontachadh riutha"
+msgstr[3] "air aontachadh riutha"
+
+#: admin.py:61
+msgid "Approve selected comments"
+msgstr "Aontaich ris na beachdan a thagh thu"
+
+#: admin.py:65
+msgid "removed"
+msgid_plural "removed"
+msgstr[0] "air a thoirt air falbh"
+msgstr[1] "air an toirt air falbh"
+msgstr[2] "air an toirt air falbh"
+msgstr[3] "air an toirt air falbh"
+
+#: admin.py:66
+msgid "Remove selected comments"
+msgstr "Thoir na beachdan a thagh thu air falbh"
+
+#: admin.py:78
+#, python-format
+msgid "1 comment was successfully %(action)s."
+msgid_plural "%(count)s comments were successfully %(action)s."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: feeds.py:14
+#, python-format
+msgid "%(site_name)s comments"
+msgstr "Beachdan air %(site_name)s"
+
+#: feeds.py:20
+#, python-format
+msgid "Latest comments on %(site_name)s"
+msgstr "Na beachdan as ùire air %(site_name)s"
+
+#: forms.py:105
+msgctxt "Person name"
+msgid "Name"
+msgstr "Ainm"
+
+#: forms.py:97
+msgid "Email address"
+msgstr "Seòladh puist-d"
+
+#: forms.py:98
+msgid "URL"
+msgstr "URL"
+
+#: forms.py:99
+msgid "Comment"
+msgstr "Beachd"
+
+#: forms.py:177
+#, python-format
+msgid "Watch your mouth! The word %s is not allowed here."
+msgid_plural "Watch your mouth! The words %s are not allowed here."
+msgstr[0] "Sgol do bheul! Chan eil am facal %s ceadaichte an-seo."
+msgstr[1] "Sgol do bheul! Chan eil na faclan %s ceadaichte an-seo."
+msgstr[2] "Sgol do bheul! Chan eil na faclan %s ceadaichte an-seo."
+msgstr[3] "Sgol do bheul! Chan eil na faclan %s ceadaichte an-seo."
+
+#: forms.py:181 templates/comments/preview.html:16
+msgid "and"
+msgstr "agus"
+
+#: forms.py:186
+msgid ""
+"If you enter anything in this field your comment will be treated as spam"
+msgstr "Ma chuireas tu dad a-steach dhan raon seo, saoilidh sinn gur e spama a tha sa bheachd agad"
+
+#: models.py:23
+msgid "content type"
+msgstr "seòrsa na susbainte"
+
+#: models.py:25
+msgid "object ID"
+msgstr "ID an oibseict"
+
+#: models.py:53 models.py:177
+msgid "user"
+msgstr "cleachdaiche"
+
+#: models.py:55
+msgid "user's name"
+msgstr "ainm a' chleachdaiche"
+
+#: models.py:56
+msgid "user's email address"
+msgstr "seòladh puist-d a' chleachdaiche"
+
+#: models.py:57
+msgid "user's URL"
+msgstr "URL a' chleachdaiche"
+
+#: models.py:59 models.py:79 models.py:178
+msgid "comment"
+msgstr "beachd"
+
+#: models.py:62
+msgid "date/time submitted"
+msgstr "ceann-là/àm a chaidh a chur a-nall"
+
+#: models.py:63
+msgid "IP address"
+msgstr "Seòladh IP"
+
+#: models.py:64
+msgid "is public"
+msgstr "tha e poblach"
+
+#: models.py:65
+msgid ""
+"Uncheck this box to make the comment effectively disappear from the site."
+msgstr "Thoir a' chromag far a' bhogsa seo ach nach bi am beachd ri fhaicinn air an làrach tuilleadh."
+
+#: models.py:67
+msgid "is removed"
+msgstr "chaidh a thoirt air falbh"
+
+#: models.py:68
+msgid ""
+"Check this box if the comment is inappropriate. A \"This comment has been "
+"removed\" message will be displayed instead."
+msgstr "Cuir cromag sa bhogsa seo mur eil am beachd iomchaidh. Thèid teachdaireachd gun deach a thoirt air falbh a shealltainn 'na àite."
+
+#: models.py:80
+msgid "comments"
+msgstr "beachdan"
+
+#: models.py:124
+msgid ""
+"This comment was posted by an authenticated user and thus the name is read-"
+"only."
+msgstr "Chaidh am beachd seo a phostadh le cleachdaiche dearbhte agus cha ghabh an t-ainm ach leughadh."
+
+#: models.py:134
+msgid ""
+"This comment was posted by an authenticated user and thus the email is read-"
+"only."
+msgstr "Chaidh am beachd seo a phostadh le cleachdaiche dearbhte agus cha ghabh am post-d ach leughadh."
+
+#: models.py:160
+#, python-format
+msgid ""
+"Posted by %(user)s at %(date)s\n"
+"\n"
+"%(comment)s\n"
+"\n"
+"http://%(domain)s%(url)s"
+msgstr "Air a phostadh le %(user)s %(date)s\n\n%(comment)s\n\nhttp://%(domain)s%(url)s"
+
+#: models.py:179
+msgid "flag"
+msgstr "bratach"
+
+#: models.py:180
+msgid "date"
+msgstr "ceann-là"
+
+#: models.py:190
+msgid "comment flag"
+msgstr "bratach beachd"
+
+#: models.py:191
+msgid "comment flags"
+msgstr "brataich beachd"
+
+#: moderation.py:253
+#, python-format
+msgid "[%(site)s] New comment posted on \"%(object)s\""
+msgstr "[%(site)s] Chaidh beachd ùr a phostadh air \"%(object)s\""
+
+#: templates/comments/approve.html:4
+msgid "Approve a comment"
+msgstr "Aontaich ri beachd"
+
+#: templates/comments/approve.html:7
+msgid "Really make this comment public?"
+msgstr "A bheil thu airson am beachd seo fhoillseachadh?"
+
+#: templates/comments/approve.html:12
+msgid "Approve"
+msgstr "Aontaich ris"
+
+#: templates/comments/approved.html:4
+msgid "Thanks for approving"
+msgstr "Mòran taing airson aontachadh ris"
+
+#: templates/comments/approved.html:7 templates/comments/deleted.html:7
+#: templates/comments/flagged.html:7
+msgid ""
+"Thanks for taking the time to improve the quality of discussion on our site"
+msgstr "Mòran taing airson cur ri càileachd na deasbaireachd air an làrach againn"
+
+#: templates/comments/delete.html:4
+msgid "Remove a comment"
+msgstr "Thoir beachd air falbh"
+
+#: templates/comments/delete.html:7
+msgid "Really remove this comment?"
+msgstr "A bheil thu cinnteach gu bheil thu airson am beachd seo a thoirt air falbh?"
+
+#: templates/comments/delete.html:12
+msgid "Remove"
+msgstr "Thoir air falbh e"
+
+#: templates/comments/deleted.html:4
+msgid "Thanks for removing"
+msgstr "Mòran taing airson a thoirt air falbh"
+
+#: templates/comments/flag.html:4
+msgid "Flag this comment"
+msgstr "Cuir bratach ris a' bheachd seo"
+
+#: templates/comments/flag.html:7
+msgid "Really flag this comment?"
+msgstr "A bheil thu cinnteach gu bheil thu airson bratach a chur ris a' bheachd seo?"
+
+#: templates/comments/flag.html:12
+msgid "Flag"
+msgstr "Cuir bratach ris"
+
+#: templates/comments/flagged.html:4
+msgid "Thanks for flagging"
+msgstr "Mòran taing airson bratach a chur ris"
+
+#: templates/comments/form.html:17 templates/comments/preview.html:32
+msgid "Post"
+msgstr "Postaich"
+
+#: templates/comments/form.html:18 templates/comments/preview.html:33
+msgid "Preview"
+msgstr "Ro-sheall"
+
+#: templates/comments/posted.html:4
+msgid "Thanks for commenting"
+msgstr "Mòran taing airson beachd a chur a-null"
+
+#: templates/comments/posted.html:7
+msgid "Thank you for your comment"
+msgstr "Mòran taing airson do bheachd"
+
+#: templates/comments/preview.html:4 templates/comments/preview.html.py:13
+msgid "Preview your comment"
+msgstr "Ro-sheall do bheachd"
+
+#: templates/comments/preview.html:11
+msgid "Please correct the error below"
+msgid_plural "Please correct the errors below"
+msgstr[0] "Feuch an ceartaich thu a' mhearachd gu h-ìosal"
+msgstr[1] "Feuch an ceartaich thu na mearachdan gu h-ìosal"
+msgstr[2] "Feuch an ceartaich thu na mearachdan gu h-ìosal"
+msgstr[3] "Feuch an ceartaich thu na mearachdan gu h-ìosal"
+
+#: templates/comments/preview.html:16
+msgid "Post your comment"
+msgstr "Postaich do bheachd"
+
+#: templates/comments/preview.html:16
+msgid "or make changes"
+msgstr "no atharraich e"
