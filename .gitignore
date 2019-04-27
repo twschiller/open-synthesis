@@ -4,6 +4,10 @@ node_modules
 db.sqlite3
 .env
 staticfiles
+bin
+include
+lib
+share
 
 # Django artifacts
 runserver
@@ -35,3 +39,5 @@ runserver
 # NPM/Webpack
 webpack-stats.json
 assets/bundles
+
+

@@ -27,3 +27,4 @@ ratings:
 exclude_paths:
 - "openach/migrations/*"
 - "openach/tests/*"
+- "**/lib/python3.6/site-packages/future/backports/email/utils.py"
