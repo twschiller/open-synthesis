@@ -1,7 +1,7 @@
 # core dependencies
 
 beautifulsoup4==4.7.1
-celery==4.2.1
+celery==4.3.0
 dj-database-url==0.5.0
 django-allauth==0.39.1
 django-bootstrap-form==3.4
@@ -11,8 +11,8 @@ django-environ==0.4.5
 django-field-history==0.7.0
 django-invitations==1.9.2
 django-notifications-hq==1.5.0
-Django==2.1.7
-python-slugify==3.0.0
+Django==2.2.1
+python-slugify==3.0.2
 qrcode==6.1
 tldextract==2.2.1
 
@@ -20,10 +20,10 @@ tldextract==2.2.1
 # external services
 
 django-pylibmc==0.6.1
-django-sendgrid-v5==0.7.1
-psycopg2-binary==2.7.7
+django-sendgrid-v5==0.8.0
+psycopg2-binary==2.8.2
 pylibmc==1.6.0
-redis==3.2.0
+redis==3.2.1
 rollbar==0.14.7
 
 # web server
@@ -36,22 +36,22 @@ whitenoise==4.1.2
 
 django-coverage-plugin==1.6.0
 django-webpack-loader==0.6.0
-coverage==4.5.2
+coverage==4.5.3
 nplusone==1.0.0
 
 
 # indirect dependencies
 
 amqp==2.4.2
-billiard==3.5.0.4
+billiard==3.6.0.0
 blinker==1.4
-certifi==2018.11.29
+certifi==2019.3.9
 chardet==3.0.4
-defusedxml==0.5.0
+defusedxml==0.6.0
 django-model-utils==3.1.2
 idna==2.8
 jsonfield==2.0.2
-kombu==4.4.0
+kombu==4.5.0
 oauthlib==3.0.1
 python-http-client==3.1.0
 python3-openid==3.1.0
@@ -59,8 +59,8 @@ pytz==2018.9
 requests-file==1.4.3
 requests-oauthlib==1.2.0
 requests==2.21.0
-sendgrid==5.6.0
+sendgrid==6.0.5
 six==1.12.0
 Unidecode==1.0.23
-urllib3==1.24.1
-vine==1.2.0
+urllib3==1.24.2
+vine==1.3.0
