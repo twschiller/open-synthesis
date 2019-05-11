@@ -12,7 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 from celery import shared_task
 from .models import EvidenceSource
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
 logger = logging.getLogger(__name__)
