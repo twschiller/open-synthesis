@@ -38,8 +38,10 @@ class AccountManagementTests(TestCase):
     @override_settings(ACCOUNT_EMAIL_REQUIRED=True)
     def test_email_address_required(self):
         """Test that signup without email is rejected."""
-        response = self.client.post('/accounts/signup/', data={**self.valid_data, 'email': None})
-        self.assertContains(response, 'Enter a valid email address.')
+        response = self.client.post('/accounts/signup/', data={**self.valid_data, 'email': ''})
+        self.assertTemplateUsed('account/signup.html')
+        # behavior is for the form-group of the email address to have has-error and to have its help text set
+        self.assertContains(response, 'This field is required.')
 
     @override_settings(
         ACCOUNT_EMAIL_REQUIRED=True,
