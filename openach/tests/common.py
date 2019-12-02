@@ -15,7 +15,7 @@ HTTP_FORBIDDEN = 403
 HTTP_REDIRECT = 302
 
 
-def create_board(board_title, days = 0, public = True):
+def create_board(board_title, days=0, public=True):
     """Create a board with the given title and publishing date offset.
 
     :param board_title: the board title
