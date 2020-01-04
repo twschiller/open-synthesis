@@ -18,14 +18,11 @@
  */
 
 // Adapted from: https://github.com/django-notifications/django-notifications/blob/master/notifications/static/notifications/notify.js
-"use strict";
-
-var $ = require("jquery");
 
 // sessionStorage key for the last known number of unread notifications
-var NOTIFICATION_KEY = "unread_notifications";
-var NOTIFY_REFRESH_PERIOD_MILLIS = 15 * 1000;
-var MAX_RETRIES = 5;
+const NOTIFICATION_KEY = "unread_notifications";
+const NOTIFY_REFRESH_PERIOD_MILLIS = 15 * 1000;
+const MAX_RETRIES = 5;
 
 /**
  * Returns a function that queries the number of unread notifications and sets the text of badge to the number.
@@ -38,7 +35,7 @@ var MAX_RETRIES = 5;
  * @returns {Function} function that updates the unread notification count
  */
 function fetch_api_data(badge, url) {
-    var consecutiveMisfires = 0;
+    let consecutiveMisfires = 0;
     return function() {
         $.get(url, function(data){
             consecutiveMisfires = 0;
@@ -61,10 +58,10 @@ function fetch_api_data(badge, url) {
 
 // NOTE: in practice, there will only be one element that has a data-notify-api-url attribute
 $("[data-notify-api-url]").each(function(index, badge){
-    var elt = $(badge);
+    const elt = $(badge);
     setTimeout(fetch_api_data(elt, elt.data("notify-api-url")), 1000);
-    var previous = window.sessionStorage.getItem(NOTIFICATION_KEY);
-    if (previous !== null) {
+    const previous = window.sessionStorage.getItem(NOTIFICATION_KEY);
+    if (previous != null) {
         elt.text(previous);
     }
 });

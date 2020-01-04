@@ -34,4 +34,4 @@ runserver
 
 # NPM/Webpack
 webpack-stats.json
-assets/bundles
+openach-frontend/bundles

@@ -17,9 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var $ = require("jquery");
-
-require("selectize");
+import "selectize";
 
 $(document).ready(function(){
     $("#board-search").selectize({
