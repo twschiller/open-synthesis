@@ -16,21 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-"use strict";
+import "bootstrap";
+import "bootstrap-datepicker";
+import "selectize";
 
-require("jquery");
-require("bootstrap");
-require("bootstrap-datepicker");
-require("selectize");
+import "src/board_search";
+import "src/notify";
 
-require("bootstrap/dist/css/bootstrap.min.css");
-require("bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css");
-require("selectize/dist/css/selectize.css");
-require("selectize/dist/css/selectize.bootstrap3.css");
-require("../css/sharing.css");
-
-require("./board_search");
-require("./notify");
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
+import "selectize/dist/css/selectize.css";
+import "selectize/dist/css/selectize.bootstrap3.css";
+import "css/sharing.css";
+import "css/boards.css";
 
 $("form[name='switchLanguageForm']").change(function(){
     $(this).submit();

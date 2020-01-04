@@ -20,7 +20,6 @@
     {% endblock %}
 
     {% render_bundle 'main' 'css' %}
-    <link rel="stylesheet" type="text/css" href="{% static 'boards/css/style.css' %}" />
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'boards/images/favicon.ico' %}"/>
 </head>
 <body>
@@ -92,7 +91,6 @@
 </div>
 
 <div class="container">
-
     {% block content %}
     {% endblock %}
 </div> <!-- /container -->

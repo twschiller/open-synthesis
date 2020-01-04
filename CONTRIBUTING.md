@@ -54,7 +54,7 @@ Create a local environment configuration by copying the defaults in `env.sample`
         
 Package the static files for the project:
     
-    webpack --config webpack.config.js
+    webpack --config webpack.config.base.js
     python manage.py collectstatic
  
 Run the test suite to ensure your environment is properly configured:
