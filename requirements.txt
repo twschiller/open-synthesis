@@ -43,7 +43,7 @@ nplusone==1.0.0
 # indirect dependencies
 
 amqp==2.5.2
-billiard==3.6.2.0
+billiard==3.6.3.0
 blinker==1.4
 certifi==2019.11.28
 chardet==3.0.4
