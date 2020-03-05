@@ -53,7 +53,7 @@ idna==2.9
 jsonfield==3.1.0
 kombu==4.6.8
 oauthlib==3.1.0
-python-http-client==3.2.5
+python-http-client==3.2.6
 python3-openid==3.1.0
 pytz==2019.3
 requests-file==1.4.3
