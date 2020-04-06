@@ -21,7 +21,7 @@ tldextract==2.2.2
 
 django-pylibmc==0.6.1
 django-sendgrid-v5==0.8.1
-psycopg2-binary==2.8.4
+psycopg2-binary==2.8.5
 pylibmc==1.6.1
 redis==3.4.1
 rollbar==0.14.7
