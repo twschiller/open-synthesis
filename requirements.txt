@@ -36,7 +36,7 @@ whitenoise==5.0.1
 
 django-coverage-plugin==1.8.0
 django-webpack-loader==0.7.0
-coverage==5.0.4
+coverage==5.1
 nplusone==1.0.0
 
 
