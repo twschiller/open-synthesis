@@ -3,6 +3,7 @@ import datetime
 from django.contrib.auth.models import User
 from django.test import TestCase, Client
 from django.utils import timezone
+from field_history.tracker import FieldHistoryTracker
 
 from openach.models import Board, BoardFollower
 
@@ -54,6 +55,9 @@ class PrimaryUserTestCase(TestCase):
         self.client = Client()
         self.user = User.objects.create_user(USERNAME_PRIMARY, f'{USERNAME_PRIMARY}@thebeatles.com', PASSWORD)
         self.other = User.objects.create_user(USERNAME_OTHER, f'{USERNAME_OTHER}@thebeatles.com', PASSWORD)
+
+    def tearDown(self) -> None:
+        FieldHistoryTracker.thread.request = None
 
     def login(self):
         self.client.login(username=USERNAME_PRIMARY, password=PASSWORD)
