@@ -91,7 +91,7 @@ class TeamTests(PrimaryUserTestCase):
         self.assertEqual(response.status_code, HTTP_REDIRECT) # succeeded
 
         self.team.refresh_from_db()
-        self.assertEquals(self.team.description, desc)
+        self.assertEqual(self.team.description, desc)
 
 
     def test_can_create_team_post(self):
@@ -106,9 +106,9 @@ class TeamTests(PrimaryUserTestCase):
         })
         self.assertEqual(response.status_code, HTTP_REDIRECT) # succeeded
 
-        self.assertEquals(Team.objects.count(), 1)
+        self.assertEqual(Team.objects.count(), 1)
         team = Team.objects.get(name=team_name)
-        self.assertEquals(team.description, team_description)
+        self.assertEqual(team.description, team_description)
 
         self.assertTrue(team.members.filter(id=self.user.id).exists())
 
@@ -156,7 +156,7 @@ class TeamMembership(PrimaryUserTestCase):
         response = self.client.post(reverse('openach:join_team', args=(self.team.id,)))
         self.assertStatus(response, HTTP_REDIRECT)
 
-        self.assertEquals(self.other.notifications.unread().count(), 1)
+        self.assertEqual(self.other.notifications.unread().count(), 1)
 
         self.assertTrue(TeamRequest.objects.filter(invitee=self.user, team=self.team).exists())
 
@@ -199,7 +199,7 @@ class TeamMembership(PrimaryUserTestCase):
 
         self.logout()
 
-        self.assertEquals(self.other.notifications.unread().count(), 1)
+        self.assertEqual(self.other.notifications.unread().count(), 1)
 
 
     def test_can_accept_membership_request(self):
@@ -219,7 +219,7 @@ class TeamMembership(PrimaryUserTestCase):
         self.assertTrue(self.team.members.filter(id=self.other.id).exists())
         self.assertFalse(TeamRequest.objects.filter(invitee=self.other).exists())
 
-        self.assertEquals(self.other.notifications.unread().count(), 1)
+        self.assertEqual(self.other.notifications.unread().count(), 1)
 
 
     def test_can_reject_membership_request(self):
@@ -239,7 +239,7 @@ class TeamMembership(PrimaryUserTestCase):
         self.assertFalse(self.team.members.filter(id=self.other.id).exists())
         self.assertFalse(TeamRequest.objects.filter(invitee=self.other).exists())
 
-        self.assertEquals(self.other.notifications.unread().count(), 1)
+        self.assertEqual(self.other.notifications.unread().count(), 1)
 
 
     def test_can_invite_members(self):
@@ -256,7 +256,7 @@ class TeamMembership(PrimaryUserTestCase):
             'members': [self.other.id],
         })
         self.assertStatus(response, HTTP_REDIRECT)
-        self.assertEquals(TeamRequest.objects.filter(inviter=self.user, invitee=self.other, team=self.team).count(), 1)
+        self.assertEqual(TeamRequest.objects.filter(inviter=self.user, invitee=self.other, team=self.team).count(), 1)
 
 
 class TeamListingTests(PrimaryUserTestCase):

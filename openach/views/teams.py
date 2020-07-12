@@ -9,7 +9,7 @@ from django.db.models.functions import Lower
 from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_safe
 from notifications.signals import notify
 

@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 def remove_and_redirect(request, removable, message_detail):
     """Mark a model as removed and redirect the user to the associated board detail page."""

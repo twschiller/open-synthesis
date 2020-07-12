@@ -21,5 +21,5 @@ class CeleryTestCase(TestCase):
         """Test that the ``example_task`` task runs with no errors, and returns the correct result."""
         result = tasks.example_task.delay(8, 8)
 
-        self.assertEquals(result.get(), 16)
+        self.assertEqual(result.get(), 16)
         self.assertTrue(result.successful())

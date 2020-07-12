@@ -7,7 +7,7 @@ import logging
 import collections
 import math
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.template.defaulttags import register
 from django.urls import reverse  # pylint: disable=no-name-in-module
 import tldextract

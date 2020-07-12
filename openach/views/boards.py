@@ -17,7 +17,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_safe
 from field_history.models import FieldHistory
 
@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 BOARD_SEARCH_RESULTS_MAX = getattr(settings, 'BOARD_SEARCH_RESULTS_MAX', 5)
 PAGE_CACHE_TIMEOUT_SECONDS = getattr(settings, 'PAGE_CACHE_TIMEOUT_SECONDS', 60)
 DEBUG = getattr(settings, 'DEBUG', False)
+
 
 @require_safe
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)

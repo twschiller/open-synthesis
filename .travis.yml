@@ -2,8 +2,8 @@ dist: xenial
 language: python
 
 python:
-  - "3.6"
   - "3.7"
+  - "3.8"
 
 install:
   - pip install -r requirements.txt
@@ -21,8 +21,7 @@ install:
 script:
   - python manage.py collectstatic --no-input
   - python manage.py check --fail-level=WARNING
-  - python manage.py test
-  - coverage run --source='.' manage.py test
+  - pytest --cov='.'
 
 after_success:
   - coveralls

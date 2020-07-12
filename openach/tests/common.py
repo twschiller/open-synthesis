@@ -49,7 +49,7 @@ def add_follower(board):
 class PrimaryUserTestCase(TestCase):
 
     def assertStatus(self, response, expected_status):
-        self.assertEquals(response.status_code, expected_status)
+        self.assertEqual(response.status_code, expected_status)
 
     def setUp(self):
         self.client = Client()

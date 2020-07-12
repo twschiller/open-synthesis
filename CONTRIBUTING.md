@@ -15,7 +15,7 @@ We appreciate all pull requests. However, before working on an enhancement/featu
 ### Requirements
 
 To perform local development, you'll need:
-* Python 3.6
+* Python 3.7+
 * [pip](https://pip.pypa.io/en/stable/installing/)
 * [virtualenv](https://virtualenv.pypa.io/en/stable/)
 * [node](https://nodejs.org/en/download/package-manager/)
@@ -59,7 +59,7 @@ Package the static files for the project:
  
 Run the test suite to ensure your environment is properly configured:
 
-    python manage.py test
+    pytest
 
 Create the database schema, and load the initial application data:
 

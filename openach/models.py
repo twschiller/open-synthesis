@@ -14,7 +14,7 @@ from django.db import models
 from django.db.models import Q
 from django.urls import reverse, NoReverseMatch  # pylint: disable=no-name-in-module
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from field_history.tracker import FieldHistoryTracker
 from slugify import slugify
 
