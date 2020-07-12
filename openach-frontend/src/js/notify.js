@@ -35,33 +35,33 @@ const MAX_RETRIES = 5;
  * @returns {Function} function that updates the unread notification count
  */
 function fetch_api_data(badge, url) {
-    let consecutiveMisfires = 0;
-    return function() {
-        $.get(url, function(data){
-            consecutiveMisfires = 0;
-            badge.text(data.unread_count);
-            window.sessionStorage.setItem(NOTIFICATION_KEY, data.unread_count);
-        })
-        .fail(function(){
-            consecutiveMisfires++;
-        })
-        .always(function(){
-            if (consecutiveMisfires <= MAX_RETRIES) {
-                setTimeout(fetch_api_data(badge, url), NOTIFY_REFRESH_PERIOD_MILLIS);
-            } else {
-                badge.text("!");
-                badge.prop("title", "No connection to server");
-            }
-        });
-    };
+  let consecutiveMisfires = 0;
+  return function () {
+    $.get(url, function (data) {
+      consecutiveMisfires = 0;
+      badge.text(data.unread_count);
+      window.sessionStorage.setItem(NOTIFICATION_KEY, data.unread_count);
+    })
+      .fail(function () {
+        consecutiveMisfires++;
+      })
+      .always(function () {
+        if (consecutiveMisfires <= MAX_RETRIES) {
+          setTimeout(fetch_api_data(badge, url), NOTIFY_REFRESH_PERIOD_MILLIS);
+        } else {
+          badge.text("!");
+          badge.prop("title", "No connection to server");
+        }
+      });
+  };
 }
 
 // NOTE: in practice, there will only be one element that has a data-notify-api-url attribute
-$("[data-notify-api-url]").each(function(index, badge){
-    const elt = $(badge);
-    setTimeout(fetch_api_data(elt, elt.data("notify-api-url")), 1000);
-    const previous = window.sessionStorage.getItem(NOTIFICATION_KEY);
-    if (previous != null) {
-        elt.text(previous);
-    }
+$("[data-notify-api-url]").each(function (index, badge) {
+  const elt = $(badge);
+  setTimeout(fetch_api_data(elt, elt.data("notify-api-url")), 1000);
+  const previous = window.sessionStorage.getItem(NOTIFICATION_KEY);
+  if (previous != null) {
+    elt.text(previous);
+  }
 });

@@ -8,18 +8,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0013_hypothesis_submit_date'),
+        ("openach", "0013_hypothesis_submit_date"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='board',
-            name='board_desc',
+            model_name="board",
+            name="board_desc",
             field=models.CharField(max_length=255),
         ),
         migrations.AlterField(
-            model_name='evidencesource',
-            name='source_url',
+            model_name="evidencesource",
+            name="source_url",
             field=models.URLField(max_length=255),
         ),
     ]

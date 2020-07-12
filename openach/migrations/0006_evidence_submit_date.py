@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import datetime
+
 from django.db import migrations, models
 from django.utils.timezone import utc
 
@@ -10,14 +11,17 @@ from django.utils.timezone import utc
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0005_evidencesource_source_date'),
+        ("openach", "0005_evidencesource_source_date"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='evidence',
-            name='submit_date',
-            field=models.DateTimeField(default=datetime.datetime(2016, 8, 26, 17, 29, 46, 660576, tzinfo=utc), verbose_name='date added'),
+            model_name="evidence",
+            name="submit_date",
+            field=models.DateTimeField(
+                default=datetime.datetime(2016, 8, 26, 17, 29, 46, 660576, tzinfo=utc),
+                verbose_name="date added",
+            ),
             preserve_default=False,
         ),
     ]

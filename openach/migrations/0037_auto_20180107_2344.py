@@ -9,32 +9,58 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0036_defaultpermissions'),
+        ("openach", "0036_defaultpermissions"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='board',
-            options={'ordering': ('-pub_date',)},
+            name="board", options={"ordering": ("-pub_date",)},
         ),
         migrations.AddField(
-            model_name='boardpermissions',
-            name='edit_board',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Only Me'), (1, 'Collaborators'), (2, 'Registered Users'), (3, 'Public')], default=0, help_text='Who can edit the board title, description, and permissions?'),
+            model_name="boardpermissions",
+            name="edit_board",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (0, "Only Me"),
+                    (1, "Collaborators"),
+                    (2, "Registered Users"),
+                    (3, "Public"),
+                ],
+                default=0,
+                help_text="Who can edit the board title, description, and permissions?",
+            ),
         ),
         migrations.AlterField(
-            model_name='boardpermissions',
-            name='add_comments',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Only Me'), (1, 'Collaborators'), (2, 'Registered Users'), (3, 'Public')], default=1, help_text='Who can comment on the board?'),
+            model_name="boardpermissions",
+            name="add_comments",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (0, "Only Me"),
+                    (1, "Collaborators"),
+                    (2, "Registered Users"),
+                    (3, "Public"),
+                ],
+                default=1,
+                help_text="Who can comment on the board?",
+            ),
         ),
         migrations.AlterField(
-            model_name='boardpermissions',
-            name='collaborators',
+            model_name="boardpermissions",
+            name="collaborators",
             field=models.ManyToManyField(blank=True, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
-            model_name='boardpermissions',
-            name='edit_elements',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Only Me'), (1, 'Collaborators'), (2, 'Registered Users'), (3, 'Public')], default=1, help_text='Who can edit hypotheses, evidence, and sources?'),
+            model_name="boardpermissions",
+            name="edit_elements",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (0, "Only Me"),
+                    (1, "Collaborators"),
+                    (2, "Registered Users"),
+                    (3, "Public"),
+                ],
+                default=1,
+                help_text="Who can edit hypotheses, evidence, and sources?",
+            ),
         ),
     ]

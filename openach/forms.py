@@ -4,14 +4,24 @@ For more information, please see:
     - https://docs.djangoproject.com/en/1.10/topics/forms/
     - https://docs.djangoproject.com/en/1.10/topics/forms/modelforms/
 """
-
 from django import forms
 from django.db.models.functions import Lower
 from django.forms import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from .models import User, Board, BoardPermissions, Evidence, EvidenceSource, Hypothesis, UserSettings, Team, TeamRequest
-from .models import HYPOTHESIS_MAX_LENGTH
+from .models import (
+    HYPOTHESIS_MAX_LENGTH,
+    Board,
+    BoardPermissions,
+    Evidence,
+    EvidenceSource,
+    Hypothesis,
+    Team,
+    TeamRequest,
+    User,
+    UserSettings,
+)
+
 
 class BoardForm(forms.ModelForm):
     """Board form."""
@@ -20,25 +30,25 @@ class BoardForm(forms.ModelForm):
         """Form meta options."""
 
         model = Board
-        fields = ['board_title', 'board_desc']
-        widgets = {
-            'board_desc': forms.Textarea(attrs={'rows': 2})
-        }
+        fields = ["board_title", "board_desc"]
+        widgets = {"board_desc": forms.Textarea(attrs={"rows": 2})}
 
 
 class BoardCreateForm(BoardForm):
     """Board creation form where creator must specify two competing hypotheses."""
 
     hypothesis1 = forms.CharField(
-        label=_('Hypothesis #1'),
+        label=_("Hypothesis #1"),
         max_length=HYPOTHESIS_MAX_LENGTH,
-        help_text=_('A hypothesis providing a potential answer to the topic question')
+        help_text=_("A hypothesis providing a potential answer to the topic question"),
     )
 
     hypothesis2 = forms.CharField(
-        label=_('Hypothesis #2'),
+        label=_("Hypothesis #2"),
         max_length=HYPOTHESIS_MAX_LENGTH,
-        help_text=_('An alternative hypothesis providing a potential answer to the topic question')
+        help_text=_(
+            "An alternative hypothesis providing a potential answer to the topic question"
+        ),
     )
 
 
@@ -49,24 +59,39 @@ class BoardPermissionForm(forms.ModelForm):
         """Form meta options."""
 
         model = BoardPermissions
-        fields = ['read_board', 'read_comments', 'add_comments', 'add_elements', 'edit_elements', 'edit_board', 'collaborators', 'teams']
+        fields = [
+            "read_board",
+            "read_comments",
+            "add_comments",
+            "add_elements",
+            "edit_elements",
+            "edit_board",
+            "collaborators",
+            "teams",
+        ]
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
 
         # NOTE: a user who doesn't have access to a team can see the team name here if it's already a collaborator
         # on the board. In the future, might want to hide those team names here
-        team_ids = set(Team.objects.user_visible(user=user).values_list('id', flat=True)) | set(kwargs['instance'].teams.values_list('id', flat=True))
-        self.fields['teams'].queryset = Team.objects.filter(id__in=team_ids).order_by(Lower('name'))
-        self.fields['collaborators'].queryset = User.objects.all().order_by(Lower('username'))
-        self.fields['collaborators'].label = _('User Collaborators')
-        self.fields['teams'].label = _('Team Collaborators')
+        team_ids = set(
+            Team.objects.user_visible(user=user).values_list("id", flat=True)
+        ) | set(kwargs["instance"].teams.values_list("id", flat=True))
+        self.fields["teams"].queryset = Team.objects.filter(id__in=team_ids).order_by(
+            Lower("name")
+        )
+        self.fields["collaborators"].queryset = User.objects.all().order_by(
+            Lower("username")
+        )
+        self.fields["collaborators"].label = _("User Collaborators")
+        self.fields["teams"].label = _("Team Collaborators")
 
 
 def make_optional_label(field):
     """Modify label of field to indicate that the field is optional."""
     # FIXME: need to figure out how to internationalize this logic
-    field.label += ' (Optional)'
+    field.label += " (Optional)"
 
 
 class EvidenceForm(forms.ModelForm):
@@ -76,14 +101,16 @@ class EvidenceForm(forms.ModelForm):
         """Form meta options."""
 
         model = Evidence
-        fields = ['evidence_desc', 'event_date']
+        fields = ["evidence_desc", "event_date"]
         widgets = {
-            'event_date': forms.DateInput(attrs={'class': 'date', 'data-provide': 'datepicker'})
+            "event_date": forms.DateInput(
+                attrs={"class": "date", "data-provide": "datepicker"}
+            )
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        make_optional_label(self.fields['event_date'])
+        make_optional_label(self.fields["event_date"])
 
 
 class EvidenceSourceForm(forms.ModelForm):
@@ -93,10 +120,12 @@ class EvidenceSourceForm(forms.ModelForm):
         """Form meta options."""
 
         model = EvidenceSource
-        fields = ['source_url', 'source_date', 'corroborating']
+        fields = ["source_url", "source_date", "corroborating"]
         widgets = {
-            'source_date': forms.DateInput(attrs={'class': 'date', 'data-provide': 'datepicker'}),
-            'corroborating': forms.HiddenInput()
+            "source_date": forms.DateInput(
+                attrs={"class": "date", "data-provide": "datepicker"}
+            ),
+            "corroborating": forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -107,10 +136,10 @@ class EvidenceSourceForm(forms.ModelForm):
 
         :param require: whether or not the source_url and source_date fields should be required
         """
-        require = kwargs.pop('require', True)
+        require = kwargs.pop("require", True)
         super(EvidenceSourceForm, self).__init__(*args, **kwargs)
         if not require:
-            for field_name in ['source_url', 'source_date']:
+            for field_name in ["source_url", "source_date"]:
                 field = self.fields[field_name]
                 field.required = False
                 make_optional_label(field)
@@ -118,8 +147,8 @@ class EvidenceSourceForm(forms.ModelForm):
     def clean(self):
         """Validate that a date is provided if a URL is provided."""
         cleaned_data = super(EvidenceSourceForm, self).clean()
-        if cleaned_data.get('source_url') and not cleaned_data.get('source_date'):
-            raise ValidationError(_('Provide a date for the source.'), code='invalid')
+        if cleaned_data.get("source_url") and not cleaned_data.get("source_date"):
+            raise ValidationError(_("Provide a date for the source."), code="invalid")
 
 
 class HypothesisForm(forms.ModelForm):
@@ -129,7 +158,7 @@ class HypothesisForm(forms.ModelForm):
         """Form meta options."""
 
         model = Hypothesis
-        fields = ['hypothesis_text']
+        fields = ["hypothesis_text"]
 
 
 class SettingsForm(forms.ModelForm):
@@ -139,7 +168,7 @@ class SettingsForm(forms.ModelForm):
         """Form meta options."""
 
         model = UserSettings
-        fields = ['digest_frequency']
+        fields = ["digest_frequency"]
 
 
 class TeamCreateForm(forms.ModelForm):
@@ -147,7 +176,7 @@ class TeamCreateForm(forms.ModelForm):
 
     class Meta:
         model = Team
-        fields = ['name', 'description', 'url', 'public', 'invitation_required']
+        fields = ["name", "description", "url", "public", "invitation_required"]
 
 
 class TeamInviteForm(forms.Form):
@@ -158,6 +187,10 @@ class TeamInviteForm(forms.Form):
     def __init__(self, *args, team=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        member_ids = set(team.members.values_list('id', flat=True))
-        pending_ids = set(TeamRequest.objects.filter(team=team).values_list('invitee', flat=True))
-        self.fields['members'].queryset = User.objects.exclude(pk__in=member_ids | pending_ids).order_by(Lower('username'))
+        member_ids = set(team.members.values_list("id", flat=True))
+        pending_ids = set(
+            TeamRequest.objects.filter(team=team).values_list("invitee", flat=True)
+        )
+        self.fields["members"].queryset = User.objects.exclude(
+            pk__in=member_ids | pending_ids
+        ).order_by(Lower("username"))

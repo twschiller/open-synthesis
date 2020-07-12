@@ -3,17 +3,16 @@
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/howto/custom-template-tags/
 """
-import logging
 import collections
+import logging
 import math
 
-from django.utils.translation import gettext_lazy as _
+import tldextract
 from django.template.defaulttags import register
 from django.urls import reverse  # pylint: disable=no-name-in-module
-import tldextract
+from django.utils.translation import gettext_lazy as _
 
-from openach.models import Evaluation, Eval, AuthLevels
-
+from openach.models import AuthLevels, Eval, Evaluation
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -60,7 +59,7 @@ def detail_name(eval_):
     if eval_:
         return next(e[1] for e in Evaluation.EVALUATION_OPTIONS if e[0] == eval_.value)
     else:
-        return _('No Assessments')
+        return _("No Assessments")
 
 
 @register.filter
@@ -73,7 +72,7 @@ def detail_classname(eval_):
         Eval.very_inconsistent: "eval-very-inconsistent",
         Eval.very_consistent: "eval-very-consistent",
         Eval.not_applicable: "eval-not-applicable",
-        Eval.neutral: "eval-neutral"
+        Eval.neutral: "eval-neutral",
     }
     result = mapping.get(eval_)
     return result
@@ -85,13 +84,23 @@ def get_source_tags(dictionary, source_id, tag_id):
     return dictionary.get((source_id, tag_id))
 
 
-DisputeLevel = collections.namedtuple('DisputeLevel', ['max_level', 'name', 'css_class'])
+DisputeLevel = collections.namedtuple(
+    "DisputeLevel", ["max_level", "name", "css_class"]
+)
 # NOTE: the levels here need to match the levels in _detail_icons
 DISPUTE_LEVELS = [
-    DisputeLevel(max_level=0.5, name=_('Consensus'), css_class='disagree-consensus'),
-    DisputeLevel(max_level=1.5, name=_('Mild Dispute'), css_class='disagree-mild-dispute'),
-    DisputeLevel(max_level=2.0, name=_('Large Dispute'), css_class='disagree-large-dispute'),
-    DisputeLevel(max_level=math.inf, name=_('Extreme Dispute'), css_class='disagree-extreme-dispute'),
+    DisputeLevel(max_level=0.5, name=_("Consensus"), css_class="disagree-consensus"),
+    DisputeLevel(
+        max_level=1.5, name=_("Mild Dispute"), css_class="disagree-mild-dispute"
+    ),
+    DisputeLevel(
+        max_level=2.0, name=_("Large Dispute"), css_class="disagree-large-dispute"
+    ),
+    DisputeLevel(
+        max_level=math.inf,
+        name=_("Extreme Dispute"),
+        css_class="disagree-extreme-dispute",
+    ),
 ]
 
 
@@ -102,13 +111,15 @@ def _dispute_level(value):
 @register.filter
 def disagreement_category(value):
     """Return a human-readable description of the level of disagreement given by the value."""
-    return _('No Assessments') if value is None else _dispute_level(value).name
+    return _("No Assessments") if value is None else _dispute_level(value).name
 
 
 @register.filter
 def disagreement_style(value):
     """Return the CSS class name associated with the given level of disagreement."""
-    return 'disagree-no-assessments' if value is None else _dispute_level(value).css_class
+    return (
+        "disagree-no-assessments" if value is None else _dispute_level(value).css_class
+    )
 
 
 @register.simple_tag
@@ -119,29 +130,29 @@ def comparison_style(user, aggregate):
     or inconsistent CSS class. Otherwise, return the dispute style depending on the distance between the evaluations.
     """
     if user == aggregate:
-        raise ValueError('user evaluation must differ from consensus')
+        raise ValueError("user evaluation must differ from consensus")
     if user is None:
-        raise ValueError('user evaluation cannot be None')
+        raise ValueError("user evaluation cannot be None")
     if aggregate is None:
-        raise ValueError('aggregate evaluation cannot be None')
+        raise ValueError("aggregate evaluation cannot be None")
 
     diff = abs(user.value - aggregate.value)
     non_na = user.value > 0 and aggregate.value > 0
 
     if non_na and user.value < 3 and aggregate.value < 3:
-        return 'eval-inconsistent'
+        return "eval-inconsistent"
     elif non_na and user.value > 3 and aggregate.value > 3:
-        return 'eval-consistent'
+        return "eval-consistent"
     elif user.value == 0 or aggregate.value == 0:
-        return 'disagree-mild-dispute'
+        return "disagree-mild-dispute"
     elif diff >= 3:
-        return 'disagree-extreme-dispute'
+        return "disagree-extreme-dispute"
     elif diff >= 2:
-        return 'disagree-large-dispute'
+        return "disagree-large-dispute"
     elif diff >= 1:
-        return 'disagree-mild-dispute'
+        return "disagree-mild-dispute"
     else:
-        return 'disagree-consensus'
+        return "disagree-consensus"
 
 
 @register.filter
@@ -152,11 +163,11 @@ def bootstrap_alert(tags):
         https://docs.djangoproject.com/en/1.10/ref/contrib/messages/#message-tags
     """
     mapping = {
-        'debug': 'alert-info',
-        'info': 'alert-info',
-        'success': 'alert-success',
-        'warning': 'alert-warning',
-        'error': 'alert-error',
+        "debug": "alert-info",
+        "info": "alert-info",
+        "success": "alert-success",
+        "warning": "alert-warning",
+        "error": "alert-error",
     }
     return mapping[tags] if tags in mapping else tags
 
@@ -179,7 +190,7 @@ def canonical_reverse(request, url_name):
 @register.simple_tag
 def canonical_reverse_arg(request, url_name, arg):
     """Return the canonical URI for url_name with arg."""
-    return request.build_absolute_uri(reverse(url_name, args=(arg, )))
+    return request.build_absolute_uri(reverse(url_name, args=(arg,)))
 
 
 @register.filter
@@ -197,7 +208,7 @@ def canonical_url(request, model):
 @register.filter
 def canonical_profile_url(request, user):
     """Return the canonical URL of the user's public profile."""
-    return request.build_absolute_uri(reverse('profile', args=(user.id,)))
+    return request.build_absolute_uri(reverse("profile", args=(user.id,)))
 
 
 @register.simple_tag
@@ -205,7 +216,9 @@ def get_verbose_field_name(instance, field_name):
     """Return the verbose name for a field."""
     # https://stackoverflow.com/questions/14496978/fields-verbose-name-in-templates
     # _meta is a standard API in Django: https://docs.djangoproject.com/en/1.10/ref/models/meta/
-    return instance._meta.get_field(field_name).verbose_name.title()  # pylint: disable=protected-access
+    return instance._meta.get_field(
+        field_name
+    ).verbose_name.title()  # pylint: disable=protected-access
 
 
 @register.simple_tag
@@ -220,11 +233,14 @@ def url_replace(request, field, value):
 @register.filter
 def is_private(board):
     """Return True iff the board is only readable by the owner and/or collaborators."""
-    return board.permissions.read_board in [AuthLevels.board_creator.key, AuthLevels.collaborators.key]
+    return board.permissions.read_board in [
+        AuthLevels.board_creator.key,
+        AuthLevels.collaborators.key,
+    ]
 
 
 @register.filter
 def domain(url):
     """Return the domain with suffix for a URL."""
     parsed = tldextract.extract(url)
-    return parsed.domain + '.' + parsed.suffix
+    return parsed.domain + "." + parsed.suffix

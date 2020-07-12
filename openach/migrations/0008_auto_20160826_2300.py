@@ -8,18 +8,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0007_auto_20160826_1841'),
+        ("openach", "0007_auto_20160826_1841"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='evidence',
-            name='event_date',
-            field=models.DateField(null=True, verbose_name='event date'),
+            model_name="evidence",
+            name="event_date",
+            field=models.DateField(null=True, verbose_name="event date"),
         ),
         migrations.AlterField(
-            model_name='evidencesourcetag',
-            name='tag_name',
+            model_name="evidencesourcetag",
+            name="tag_name",
             field=models.CharField(max_length=64, unique=True),
         ),
     ]

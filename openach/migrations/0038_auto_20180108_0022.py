@@ -8,18 +8,36 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0037_auto_20180107_2344'),
+        ("openach", "0037_auto_20180107_2344"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='boardpermissions',
-            name='read_board',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Only Me'), (1, 'Collaborators'), (2, 'Registered Users'), (3, 'Public')], default=3, help_text='Who can view and evaluate the board?'),
+            model_name="boardpermissions",
+            name="read_board",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (0, "Only Me"),
+                    (1, "Collaborators"),
+                    (2, "Registered Users"),
+                    (3, "Public"),
+                ],
+                default=3,
+                help_text="Who can view and evaluate the board?",
+            ),
         ),
         migrations.AlterField(
-            model_name='boardpermissions',
-            name='read_comments',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Only Me'), (1, 'Collaborators'), (2, 'Registered Users'), (3, 'Public')], default=3, help_text='Who can view board comments?'),
+            model_name="boardpermissions",
+            name="read_comments",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (0, "Only Me"),
+                    (1, "Collaborators"),
+                    (2, "Registered Users"),
+                    (3, "Public"),
+                ],
+                default=3,
+                help_text="Who can view board comments?",
+            ),
         ),
     ]

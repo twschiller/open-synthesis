@@ -17,32 +17,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const path = require('path');
-const merge = require('webpack-merge');
-const common = require('./webpack.config.base.js');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const path = require("path");
+const merge = require("webpack-merge");
+const common = require("./webpack.config.base.js");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-module.exports = merge.strategy({plugins: 'prepend'})(common, {
-    mode: 'development',
-    devtool: 'inline-source-map',
-    // https://webpack.js.org/configuration/watch/
-    // https://webpack.js.org/configuration/watch/#saving-in-webstorm
-    watchOptions: {
-        ignored: /node_modules/
-    },
-    output: {
-        filename: '[name].js' ,
-        chunkFilename: '[name].bundle.js',
-    },
-    plugins: [
-        new MiniCssExtractPlugin({
-            path: path.resolve('./openach-frontend/bundles/css/'),
-            filename: 'css/[name].css',
-            chunkFilename: 'css/[id].css',
-            ignoreOrder: false, // Enable to remove warnings about conflicting order
-        }),
-    ],
-    optimization: {
-        minimize: false,
-    }
+module.exports = merge.strategy({ plugins: "prepend" })(common, {
+  mode: "development",
+  devtool: "inline-source-map",
+  // https://webpack.js.org/configuration/watch/
+  // https://webpack.js.org/configuration/watch/#saving-in-webstorm
+  watchOptions: {
+    ignored: /node_modules/,
+  },
+  output: {
+    filename: "[name].js",
+    chunkFilename: "[name].bundle.js",
+  },
+  plugins: [
+    new MiniCssExtractPlugin({
+      path: path.resolve("./openach-frontend/bundles/css/"),
+      filename: "css/[name].css",
+      chunkFilename: "css/[id].css",
+      ignoreOrder: false, // Enable to remove warnings about conflicting order
+    }),
+  ],
+  optimization: {
+    minimize: false,
+  },
 });

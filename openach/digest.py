@@ -8,10 +8,9 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .models import DigestStatus, Board, UserSettings, DigestFrequency
+from .models import Board, DigestFrequency, DigestStatus, UserSettings
 
-
-logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def notification_digest(user, start, end):
@@ -26,7 +25,9 @@ def notification_digest(user, start, end):
     :param start: the start datetime for the the digest
     :param end: the end datetime for the digest
     """
-    notifications = user.notifications.unread().filter(timestamp__gt=start, timestamp__lt=end)
+    notifications = user.notifications.unread().filter(
+        timestamp__gt=start, timestamp__lt=end
+    )
     by_target = collections.defaultdict(list)
     for notification in notifications:
         if notification.target and notification.actor.id != user.id:
@@ -38,9 +39,9 @@ def notification_digest(user, start, end):
     )
     if notifications.exists() or new_boards.exists():
         return {
-            'new_boards': new_boards,
+            "new_boards": new_boards,
             # https://code.djangoproject.com/ticket/16335
-            'notifications': dict(by_target)
+            "notifications": dict(by_target),
         }
     else:
         return None
@@ -70,19 +71,25 @@ def create_digest_email(user, digest_frequency, as_of):
     start = user_digest_start(user, digest_frequency, as_of)
     context = notification_digest(user, start, as_of)
 
-    logger.debug('Digest as of %s: %s', start, context)
+    logger.debug("Digest as of %s: %s", start, context)
 
     if context:
-        context['timestamp'] = as_of
-        context['site'] = Site.objects.get_current()
-        context['digest_frequency'] = digest_frequency.name
+        context["timestamp"] = as_of
+        context["site"] = Site.objects.get_current()
+        context["digest_frequency"] = digest_frequency.name
 
-        subject = render_to_string('boards/email/email_digest_subject.txt', context=context)
+        subject = render_to_string(
+            "boards/email/email_digest_subject.txt", context=context
+        )
         # remove superfluous line breaks
         subject = " ".join(subject.splitlines()).strip()
 
-        text_body = render_to_string('boards/email/email_digest_message.txt', context=context)
-        html_body = render_to_string('boards/email/email_digest_message.html', context=context)
+        text_body = render_to_string(
+            "boards/email/email_digest_message.txt", context=context
+        )
+        html_body = render_to_string(
+            "boards/email/email_digest_message.html", context=context
+        )
 
         email = EmailMultiAlternatives(subject=subject, body=text_body, to=[user.email])
         email.attach_alternative(html_body, "text/html")
@@ -101,10 +108,14 @@ def send_digest_emails(digest_frequency):
 
     timestamp = timezone.now()
     subscribers = [
-        u.user for u in
-        UserSettings.objects.filter(digest_frequency=digest_frequency.key).select_related('user')
+        u.user
+        for u in UserSettings.objects.filter(
+            digest_frequency=digest_frequency.key
+        ).select_related("user")
     ]
-    emails = [(u, create_digest_email(u, digest_frequency, timestamp)) for u in subscribers]
+    emails = [
+        (u, create_digest_email(u, digest_frequency, timestamp)) for u in subscribers
+    ]
 
     succeeded = 0
     skipped = 0
@@ -115,20 +126,20 @@ def send_digest_emails(digest_frequency):
             if email:
                 try:
                     email.send()
-                    DigestStatus.objects.update_or_create(user=user, defaults={
-                        'last_success': timestamp,
-                        'last_attempt': timestamp
-                    })
-                    logger.debug('Sent digest email to %s', user)
+                    DigestStatus.objects.update_or_create(
+                        user=user,
+                        defaults={"last_success": timestamp, "last_attempt": timestamp},
+                    )
+                    logger.debug("Sent digest email to %s", user)
                     succeeded += 1
                 except Exception as ex:
-                    logger.error('Error sending digest to %s', user, exc_info=ex)
-                    DigestStatus.objects.update_or_create(user=user, defaults={
-                        'last_attempt': timestamp
-                    })
+                    logger.error("Error sending digest to %s", user, exc_info=ex)
+                    DigestStatus.objects.update_or_create(
+                        user=user, defaults={"last_attempt": timestamp}
+                    )
                     failed += 1
             else:
-                logger.debug('User %s has no new updates for digest', user)
+                logger.debug("User %s has no new updates for digest", user)
                 skipped += 1
 
     return succeeded, skipped, failed

@@ -8,7 +8,10 @@ def partition(pred, iterable):
     # NOTE: this might iterate over the collection twice
     # NOTE: need to use filter(s) here because we're lazily dealing with iterators
     it1, it2 = itertools.tee(iterable)
-    return itertools.filterfalse(pred, it1), filter(pred, it2)  # pylint: disable=bad-builtin
+    return (
+        itertools.filterfalse(pred, it1),
+        filter(pred, it2),
+    )  # pylint: disable=bad-builtin
 
 
 def first_occurrences(iterable):

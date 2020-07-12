@@ -8,13 +8,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0021_usersettings'),
+        ("openach", "0021_usersettings"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='usersettings',
-            name='digest_frequency',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Never'), (1, 'Daily'), (2, 'Weekly')], default=1, verbose_name='email digest frequency'),
+            model_name="usersettings",
+            name="digest_frequency",
+            field=models.PositiveSmallIntegerField(
+                choices=[(0, "Never"), (1, "Daily"), (2, "Weekly")],
+                default=1,
+                verbose_name="email digest frequency",
+            ),
         ),
     ]

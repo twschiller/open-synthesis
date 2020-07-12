@@ -8,54 +8,52 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0014_auto_20160908_1915'),
+        ("openach", "0014_auto_20160908_1915"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='evidence',
-            options={'verbose_name_plural': 'evidence'},
+            name="evidence", options={"verbose_name_plural": "evidence"},
         ),
         migrations.AlterModelOptions(
-            name='hypothesis',
-            options={'verbose_name_plural': 'hypotheses'},
+            name="hypothesis", options={"verbose_name_plural": "hypotheses"},
         ),
         migrations.AddField(
-            model_name='board',
-            name='removed',
+            model_name="board",
+            name="removed",
             field=models.BooleanField(default=False),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='evidence',
-            name='removed',
+            model_name="evidence",
+            name="removed",
             field=models.BooleanField(default=False),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='hypothesis',
-            name='removed',
+            model_name="hypothesis",
+            name="removed",
             field=models.BooleanField(default=False),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='board',
-            name='board_desc',
-            field=models.CharField(max_length=255, verbose_name='board description'),
+            model_name="board",
+            name="board_desc",
+            field=models.CharField(max_length=255, verbose_name="board description"),
         ),
         migrations.AlterField(
-            model_name='evidence',
-            name='event_date',
-            field=models.DateField(null=True, verbose_name='evidence event date'),
+            model_name="evidence",
+            name="event_date",
+            field=models.DateField(null=True, verbose_name="evidence event date"),
         ),
         migrations.AlterField(
-            model_name='evidence',
-            name='evidence_desc',
-            field=models.CharField(max_length=200, verbose_name='evidence description'),
+            model_name="evidence",
+            name="evidence_desc",
+            field=models.CharField(max_length=200, verbose_name="evidence description"),
         ),
         migrations.AlterField(
-            model_name='hypothesis',
-            name='hypothesis_text',
-            field=models.CharField(max_length=200, verbose_name='hypothesis'),
+            model_name="hypothesis",
+            name="hypothesis_text",
+            field=models.CharField(max_length=200, verbose_name="hypothesis"),
         ),
     ]

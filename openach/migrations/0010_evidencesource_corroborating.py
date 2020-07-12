@@ -8,13 +8,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0009_projectnews'),
+        ("openach", "0009_projectnews"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='evidencesource',
-            name='corroborating',
+            model_name="evidencesource",
+            name="corroborating",
             field=models.BooleanField(default=True),
             preserve_default=False,
         ),

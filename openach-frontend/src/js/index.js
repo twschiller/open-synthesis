@@ -30,8 +30,8 @@ import "selectize/dist/css/selectize.bootstrap3.css";
 import "css/sharing.css";
 import "css/boards.css";
 
-$("form[name='switchLanguageForm']").change(function(){
-    $(this).submit();
+$("form[name='switchLanguageForm']").change(function () {
+  $(this).submit();
 });
 
 $(".selectize").selectize();

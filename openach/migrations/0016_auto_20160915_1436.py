@@ -8,28 +8,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0015_auto_20160915_1402'),
+        ("openach", "0015_auto_20160915_1402"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='evidencesource',
-            name='removed',
+            model_name="evidencesource",
+            name="removed",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='board',
-            name='removed',
+            model_name="board",
+            name="removed",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='evidence',
-            name='removed',
+            model_name="evidence",
+            name="removed",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='hypothesis',
-            name='removed',
+            model_name="hypothesis",
+            name="removed",
             field=models.BooleanField(default=False),
         ),
     ]

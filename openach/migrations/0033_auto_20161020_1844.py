@@ -8,31 +8,36 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0032_merge_20161020_1841'),
+        ("openach", "0032_merge_20161020_1841"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='evidencesource',
-            name='source_url_description',
+            model_name="evidencesource", name="source_url_description",
         ),
-        migrations.RemoveField(
-            model_name='evidencesource',
-            name='source_url_title',
+        migrations.RemoveField(model_name="evidencesource", name="source_url_title",),
+        migrations.AddField(
+            model_name="evidencesource",
+            name="source_description",
+            field=models.CharField(
+                default="", max_length=1000, verbose_name="source description"
+            ),
         ),
         migrations.AddField(
-            model_name='evidencesource',
-            name='source_description',
-            field=models.CharField(default='', max_length=1000, verbose_name='source description'),
-        ),
-        migrations.AddField(
-            model_name='evidencesource',
-            name='source_title',
-            field=models.CharField(default='', max_length=255, verbose_name='source title'),
+            model_name="evidencesource",
+            name="source_title",
+            field=models.CharField(
+                default="", max_length=255, verbose_name="source title"
+            ),
         ),
         migrations.AlterField(
-            model_name='usersettings',
-            name='digest_frequency',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Never'), (1, 'Daily'), (2, 'Weekly')], default=1, help_text='How frequently to receive email updates containing new notifications', verbose_name='email digest frequency'),
+            model_name="usersettings",
+            name="digest_frequency",
+            field=models.PositiveSmallIntegerField(
+                choices=[(0, "Never"), (1, "Daily"), (2, "Weekly")],
+                default=1,
+                help_text="How frequently to receive email updates containing new notifications",
+                verbose_name="email digest frequency",
+            ),
         ),
     ]

@@ -1,14 +1,13 @@
 """Analysis of Competing Hypotheses Board Metrics."""
-import statistics
 import collections
-import logging
 import itertools
+import logging
+import statistics
 
 from django.contrib.auth.models import AnonymousUser
 
-from .models import Eval, Hypothesis, Evidence, Evaluation, Board
-from .util import partition, first_occurrences
-
+from .models import Board, Eval, Evaluation, Evidence, Hypothesis
+from .util import first_occurrences, partition
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -20,8 +19,15 @@ def mean_na_neutral_vote(evaluations):
     """
     # NOTE: 'map' preferred to list comprehension here because the predicate is complicated
     def _replace_na(eval_):
-        return eval_.value if (eval_ and eval_ is not Eval.not_applicable) else Eval.neutral.value
-    return statistics.mean(map(_replace_na, evaluations)) if evaluations else None  # pylint: disable=bad-builtin
+        return (
+            eval_.value
+            if (eval_ and eval_ is not Eval.not_applicable)
+            else Eval.neutral.value
+        )
+
+    return (
+        statistics.mean(map(_replace_na, evaluations)) if evaluations else None
+    )  # pylint: disable=bad-builtin
 
 
 def calc_disagreement(evaluations):
@@ -41,11 +47,13 @@ def calc_disagreement(evaluations):
         na_disagreement = (
             statistics.stdev(([0] * len(na_votes)) + ([1] * len(rated_votes)))
             if len(na_votes) + len(rated_votes) > 1
-            else 0.0)
+            else 0.0
+        )
         rated_disagreement = (
             statistics.stdev([v.value for v in rated_votes])
             if len(rated_votes) > 1
-            else 0.0)
+            else 0.0
+        )
         return max(na_disagreement, rated_disagreement)
     else:
         return None
@@ -85,7 +93,11 @@ def inconsistency(evaluations):
     # hypotheses can be considered more consistent just because there's less evidence that applies to it.
     # NOTE: could potentially speed up calculation be eliminating list comprehension before the sum
     na_neutral = map(mean_na_neutral_vote, evaluations)  # pylint: disable=bad-builtin
-    return sum((Eval.neutral.value - val)**2 for val in na_neutral if val is not None and val < Eval.neutral.value)
+    return sum(
+        (Eval.neutral.value - val) ** 2
+        for val in na_neutral
+        if val is not None and val < Eval.neutral.value
+    )
 
 
 def consistency(evaluations):
@@ -94,12 +106,16 @@ def consistency(evaluations):
     Calculation does not account for the reliability of the evidence (e.g., due to deception).
     """
     na_neutral = map(mean_na_neutral_vote, evaluations)  # pylint: disable=bad-builtin
-    return sum((val - Eval.neutral.value)**2 for val in na_neutral if val is not None and val > Eval.neutral.value)
+    return sum(
+        (val - Eval.neutral.value) ** 2
+        for val in na_neutral
+        if val is not None and val > Eval.neutral.value
+    )
 
 
 def _proportion_value(evaluations, eval_):
     """Return proportion of evaluations where consensus is eval_."""
-    consensuses = map(aggregate_vote, evaluations)   # pylint: disable=bad-builtin
+    consensuses = map(aggregate_vote, evaluations)  # pylint: disable=bad-builtin
     na, other = partition(eval_.__ne__, consensuses)
     na = list(na)
     other = list(other)
@@ -147,7 +163,9 @@ def diagnosticity(evaluations):
     #     much because we're comparing across hypothesis sets of the same size)
     na_neutral = map(mean_na_neutral_vote, evaluations)  # pylint: disable=bad-builtin
     try:
-        return statistics.pstdev(filter(None.__ne__, na_neutral))  # pylint: disable=bad-builtin
+        return statistics.pstdev(
+            filter(None.__ne__, na_neutral)
+        )  # pylint: disable=bad-builtin
     except statistics.StatisticsError:
         return 0.0
 
@@ -161,7 +179,7 @@ def evidence_sort_key(evaluations):
     return (
         -diagnosticity(evaluations),
         proportion_na(evaluations),
-        proportion_unevaluated(evaluations)
+        proportion_unevaluated(evaluations),
     )
 
 
@@ -206,11 +224,20 @@ def user_boards_contributed(user, include_removed=False, viewing_user=AnonymousU
     def _boards(class_):
         models = (
             class_.objects.filter(creator=user)
-            .order_by('-submit_date')
-            .select_related('board', 'board__permissions')
+            .order_by("-submit_date")
+            .select_related("board", "board__permissions")
         )
-        return [(x.submit_date, x.board) for x in models if include_removed or not x.board.removed]
-    contributions = sorted(itertools.chain(_boards(Evidence), _boards(Hypothesis)), key=lambda x: x[0], reverse=True)
+        return [
+            (x.submit_date, x.board)
+            for x in models
+            if include_removed or not x.board.removed
+        ]
+
+    contributions = sorted(
+        itertools.chain(_boards(Evidence), _boards(Hypothesis)),
+        key=lambda x: x[0],
+        reverse=True,
+    )
     boards = [
         board
         for date, board in contributions
@@ -226,10 +253,10 @@ def user_boards_evaluated(user, include_removed=False, viewing_user=AnonymousUse
     :param include_removed: True iff boards that have been removed should be included in the result
     :param viewing_user: user for calculating permissions
     """
-    evaluations = Evaluation.objects.filter(user=user).order_by('-timestamp')
+    evaluations = Evaluation.objects.filter(user=user).order_by("-timestamp")
     boards = [
         e.board
-        for e in evaluations.select_related('board', 'board__permissions')
+        for e in evaluations.select_related("board", "board__permissions")
         if (include_removed or not e.board.removed) and e.board.can_read(viewing_user)
     ]
     return first_occurrences(boards)

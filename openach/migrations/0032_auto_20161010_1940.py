@@ -8,18 +8,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0031_auto_20161004_1651'),
+        ("openach", "0031_auto_20161004_1651"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='board',
-            name='board_desc',
-            field=models.CharField(db_index=True, help_text='A description providing context around the topic. Helps to clarify which hypotheses and evidence are relevant', max_length=255, verbose_name='board description'),
+            model_name="board",
+            name="board_desc",
+            field=models.CharField(
+                db_index=True,
+                help_text="A description providing context around the topic. Helps to clarify which hypotheses and evidence are relevant",
+                max_length=255,
+                verbose_name="board description",
+            ),
         ),
         migrations.AlterField(
-            model_name='board',
-            name='board_title',
-            field=models.CharField(db_index=True, help_text='The board title. Typically phrased as a question asking about what happened in the past, what is happening currently, or what will happen in the future', max_length=200),
+            model_name="board",
+            name="board_title",
+            field=models.CharField(
+                db_index=True,
+                help_text="The board title. Typically phrased as a question asking about what happened in the past, what is happening currently, or what will happen in the future",
+                max_length=200,
+            ),
         ),
     ]

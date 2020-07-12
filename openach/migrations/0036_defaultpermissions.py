@@ -14,7 +14,7 @@ def forwards_func(apps, schema_editor):
 
     default_read = (
         AuthLevels.registered.key
-        if getattr(settings, 'ACCOUNT_REQUIRED', True)
+        if getattr(settings, "ACCOUNT_REQUIRED", True)
         else AuthLevels.anyone.key
     )
 
@@ -26,7 +26,7 @@ def forwards_func(apps, schema_editor):
                 read_comments=default_read,
                 add_comments=AuthLevels.collaborators.key,
                 add_elements=AuthLevels.collaborators.key,
-                edit_elements=AuthLevels.collaborators.key
+                edit_elements=AuthLevels.collaborators.key,
             )
 
 
@@ -40,7 +40,7 @@ def reverse_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0035_boardpermissions'),
+        ("openach", "0035_boardpermissions"),
     ]
 
     operations = [

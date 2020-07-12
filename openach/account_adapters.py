@@ -16,7 +16,9 @@ class InvitationsAdapter(DefaultAccountAdapter):
 
     def is_open_for_signup(self, request):
         """Return True if site is not invitation only, or if the user accessed the signup from an invitation."""
-        if hasattr(request, 'session') and request.session.get('account_verified_email'):
+        if hasattr(request, "session") and request.session.get(
+            "account_verified_email"
+        ):
             return True
         elif app_settings.INVITATION_ONLY is True:
             # site is ONLY open for invites

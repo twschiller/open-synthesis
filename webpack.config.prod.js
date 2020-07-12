@@ -17,28 +17,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const path = require('path');
-const merge = require('webpack-merge');
-const common = require('./webpack.config.base.js');
-const TerserJSPlugin = require('terser-webpack-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const path = require("path");
+const merge = require("webpack-merge");
+const common = require("./webpack.config.base.js");
+const TerserJSPlugin = require("terser-webpack-plugin");
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-module.exports = merge.strategy({plugins: 'prepend'})(common, {
-    mode: 'production',
-    optimization: {
-        minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],
-    },
-    output: {
-        filename: "[name]-[hash].js",
-        chunkFilename: '[name]-[hash].bundle.js',
-    },
-    plugins: [
-        new MiniCssExtractPlugin({
-            path: path.resolve('./interview-frontend/bundles/css/'),
-            filename: 'css/[name].[hash].css',
-            chunkFilename: 'css/[id].[hash].css',
-            ignoreOrder: false, // Enable to remove warnings about conflicting order
-        }),
-    ]
+module.exports = merge.strategy({ plugins: "prepend" })(common, {
+  mode: "production",
+  optimization: {
+    minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],
+  },
+  output: {
+    filename: "[name]-[hash].js",
+    chunkFilename: "[name]-[hash].bundle.js",
+  },
+  plugins: [
+    new MiniCssExtractPlugin({
+      path: path.resolve("./interview-frontend/bundles/css/"),
+      filename: "css/[name].[hash].css",
+      chunkFilename: "css/[id].[hash].css",
+      ignoreOrder: false, // Enable to remove warnings about conflicting order
+    }),
+  ],
 });

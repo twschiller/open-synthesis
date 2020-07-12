@@ -19,69 +19,69 @@
 const path = require("path");
 const webpack = require("webpack");
 const BundleTracker = require("webpack-bundle-tracker");
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
-    context: __dirname,
-    entry: path.resolve(__dirname, "openach-frontend/src/js/index.js"),
-    output: {
-        publicPath: '/static/',
-        path: path.resolve("./openach-frontend/bundles/"),
-        filename: "[name]-[hash].js"
+  context: __dirname,
+  entry: path.resolve(__dirname, "openach-frontend/src/js/index.js"),
+  output: {
+    publicPath: "/static/",
+    path: path.resolve("./openach-frontend/bundles/"),
+    filename: "[name]-[hash].js",
+  },
+  resolve: {
+    alias: {
+      css: path.resolve(__dirname, "openach-frontend/src/css/"),
+      src: path.resolve(__dirname, "openach-frontend/src/js/"),
     },
-    resolve: {
-        alias: {
-            css: path.resolve(__dirname, 'openach-frontend/src/css/'),
-            src: path.resolve(__dirname, 'openach-frontend/src/js/'),
-        },
-    },
-    plugins: [
-        new BundleTracker({filename: "./webpack-stats.json"}),
-        // https://webpack.github.io/docs/list-of-plugins.html#provideplugin
-        new webpack.ProvidePlugin({
-            $: "jquery",
-            jQuery: "jquery"
-        }),
-    ],
-    module: {
-        rules: [
-            {
-                test: /\.css$/,
-                use: [
-                    {
-                        loader: MiniCssExtractPlugin.loader,
-                        options: {
-                            // you can specify a publicPath here
-                            // by default it uses publicPath in webpackOptions.output
-                            publicPath: '../',
-                            hmr: process.env.NODE_ENV === 'development',
-                        },
-                    },
-                    'css-loader',
-                ],
+  },
+  plugins: [
+    new BundleTracker({ filename: "./webpack-stats.json" }),
+    // https://webpack.github.io/docs/list-of-plugins.html#provideplugin
+    new webpack.ProvidePlugin({
+      $: "jquery",
+      jQuery: "jquery",
+    }),
+  ],
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              // you can specify a publicPath here
+              // by default it uses publicPath in webpackOptions.output
+              publicPath: "../",
+              hmr: process.env.NODE_ENV === "development",
             },
-            {
-                test: /\.m?js$/,
-                exclude: /(node_modules|bower_components)/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['@babel/preset-env']
-                    }
-                }
-            },
-            {
-                test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
-                use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: '[name].[ext]',
-                            outputPath: 'fonts/'
-                        }
-                    }
-                ]
-            },
+          },
+          "css-loader",
         ],
-    },
+      },
+      {
+        test: /\.m?js$/,
+        exclude: /(node_modules|bower_components)/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env"],
+          },
+        },
+      },
+      {
+        test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: "[name].[ext]",
+              outputPath: "fonts/",
+            },
+          },
+        ],
+      },
+    ],
+  },
 };

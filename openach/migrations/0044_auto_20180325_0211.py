@@ -10,12 +10,11 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('openach', '0043_auto_20180113_0323'),
+        ("openach", "0043_auto_20180113_0323"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='teamrequest',
-            unique_together=set([('team', 'inviter', 'invitee')]),
+            name="teamrequest", unique_together=set([("team", "inviter", "invitee")]),
         ),
     ]

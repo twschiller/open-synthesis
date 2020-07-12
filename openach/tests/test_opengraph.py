@@ -1,8 +1,9 @@
+from unittest.mock import PropertyMock, patch
+
 from django.utils import timezone
-from unittest.mock import patch, PropertyMock
 
 from openach.models import Evidence, EvidenceSource
-from openach.tasks import parse_metadata, fetch_source_metadata
+from openach.tasks import fetch_source_metadata, parse_metadata
 
 from .common import PrimaryUserTestCase, create_board
 
@@ -24,8 +25,8 @@ class SourceMetadataTestCase(PrimaryUserTestCase):
             </html>
         """
         metadata = parse_metadata(html)
-        self.assertEqual(metadata['title'], 'OG title')
-        self.assertEqual(metadata['description'], 'OG description')
+        self.assertEqual(metadata["title"], "OG title")
+        self.assertEqual(metadata["description"], "OG description")
 
     def test_parse_html_metadata(self):
         """Test that ``parse_metadata`` falls back to html5 metadata."""
@@ -39,8 +40,8 @@ class SourceMetadataTestCase(PrimaryUserTestCase):
             </html>
         """
         metadata = parse_metadata(html)
-        self.assertEqual(metadata['title'], 'HTML title')
-        self.assertEqual(metadata['description'], 'HTML description')
+        self.assertEqual(metadata["title"], "HTML title")
+        self.assertEqual(metadata["description"], "HTML description")
 
     def test_empty_metadata(self):
         """Test that ``parse_metadata`` doesn't crash on empty metadata."""
@@ -51,27 +52,29 @@ class SourceMetadataTestCase(PrimaryUserTestCase):
             </html>
         """
         metadata = parse_metadata(html)
-        self.assertEqual(metadata.get('title', ''), '')
-        self.assertEqual(metadata.get('description', ''), '')
+        self.assertEqual(metadata.get("title", ""), "")
+        self.assertEqual(metadata.get("description", ""), "")
 
     def test_fetch_source_metadata(self):
         """Test that ``fetch_source_metadata updates the source metadata"""
-        board = create_board('Example Board', days=-1)
+        board = create_board("Example Board", days=-1)
         evidence = Evidence.objects.create(
-            board=board,
-            evidence_desc='Example Evidence',
+            board=board, evidence_desc="Example Evidence",
         )
         source = EvidenceSource.objects.create(
             evidence=evidence,
-            source_url='http://www.example.com/index.html',
+            source_url="http://www.example.com/index.html",
             source_date=timezone.now(),
             corroborating=True,
             uploader=self.user,
         )
 
-        with patch('openach.tasks.requests.session') as session_mock:
-            type(session_mock().get.return_value).status_code = PropertyMock(return_value=200)
-            type(session_mock().get.return_value).text = PropertyMock(return_value="""
+        with patch("openach.tasks.requests.session") as session_mock:
+            type(session_mock().get.return_value).status_code = PropertyMock(
+                return_value=200
+            )
+            type(session_mock().get.return_value).text = PropertyMock(
+                return_value="""
                 <html>
                     <head>
                         <meta property="og:title" content="OG title">
@@ -79,9 +82,10 @@ class SourceMetadataTestCase(PrimaryUserTestCase):
                     </head>
                     <body></body>
                 </html>
-            """)
+            """
+            )
             fetch_source_metadata.delay(source.id)
 
         result = EvidenceSource.objects.get(pk=source.id)
-        self.assertEqual(result.source_title, 'OG title')
-        self.assertEqual(result.source_description, 'OG description')
+        self.assertEqual(result.source_title, "OG title")
+        self.assertEqual(result.source_description, "OG description")

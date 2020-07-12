@@ -19,33 +19,33 @@
 
 import "selectize";
 
-$(document).ready(function(){
-    $("#board-search").selectize({
-        valueField: "url",
-        labelField: "board_title",
-        searchField: ["board_title", "board_desc"],
-        maxItems: 1,
-        create: false,
-        render: {
-            option: function(item){
-                return "<div>"+ item.board_title + "</div>";
-            }
+$(document).ready(function () {
+  $("#board-search").selectize({
+    valueField: "url",
+    labelField: "board_title",
+    searchField: ["board_title", "board_desc"],
+    maxItems: 1,
+    create: false,
+    render: {
+      option: function (item) {
+        return "<div>" + item.board_title + "</div>";
+      },
+    },
+    load: function (query, callback) {
+      if (!query.length) return callback();
+      $.ajax({
+        url: "/api/boards/?query=" + query,
+        type: "GET",
+        error: function () {
+          callback();
         },
-        load: function(query, callback){
-            if(!query.length) return callback();
-            $.ajax({
-                url: "/api/boards/?query="+query,
-                type: "GET",
-                error: function(){
-                    callback();
-                },
-                success: function(data){
-                    callback(data);
-                }
-            });
+        success: function (data) {
+          callback(data);
         },
-        onItemAdd: function(value){
-            window.location.href = value;
-        }
-    });
+      });
+    },
+    onItemAdd: function (value) {
+      window.location.href = value;
+    },
+  });
 });

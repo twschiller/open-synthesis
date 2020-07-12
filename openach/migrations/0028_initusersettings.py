@@ -24,8 +24,8 @@ def reverse_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0027_auto_20160924_2043'),
-        ('auth', '0008_alter_user_username_max_length'),
+        ("openach", "0027_auto_20160924_2043"),
+        ("auth", "0008_alter_user_username_max_length"),
     ]
 
     operations = [

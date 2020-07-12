@@ -8,13 +8,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0011_board_board_slug'),
+        ("openach", "0011_board_board_slug"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='board',
-            name='board_slug',
+            model_name="board",
+            name="board_slug",
             field=models.SlugField(max_length=72, null=True),
         ),
     ]

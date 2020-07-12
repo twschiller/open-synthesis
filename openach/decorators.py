@@ -1,19 +1,21 @@
 """Analysis of Competing Hypotheses View Decorators for managing caching and authorization."""
 from functools import wraps
 
-from django.views.decorators.cache import cache_page
-from django.contrib.auth.decorators import user_passes_test, REDIRECT_FIELD_NAME
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import REDIRECT_FIELD_NAME, user_passes_test
+from django.views.decorators.cache import cache_page
 
 
-def account_required(func=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
+def account_required(
+    func=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None
+):
     """Require that the (1) the user is logged in, or (2) that an account is not required to view the page.
 
     If the user fails the test, redirect the user to the log-in page. See also
     django.contrib.auth.decorators.login_required
     """
-    req = getattr(settings, 'ACCOUNT_REQUIRED', False)
+    req = getattr(settings, "ACCOUNT_REQUIRED", False)
     actual_decorator = user_passes_test(
         lambda u: not req or u.is_authenticated,
         login_url=login_url,
@@ -34,8 +36,12 @@ def cache_on_auth(timeout):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
             key_prefix = "_auth_%s_" % request.user.is_authenticated
-            return cache_page(timeout, key_prefix=key_prefix)(view_func)(request, *args, **kwargs)
+            return cache_page(timeout, key_prefix=key_prefix)(view_func)(
+                request, *args, **kwargs
+            )
+
         return _wrapped_view
+
     return _decorator
 
 
@@ -49,5 +55,7 @@ def cache_if_anon(timeout):
                 return view_func(request, *args, **kwargs)
             else:
                 return cache_page(timeout)(view_func)(request, *args, **kwargs)
+
         return _wrapped_view
+
     return _decorator

@@ -1,13 +1,21 @@
 from django.test import TestCase
 
-from openach.metrics import hypothesis_sort_key, evidence_sort_key
-from openach.metrics import inconsistency, consistency, proportion_na, proportion_unevaluated
-from openach.metrics import mean_na_neutral_vote, aggregate_vote, diagnosticity, calc_disagreement
+from openach.metrics import (
+    aggregate_vote,
+    calc_disagreement,
+    consistency,
+    diagnosticity,
+    evidence_sort_key,
+    hypothesis_sort_key,
+    inconsistency,
+    mean_na_neutral_vote,
+    proportion_na,
+    proportion_unevaluated,
+)
 from openach.models import Eval
 
 
 class ConsensusTests(TestCase):
-
     def test_no_votes_has_no_consensus(self):
         """Test that aggregate_vote() returns None if no votes have been cast."""
         self.assertIsNone(aggregate_vote([]))
@@ -28,16 +36,25 @@ class ConsensusTests(TestCase):
 
     def test_round_toward_neutral(self):
         """Test that consensus_vote() rounds the vote toward a neutral assessment."""
-        self.assertEqual(aggregate_vote([Eval.consistent, Eval.very_consistent]), Eval.consistent)
-        self.assertEqual(aggregate_vote([Eval.inconsistent, Eval.very_inconsistent]), Eval.inconsistent)
+        self.assertEqual(
+            aggregate_vote([Eval.consistent, Eval.very_consistent]), Eval.consistent
+        )
+        self.assertEqual(
+            aggregate_vote([Eval.inconsistent, Eval.very_inconsistent]),
+            Eval.inconsistent,
+        )
 
 
 class EvidenceOrderingTests(TestCase):
-
     def test_mean_na_neutral_vote_maps_na_votes(self):
         """Test that mean_na_neutral_vote() maps N/A votes to neutral."""
-        self.assertEqual(mean_na_neutral_vote([Eval.not_applicable]), Eval.neutral.value)
-        self.assertEqual(mean_na_neutral_vote([Eval.not_applicable, Eval.very_inconsistent]), Eval.inconsistent.value)
+        self.assertEqual(
+            mean_na_neutral_vote([Eval.not_applicable]), Eval.neutral.value
+        )
+        self.assertEqual(
+            mean_na_neutral_vote([Eval.not_applicable, Eval.very_inconsistent]),
+            Eval.inconsistent.value,
+        )
 
     def test_mean_na_neutral_vote_only_maps_na_votes(self):
         """Test that mean_na_neutral_vote() does not map values other than N/A."""
@@ -68,7 +85,7 @@ class EvidenceOrderingTests(TestCase):
             [[], []],
             [[Eval.neutral], []],
             [[Eval.neutral], [Eval.neutral]],
-            [[Eval.very_consistent], [Eval.very_inconsistent]]
+            [[Eval.very_consistent], [Eval.very_inconsistent]],
         ]
         in_order = sorted(evidence_reverse, key=evidence_sort_key)
         evidence_reverse.reverse()  # reverse in place
@@ -76,7 +93,6 @@ class EvidenceOrderingTests(TestCase):
 
 
 class HypothesisOrderingTests(TestCase):
-
     def test_no_evidence_has_zero_inconsistency(self):
         """Test that inconsistency() returns 0.0 when there is no evidence."""
         self.assertEqual(inconsistency([]), 0.0)
@@ -106,9 +122,30 @@ class HypothesisOrderingTests(TestCase):
         (2) a hypothesis with a very inconsistent rating is more inconsistent than a hypothesis with not just
         inconsistent ratings
         """
-        h1 = inconsistency([[Eval.very_consistent], [Eval.not_applicable], [Eval.inconsistent], [Eval.inconsistent]])
-        h2 = inconsistency([[Eval.inconsistent], [Eval.inconsistent], [Eval.neutral], [Eval.inconsistent]])
-        h3 = inconsistency([[Eval.neutral], [Eval.not_applicable], [Eval.very_consistent], [Eval.very_inconsistent]])
+        h1 = inconsistency(
+            [
+                [Eval.very_consistent],
+                [Eval.not_applicable],
+                [Eval.inconsistent],
+                [Eval.inconsistent],
+            ]
+        )
+        h2 = inconsistency(
+            [
+                [Eval.inconsistent],
+                [Eval.inconsistent],
+                [Eval.neutral],
+                [Eval.inconsistent],
+            ]
+        )
+        h3 = inconsistency(
+            [
+                [Eval.neutral],
+                [Eval.not_applicable],
+                [Eval.very_consistent],
+                [Eval.very_inconsistent],
+            ]
+        )
         self.assertLess(h1, h2)
         self.assertLess(h2, h3)
 
@@ -117,7 +154,9 @@ class HypothesisOrderingTests(TestCase):
         self.assertEqual(proportion_na([]), 0.0)
         self.assertEqual(proportion_na([[Eval.not_applicable]]), 1.0)
         self.assertEqual(proportion_na([[Eval.neutral]]), 0.0)
-        self.assertEqual(proportion_na([[Eval.not_applicable], [Eval.not_applicable]]), 1.0)
+        self.assertEqual(
+            proportion_na([[Eval.not_applicable], [Eval.not_applicable]]), 1.0
+        )
         self.assertEqual(proportion_na([[Eval.not_applicable], []]), 0.5)
         self.assertEqual(proportion_na([[Eval.neutral], [Eval.not_applicable]]), 0.5)
 
@@ -132,7 +171,9 @@ class HypothesisOrderingTests(TestCase):
     def test_calculate_consistency(self):
         """Test basic behavior of consistency()."""
         self.assertEqual(consistency([]), 0.0)
-        self.assertGreater(consistency([[Eval.very_consistent]]), consistency([[Eval.consistent]]))
+        self.assertGreater(
+            consistency([[Eval.very_consistent]]), consistency([[Eval.consistent]])
+        )
 
     def test_hypothesis_sorting(self):
         """Test that we can sort hypotheses."""
@@ -151,7 +192,6 @@ class HypothesisOrderingTests(TestCase):
 
 
 class DisagreementTests(TestCase):
-
     def test_no_votes_returns_none(self):
         """Test that calc_disagreement() returns None when there is no votes"""
         self.assertEqual(calc_disagreement([]), None)
@@ -171,4 +211,3 @@ class DisagreementTests(TestCase):
         small = [Eval.consistent, Eval.inconsistent]
         large = [Eval.very_inconsistent, Eval.very_consistent]
         self.assertGreater(calc_disagreement(large), calc_disagreement(small))
-

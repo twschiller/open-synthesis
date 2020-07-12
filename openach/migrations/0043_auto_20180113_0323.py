@@ -8,13 +8,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0042_auto_20180113_0323'),
+        ("openach", "0042_auto_20180113_0323"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='team',
-            name='public',
-            field=models.BooleanField(default=True, help_text='Whether or not the team is visible to non-members'),
+            model_name="team",
+            name="public",
+            field=models.BooleanField(
+                default=True,
+                help_text="Whether or not the team is visible to non-members",
+            ),
         ),
     ]

@@ -8,13 +8,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0002_auto_20160825_1350'),
+        ("openach", "0002_auto_20160825_1350"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='evaluation',
-            name='value',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'N/A'), (1, 'Very Inconsistent'), (2, 'Inconsistent'), (3, 'Neutral'), (4, 'Consistent'), (5, 'Very Consistent')], default=0),
+            model_name="evaluation",
+            name="value",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (0, "N/A"),
+                    (1, "Very Inconsistent"),
+                    (2, "Inconsistent"),
+                    (3, "Neutral"),
+                    (4, "Consistent"),
+                    (5, "Very Consistent"),
+                ],
+                default=0,
+            ),
         ),
     ]

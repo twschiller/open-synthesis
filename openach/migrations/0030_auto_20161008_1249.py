@@ -8,23 +8,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0029_auto_20161004_0323'),
+        ("openach", "0029_auto_20161004_0323"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='evidencesource',
-            name='source_url_description',
-            field=models.CharField(default='', max_length=1000, verbose_name='source url description'),
+            model_name="evidencesource",
+            name="source_url_description",
+            field=models.CharField(
+                default="", max_length=1000, verbose_name="source url description"
+            ),
         ),
         migrations.AddField(
-            model_name='evidencesource',
-            name='source_url_title',
-            field=models.CharField(default='', max_length=255, verbose_name='source url title'),
+            model_name="evidencesource",
+            name="source_url_title",
+            field=models.CharField(
+                default="", max_length=255, verbose_name="source url title"
+            ),
         ),
         migrations.AlterField(
-            model_name='usersettings',
-            name='digest_frequency',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Never'), (1, 'Daily'), (2, 'Weekly')], default=1, help_text='How frequently to receive email updates containing missed notifications', verbose_name='email digest frequency'),
+            model_name="usersettings",
+            name="digest_frequency",
+            field=models.PositiveSmallIntegerField(
+                choices=[(0, "Never"), (1, "Daily"), (2, "Weekly")],
+                default=1,
+                help_text="How frequently to receive email updates containing missed notifications",
+                verbose_name="email digest frequency",
+            ),
         ),
     ]

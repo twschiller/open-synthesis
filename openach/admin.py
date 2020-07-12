@@ -5,7 +5,7 @@ For more information, please see:
 """
 from django.contrib import admin
 
-from .models import Board, Evidence, Hypothesis, EvidenceSourceTag, ProjectNews, Team
+from .models import Board, Evidence, EvidenceSourceTag, Hypothesis, ProjectNews, Team
 
 
 class HypothesisInline(admin.StackedInline):

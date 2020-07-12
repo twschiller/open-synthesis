@@ -8,18 +8,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0026_digeststatus_last_attempt'),
+        ("openach", "0026_digeststatus_last_attempt"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='digeststatus',
-            name='last_attempt',
+            model_name="digeststatus",
+            name="last_attempt",
             field=models.DateTimeField(default=None, null=True),
         ),
         migrations.AlterField(
-            model_name='digeststatus',
-            name='last_success',
+            model_name="digeststatus",
+            name="last_success",
             field=models.DateTimeField(default=None, null=True),
         ),
     ]

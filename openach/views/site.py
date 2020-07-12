@@ -2,22 +2,20 @@ import logging
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-
 from django.core.exceptions import ImproperlyConfigured
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
-from django.views.decorators.http import require_safe, etag
+from django.views.decorators.http import etag, require_safe
 
-from openach.decorators import cache_if_anon, cache_on_auth, account_required
+from openach.decorators import account_required, cache_if_anon, cache_on_auth
 from openach.donate import bitcoin_donation_url, make_qr_code
-from openach.models import Board
-from openach.models import ProjectNews
+from openach.models import Board, ProjectNews
 
-PAGE_CACHE_TIMEOUT_SECONDS = getattr(settings, 'PAGE_CACHE_TIMEOUT_SECONDS', 60)
-DEBUG = getattr(settings, 'DEBUG', False)
+PAGE_CACHE_TIMEOUT_SECONDS = getattr(settings, "PAGE_CACHE_TIMEOUT_SECONDS", 60)
+DEBUG = getattr(settings, "DEBUG", False)
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -29,12 +27,14 @@ def index(request):
     """Return a homepage view showing project information, news, and recent boards."""
     # Show all of the boards until we can implement tagging, search, etc.
     latest_board_list = Board.objects.user_readable(request.user)[:5]
-    latest_project_news = ProjectNews.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
+    latest_project_news = ProjectNews.objects.filter(
+        pub_date__lte=timezone.now()
+    ).order_by("-pub_date")[:5]
     context = {
-        'latest_board_list': latest_board_list,
-        'latest_project_news': latest_project_news,
+        "latest_board_list": latest_board_list,
+        "latest_project_news": latest_project_news,
     }
-    return render(request, 'boards/index.html', context)
+    return render(request, "boards/index.html", context)
 
 
 @require_safe
@@ -42,28 +42,36 @@ def index(request):
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def about(request):
     """Return an about view showing contribution, licensing, contact, and other information."""
-    address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
+    address = getattr(settings, "DONATE_BITCOIN_ADDRESS", None)
     context = {
-        'bitcoin_address': address,
-        'bitcoin_donate_url': bitcoin_donation_url(get_current_site(request).name, address),
-        'privacy_url': getattr(settings, 'PRIVACY_URL', None),
+        "bitcoin_address": address,
+        "bitcoin_donate_url": bitcoin_donation_url(
+            get_current_site(request).name, address
+        ),
+        "privacy_url": getattr(settings, "PRIVACY_URL", None),
     }
-    return render(request, 'boards/about.html', context=context)
+    return render(request, "boards/about.html", context=context)
 
 
 @require_safe
 def robots(request):
     """Return the robots.txt including the sitemap location (using the site domain) if the site is public."""
-    private_instance = getattr(settings, 'ACCOUNT_REQUIRED', False)
+    private_instance = getattr(settings, "ACCOUNT_REQUIRED", False)
     context = {
-        'sitemap': (
-            ''.join(['https://', get_current_site(request).domain, reverse('django.contrib.sitemaps.views.sitemap')])
+        "sitemap": (
+            "".join(
+                [
+                    "https://",
+                    get_current_site(request).domain,
+                    reverse("django.contrib.sitemaps.views.sitemap"),
+                ]
+            )
             if not private_instance
             else None
         ),
-        'disallow_all': private_instance,
+        "disallow_all": private_instance,
     }
-    return render(request, 'robots.txt', context, content_type='text/plain')
+    return render(request, "robots.txt", context, content_type="text/plain")
 
 
 @require_safe
@@ -74,8 +82,8 @@ def certbot(dummy_request, challenge_key):  # pragma: no cover
         https://certbot.eff.org/
     """
     # ignore coverage since keys aren't available in the testing environment
-    public_key = getattr(settings, 'CERTBOT_PUBLIC_KEY')
-    secret_key = getattr(settings, 'CERTBOT_SECRET_KEY')
+    public_key = getattr(settings, "CERTBOT_PUBLIC_KEY")
+    secret_key = getattr(settings, "CERTBOT_SECRET_KEY")
     if public_key and secret_key and public_key == challenge_key:
         return HttpResponse(secret_key)
     elif public_key and not secret_key:
@@ -85,13 +93,15 @@ def certbot(dummy_request, challenge_key):  # pragma: no cover
 
 
 @require_safe
-@etag(lambda r: getattr(settings, 'DONATE_BITCOIN_ADDRESS', ''))
+@etag(lambda r: getattr(settings, "DONATE_BITCOIN_ADDRESS", ""))
 @cache_page(60 * 60)  # NOTE: if only etag is set, Django doesn't include cache headers
 def bitcoin_qrcode(request):
     """Return a QR Code for donating via Bitcoin."""
-    address = getattr(settings, 'DONATE_BITCOIN_ADDRESS', None)
+    address = getattr(settings, "DONATE_BITCOIN_ADDRESS", None)
     if address:
-        raw = make_qr_code(bitcoin_donation_url(get_current_site(request).name, address))
-        return HttpResponse(raw.getvalue(), content_type='image/svg+xml')
+        raw = make_qr_code(
+            bitcoin_donation_url(get_current_site(request).name, address)
+        )
+        return HttpResponse(raw.getvalue(), content_type="image/svg+xml")
     else:
         raise Http404

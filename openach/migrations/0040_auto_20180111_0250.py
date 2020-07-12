@@ -4,16 +4,18 @@ from __future__ import unicode_literals
 
 from django.db import migrations
 
+
 def set_hypothesis_creator(apps, schema_editor):
-    Hypothesis = apps.get_model('openach', 'Hypothesis')
-    for h in Hypothesis.objects.filter(creator__isnull=True).select_related('board'):
+    Hypothesis = apps.get_model("openach", "Hypothesis")
+    for h in Hypothesis.objects.filter(creator__isnull=True).select_related("board"):
         h.creator_id = h.board.creator_id
         h.save()
+
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0039_auto_20180111_0248'),
+        ("openach", "0039_auto_20180111_0248"),
     ]
 
     operations = [

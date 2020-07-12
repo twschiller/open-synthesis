@@ -10,7 +10,9 @@ def has_edit_authorization(request, board, has_creator=None):
     :param has_creator: a model that has a creator member, or None
     """
     permissions = board.permissions.for_user(request.user)
-    return 'edit_elements' in permissions or (has_creator and request.user.id == has_creator.creator_id)
+    return "edit_elements" in permissions or (
+        has_creator and request.user.id == has_creator.creator_id
+    )
 
 
 def check_edit_authorization(request, board, has_creator=None):

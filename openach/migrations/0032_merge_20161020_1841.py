@@ -8,9 +8,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0031_auto_20161004_1651'),
-        ('openach', '0030_auto_20161008_1249'),
+        ("openach", "0031_auto_20161004_1651"),
+        ("openach", "0030_auto_20161008_1249"),
     ]
 
-    operations = [
-    ]
+    operations = []

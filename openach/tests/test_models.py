@@ -9,13 +9,10 @@ from .common import remove
 
 
 class RemovableModelManagerTests(TestCase):
-
     def test_objects_does_not_include_removed(self):
         """Test that after an object is marked as removed, it doesn't appear in the query set."""
         board = Board.objects.create(
-            board_title='Title',
-            board_desc='Description',
-            pub_date=timezone.now()
+            board_title="Title", board_desc="Description", pub_date=timezone.now()
         )
         self.assertEqual(Board.objects.count(), 1)
         remove(board)
@@ -24,7 +21,6 @@ class RemovableModelManagerTests(TestCase):
 
 
 class BoardMethodTests(TestCase):
-
     def test_was_published_recently_with_future_board(self):
         """Test that was_published_recently() returns False for board whose pub_date is in the future."""
         time = timezone.now() + datetime.timedelta(days=30)
@@ -49,5 +45,5 @@ class BoardMethodTests(TestCase):
 
     def test_board_url_with_slug(self):
         """Test to make sure we can grab the URL of a board that has a slug."""
-        slug = 'test-slug'
+        slug = "test-slug"
         self.assertTrue(slug in Board(id=1, board_slug=slug).get_absolute_url())

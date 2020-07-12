@@ -8,13 +8,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openach', '0016_auto_20160915_1436'),
+        ("openach", "0016_auto_20160915_1436"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='evaluation',
-            name='timestamp',
+            model_name="evaluation",
+            name="timestamp",
             field=models.DateTimeField(null=True),
         ),
     ]
