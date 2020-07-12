@@ -18,13 +18,17 @@
  */
 
 const path = require("path");
-const merge = require("webpack-merge");
+const { mergeWithCustomize, customizeArray } = require("webpack-merge");
 const common = require("./webpack.config.base.js");
 const TerserJSPlugin = require("terser-webpack-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-module.exports = merge.strategy({ plugins: "prepend" })(common, {
+module.exports = mergeWithCustomize({
+  customizeArray: customizeArray({
+    "entry.*": "prepend",
+  }),
+})(common, {
   mode: "production",
   optimization: {
     minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],

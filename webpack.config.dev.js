@@ -18,11 +18,15 @@
  */
 
 const path = require("path");
-const merge = require("webpack-merge");
+const { mergeWithCustomize, customizeArray } = require("webpack-merge");
 const common = require("./webpack.config.base.js");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-module.exports = merge.strategy({ plugins: "prepend" })(common, {
+module.exports = mergeWithCustomize({
+  customizeArray: customizeArray({
+    "entry.*": "prepend",
+  }),
+})(common, {
   mode: "development",
   devtool: "inline-source-map",
   // https://webpack.js.org/configuration/watch/
