@@ -1,9 +1,9 @@
 # core dependencies
 
-beautifulsoup4==4.9.0
-celery==4.4.2
+beautifulsoup4==4.9.1
+celery==4.4.6
 dj-database-url==0.5.0
-django-allauth==0.41.0
+django-allauth==0.42.0
 django-bootstrap-form==3.4
 django-contrib-comments==1.9.2
 django-csp==3.6
@@ -12,7 +12,7 @@ django-field-history==0.8.0
 django-invitations==1.9.3
 django-notifications-hq==1.6.0
 Django==3.0.8
-python-slugify==4.0.0
+python-slugify==4.0.1
 qrcode==6.1
 tldextract==2.2.2
 
@@ -23,20 +23,20 @@ django-pylibmc==0.6.1
 django-sendgrid-v5==0.8.1
 psycopg2-binary==2.8.5
 pylibmc==1.6.1
-redis==3.5.0
+redis==3.5.3
 rollbar==0.15.0
 
 # web server
 
 gunicorn==20.0.4
-whitenoise==5.0.1
+whitenoise==5.1.0
 
 
 # dev dependencies
 
 django-coverage-plugin==1.8.0
 django-webpack-loader==0.7.0
-coverage==5.1
+coverage==5.2
 nplusone==1.0.0
 pytest==5.4.3
 pytest-django==3.9.0
@@ -45,16 +45,16 @@ pytest-cov==2.10.0
 
 # indirect dependencies
 
-amqp==2.5.2
+amqp==2.6.0
 billiard==3.6.3.0
 blinker==1.4
-certifi==2020.4.5.1
+certifi==2020.6.20
 chardet==3.0.4
 defusedxml==0.6.0
 django-model-utils==4.0.0
-idna==2.9
+idna==2.10
 jsonfield==3.1.0
-kombu==4.6.8
+kombu==4.6.11
 oauthlib==3.1.0
 python-http-client==3.2.7
 python3-openid==3.2.0
