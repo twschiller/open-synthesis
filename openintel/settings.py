@@ -142,6 +142,14 @@ MIDDLEWARE = [
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
 ]
 
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
+
 # Configure N+1 detection during DEBUG and TESTING; see https://github.com/jmcarp/nplusone
 if DEBUG or TESTING:
     INSTALLED_APPS.insert(0, "nplusone.ext.django")
@@ -447,10 +455,6 @@ RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY")
 
 if RECAPTCHA_PUBLIC_KEY:
     logger.info("ReCAPTCHA is enabled")
-    CSP_SCRIPT_SRC_ELEM = [
-        "'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/"
-    ]
-    CSP_FRAME_SRC = ["'self' https://www.google.com/recaptcha/"]
     INSTALLED_APPS += ["captcha"]
 else:
     logger.info("ReCAPTCHA NOT enabled")
