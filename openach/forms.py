@@ -5,6 +5,7 @@ For more information, please see:
     - https://docs.djangoproject.com/en/1.10/topics/forms/modelforms/
 """
 from django import forms
+from django.conf import settings
 from django.db.models.functions import Lower
 from django.forms import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -194,3 +195,21 @@ class TeamInviteForm(forms.Form):
         self.fields["members"].queryset = User.objects.exclude(
             pk__in=member_ids | pending_ids
         ).order_by(Lower("username"))
+
+
+class SignupForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if settings.RECAPTCHA_PUBLIC_KEY:
+            from captcha.fields import ReCaptchaField
+            from captcha.widgets import ReCaptchaV2Checkbox
+
+            self.fields["captcha"] = ReCaptchaField(
+                widget=ReCaptchaV2Checkbox(
+                    attrs={"data-theme": "light", "data-size": "normal",},
+                ),
+            )
+
+    def signup(self, request, user):
+        pass
