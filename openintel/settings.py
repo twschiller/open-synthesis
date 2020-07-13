@@ -446,8 +446,11 @@ RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY")
 RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY")
 
 if RECAPTCHA_PUBLIC_KEY:
+    logger.info("ReCAPTCHA is enabled")
     CSP_SCRIPT_SRC_ELEM = [
         "'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/"
     ]
     CSP_FRAME_SRC = ["'self' https://www.google.com/recaptcha/"]
     INSTALLED_APPS += ["captcha"]
+else:
+    logger.info("ReCAPTCHA NOT enabled")
