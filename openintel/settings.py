@@ -75,6 +75,8 @@ env = environ.Env(  # pylint: disable=invalid-name
     PRIVACY_URL=(str, None),
     DIGEST_WEEKLY_DAY=(int, 0),  # default to Monday
     CELERY_ALWAYS_EAGER=(bool, False),
+    RECAPTCHA_PUBLIC_KEY=(str, None),
+    RECAPTCHA_PRIVATE_KEY=(str, None),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -116,6 +118,7 @@ INSTALLED_APPS = [
     "invitations",
 ]
 
+
 # See https://docs.djangoproject.com/en/2.1/topics/http/middleware/
 
 MIDDLEWARE = [
@@ -138,6 +141,14 @@ MIDDLEWARE = [
     # Rollbar middleware needs to be last so it can wrap the exceptions
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
 ]
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
 # Configure N+1 detection during DEBUG and TESTING; see https://github.com/jmcarp/nplusone
 if DEBUG or TESTING:
@@ -347,6 +358,7 @@ ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 # https://stackoverflow.com/questions/22700041/django-allauth-sends-verification-emails-from-webmasterservername
 DEFAULT_FROM_EMAIL = env.get_value("DEFAULT_FROM_EMAIL", default=ADMIN_EMAIL_ADDRESS)
 ACCOUNT_ADAPTER = "openach.account_adapters.AccountAdapter"
+ACCOUNT_SIGNUP_FORM_CLASS = "openach.forms.SignupForm"
 
 # Invitations Options:
 # https://github.com/bee-keeper/django-invitations#additional-configuration
@@ -435,3 +447,14 @@ elif env.get_value("REDIS_URL", cast=str, default=None):
 PAGE_CACHE_TIMEOUT_SECONDS = 60
 
 BOARD_SEARCH_RESULTS_MAX = 5
+
+
+# Google Recaptcha support: https://pypi.org/project/django-recaptcha/
+RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY")
+RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY")
+
+if RECAPTCHA_PUBLIC_KEY:
+    logger.info("ReCAPTCHA is enabled")
+    INSTALLED_APPS += ["captcha"]
+else:
+    logger.info("ReCAPTCHA NOT enabled")

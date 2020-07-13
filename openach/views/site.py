@@ -1,5 +1,7 @@
 import logging
 
+from allauth.account.views import SignupView
+from csp.decorators import csp_update
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ImproperlyConfigured
@@ -7,6 +9,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import etag, require_safe
 
@@ -105,3 +108,15 @@ def bitcoin_qrcode(request):
         return HttpResponse(raw.getvalue(), content_type="image/svg+xml")
     else:
         raise Http404
+
+
+@method_decorator(
+    csp_update(
+        # https://github.com/praekelt/django-recaptcha/issues/101
+        SCRIPT_SRC_ELEM="'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
+        FRAME_SRC="'self' https://www.google.com/recaptcha/",
+    ),
+    name="dispatch",
+)
+class CaptchaSignupView(SignupView):
+    pass

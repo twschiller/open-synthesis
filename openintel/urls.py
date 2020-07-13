@@ -32,6 +32,11 @@ urlpatterns = [  # pylint: disable=invalid-name
             template_name="contribute.json", content_type="application/json"
         ),
     ),
+    path(
+        "accounts/signup/",
+        views.site.CaptchaSignupView.as_view(),
+        name="account_signup",
+    ),
     path("accounts/<int:account_id>/", views.profiles.profile, name="profile"),
     path("accounts/profile/", views.profiles.private_profile, name="private_profile"),
     path("accounts/", include("allauth.urls")),
@@ -47,6 +52,13 @@ urlpatterns = [  # pylint: disable=invalid-name
         views.site.certbot,
     ),
 ]
+
+
+if settings.DEBUG:
+    import debug_toolbar
+
+    urlpatterns = [path("__debug__/", include(debug_toolbar.urls)),] + urlpatterns
+
 
 if not ACCOUNT_REQUIRED:  # pylint: disable=invalid-name
     # Only allow clients to view the sitemap if the admin is running a public instance
