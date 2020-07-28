@@ -16,8 +16,8 @@ from openach.models import (
     Evidence,
     Hypothesis,
 )
-
-from .common import PrimaryUserTestCase, create_board, remove
+from openach.tests import factories
+from openach.tests.common import PrimaryUserTestCase, create_board, remove
 
 SLUG_MAX_LENGTH = getattr(settings, "SLUG_MAX_LENGTH")
 
@@ -302,6 +302,21 @@ class BoardDetailTests(PrimaryUserTestCase):
         self.login()
         expect_success()
 
+    def test_can_access_as_team_collaborator(self):
+        self.board.creator = self.user
+        self.board.save()
+        self.board.permissions.update_all(AuthLevels.collaborators)
+
+        team = factories.TeamFactory(owner=self.user, members=[self.other])
+        self.board.permissions.teams.set([team], clear=True)
+
+        response = self.client.get(self.board.get_canonical_url())
+        assert response.status_code == 403
+
+        self.login_other()
+        response = self.client.get(self.board.get_canonical_url())
+        assert response.status_code == 200
+
     def test_can_display_board_with_no_assessments(self):
         """Test that the detail view renders for a board with no assessments."""
         self._add_evidence()
@@ -498,41 +513,40 @@ class BoardListingTests(PrimaryUserTestCase):
 
     def test_user_public_board_view(self):
         """Test board listing for user that created a public board."""
-        board = Board.objects.create(
-            creator=self.user,
-            board_title="Board Title",
-            board_desc="Description",
-            pub_date=timezone.now(),
-        )
+        board = factories.BoardFactory(creator=self.user)
         board.permissions.make_public()
         response = self.client.get(
             reverse("openach:user_boards", args=(self.user.id,)) + "?query=created"
         )
-        self.assertContains(response, "Board Title", status_code=200)
+        self.assertContains(response, board.board_title, status_code=200)
 
     def test_user_hide_private_boards(self):
-        board = Board.objects.create(
-            creator=self.user,
-            board_title="Board Title",
-            board_desc="Description",
-            pub_date=timezone.now(),
+        board = factories.BoardFactory(
+            creator=self.user, permissions=AuthLevels.collaborators
         )
-        board.permissions.update_all(AuthLevels.collaborators)
         response = self.client.get(
             reverse("openach:user_boards", args=(self.user.id,)) + "?query=created"
         )
-        self.assertNotContains(response, "Board Title", status_code=200)
+        self.assertNotContains(response, board.board_title, status_code=200)
+
+    def test_team_collaborator_can_see_board(self):
+        team = factories.TeamFactory(owner=self.user, members=[self.other])
+        board = factories.BoardFactory(
+            creator=self.user, permissions=AuthLevels.collaborators, teams=[team]
+        )
+
+        response = self.client.get(reverse("openach:boards"))
+        self.assertNotContains(response, board.board_title)
+
+        self.login_other()
+        response = self.client.get(reverse("openach:boards"))
+        self.assertContains(response, board.board_title)
 
 
 class BoardEditPermissionsTests(PrimaryUserTestCase):
     def test_can_edit_board_permissions(self):
         """Test that the board owner can edit the board permissions via form."""
-        board = Board.objects.create(
-            creator=self.user,
-            board_title="Board Title",
-            board_desc="Description",
-            pub_date=timezone.now(),
-        )
+        board = factories.BoardFactory(creator=self.user)
         self.login()
         response = self.client.post(
             reverse("openach:edit_permissions", args=(board.id,)),

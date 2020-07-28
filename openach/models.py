@@ -73,16 +73,21 @@ class BoardModelManager(
         base = super(BoardModelManager, self).get_queryset()
         if user.is_staff:
             return base
-        if not user.is_authenticated:
+        elif not user.is_authenticated:
             return base.filter(permissions__read_board=AuthLevels.anyone.key)
         else:
             public = Q(permissions__read_board=AuthLevels.anyone.key)
             registered = Q(permissions__read_board=AuthLevels.registered.key)
             created = Q(permissions__board__creator=user)
-            collab = Q(permissions__read_board=AuthLevels.collaborators.key) & Q(
+            user_collab = Q(permissions__read_board=AuthLevels.collaborators.key) & Q(
                 permissions__collaborators=user
             )
-            return base.filter(public | registered | created | collab)
+            team_collab = Q(permissions__read_board=AuthLevels.collaborators.key) & Q(
+                permissions__teams__members=user
+            )
+            return base.filter(
+                public | registered | created | user_collab | team_collab
+            )
 
     def public(self):
         """Queryset for boards that the public can see."""
@@ -178,9 +183,7 @@ class Board(models.Model):
         """
         return (
             self.permissions.collaborators.filter(pk=user.id).exists()
-            or self.permissions.teams.filter(
-                pk__in=user.team_set.values_list("id", flat=True)
-            ).exists()
+            or self.permissions.teams.filter(members__pk=user.id).exists()
         )
 
     def collaborator_ids(self):
@@ -195,16 +198,7 @@ class Board(models.Model):
 
     def can_read(self, user):
         """Return True if user can read the board."""
-        if user.is_staff or user == self.creator:
-            # avoid fetching permissions
-            return True
-        else:
-            read = self.permissions.read_board
-            return (
-                read == AuthLevels.anyone.key
-                or (user.is_authenticated and read == AuthLevels.registered.key)
-                or (read == AuthLevels.collaborators and self.is_collaborator(user))
-            )
+        return "read_board" in self.permissions.for_user(user)
 
     def has_collaborators(self):
         """Return True if the board has collaborators set."""
@@ -385,13 +379,15 @@ class BoardPermissions(models.Model):
 
     def make_public(self):
         """Set permissions to the most permissive permission scheme."""
+        account_required = getattr(settings, "ACCOUNT_REQUIRED", False)
+
         for permission in self.PERMISSION_NAMES:
-            if permission in self.PERMISSION_NAMES_READ and not getattr(
-                settings, "ACCOUNT_REQUIRED", False
-            ):
-                setattr(self, permission, AuthLevels.anyone.key)
-            else:
-                setattr(self, permission, AuthLevels.registered.key)
+            public_perm = (
+                AuthLevels.anyone.key
+                if permission in self.PERMISSION_NAMES_READ and not account_required
+                else AuthLevels.registered.key
+            )
+            setattr(self, permission, public_perm)
         self.save()
 
     def update_all(self, auth_level):
@@ -419,7 +415,9 @@ class BoardPermissions(models.Model):
         if user.is_staff or is_owner:
             return set(max_allowed)
         else:
-            is_collaborator = self.collaborators.filter(pk=user.id).exists()
+            is_user_collaborator = self.collaborators.filter(pk=user.id).exists()
+            is_team_collaborator = self.teams.filter(members__pk=user.id).exists()
+            is_collaborator = is_user_collaborator or is_team_collaborator
 
             def check_allowed(permission):
                 level = getattr(self, permission, AuthLevels.board_creator.key)
