@@ -15,6 +15,7 @@ from openach.models import (
     Evaluation,
     Evidence,
     Hypothesis,
+    Team,
 )
 
 from .common import PrimaryUserTestCase, create_board, remove
@@ -301,6 +302,20 @@ class BoardDetailTests(PrimaryUserTestCase):
         # succeed because now logged in as creator
         self.login()
         expect_success()
+
+    def test_can_access_as_team_collaborator(self):
+        self.board.creator = self.user
+        self.board.save()
+        self.board.permissions.update_all(AuthLevels.collaborators)
+
+        team = Team.objects.create(name="Team", owner=self.user)
+        team.members.add(self.other)
+
+        self.board.permissions.teams.set([team], clear=True)
+
+        self.login_other()
+        response = self.client.get(self.board.get_canonical_url())
+        assert response.status_code == 200
 
     def test_can_display_board_with_no_assessments(self):
         """Test that the detail view renders for a board with no assessments."""

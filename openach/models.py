@@ -178,9 +178,7 @@ class Board(models.Model):
         """
         return (
             self.permissions.collaborators.filter(pk=user.id).exists()
-            or self.permissions.teams.filter(
-                pk__in=user.team_set.values_list("id", flat=True)
-            ).exists()
+            or self.permissions.teams.filter(members__pk=user.id).exists()
         )
 
     def collaborator_ids(self):
@@ -195,16 +193,7 @@ class Board(models.Model):
 
     def can_read(self, user):
         """Return True if user can read the board."""
-        if user.is_staff or user == self.creator:
-            # avoid fetching permissions
-            return True
-        else:
-            read = self.permissions.read_board
-            return (
-                read == AuthLevels.anyone.key
-                or (user.is_authenticated and read == AuthLevels.registered.key)
-                or (read == AuthLevels.collaborators and self.is_collaborator(user))
-            )
+        return "read_board" in self.permissions.for_user(user)
 
     def has_collaborators(self):
         """Return True if the board has collaborators set."""
@@ -419,7 +408,9 @@ class BoardPermissions(models.Model):
         if user.is_staff or is_owner:
             return set(max_allowed)
         else:
-            is_collaborator = self.collaborators.filter(pk=user.id).exists()
+            is_user_collaborator = self.collaborators.filter(pk=user.id).exists()
+            is_team_collaborator = self.teams.filter(members__pk=user.id).exists()
+            is_collaborator = is_user_collaborator or is_team_collaborator
 
             def check_allowed(permission):
                 level = getattr(self, permission, AuthLevels.board_creator.key)

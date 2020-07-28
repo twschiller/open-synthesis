@@ -72,5 +72,5 @@ class AccountManagementTests(TestCase):
     def test_settings_created(self):
         """Test that a settings object is created when the user is created."""
         self.client.post("/accounts/signup/", data=self.valid_data)
-        user = User.objects.filter(username=self.username).first()
+        user = User.objects.get(username=self.username)
         self.assertIsNotNone(user.settings, "User settings object not created")

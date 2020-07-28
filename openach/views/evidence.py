@@ -56,17 +56,20 @@ def evidence_detail(request, evidence_id):
         if tag.tagger_id == request.user.id:
             user_tags[key].append(tag)
 
-    context = {
-        "evidence": evidence,
-        "sources": sources,
-        "source_tags": source_tags,
-        "user_tags": user_tags,
-        "available_tags": available_tags,
-        "meta_description": _("Analysis of evidence: {description}").format(
-            description=evidence.evidence_desc
-        ),
-    }
-    return render(request, "boards/evidence_detail.html", context)
+    return render(
+        request,
+        "boards/evidence_detail.html",
+        {
+            "evidence": evidence,
+            "sources": sources,
+            "source_tags": source_tags,
+            "user_tags": user_tags,
+            "available_tags": available_tags,
+            "meta_description": _("Analysis of evidence: {description}").format(
+                description=evidence.evidence_desc
+            ),
+        },
+    )
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
@@ -78,7 +81,7 @@ def add_evidence(request, board_id):
     if "add_elements" not in board.permissions.for_user(request.user):
         raise PermissionDenied()
 
-    require_source = getattr(settings, "EVIDENCE_REQUIRE_SOURCE", True)
+    require_source = getattr(settings, "`EVIDENCE_REQUIRE_SOURCE`", True)
 
     if request.method == "POST":
         evidence_form = EvidenceForm(request.POST)
@@ -108,12 +111,11 @@ def add_evidence(request, board_id):
             require=require_source, initial={"corroborating": True}
         )
 
-    context = {
-        "board": board,
-        "evidence_form": evidence_form,
-        "source_form": source_form,
-    }
-    return render(request, "boards/add_evidence.html", context)
+    return render(
+        request,
+        "boards/add_evidence.html",
+        {"board": board, "evidence_form": evidence_form, "source_form": source_form,},
+    )
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
@@ -141,14 +143,16 @@ def edit_evidence(request, evidence_id):
     else:
         form = EvidenceForm(instance=evidence)
 
-    context = {
-        "form": form,
-        "evidence": evidence,
-        "board": board,
-        "allow_remove": getattr(settings, "EDIT_REMOVE_ENABLED", True),
-    }
-
-    return render(request, "boards/edit_evidence.html", context)
+    return render(
+        request,
+        "boards/edit_evidence.html",
+        {
+            "form": form,
+            "evidence": evidence,
+            "board": board,
+            "allow_remove": getattr(settings, "EDIT_REMOVE_ENABLED", True),
+        },
+    )
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
@@ -175,9 +179,11 @@ def add_source(request, evidence_id):
         )
         form = EvidenceSourceForm(initial={"corroborating": corroborating})
 
-    context = {"form": form, "evidence": evidence, "corroborating": corroborating}
-
-    return render(request, "boards/add_source.html", context)
+    return render(
+        request,
+        "boards/add_source.html",
+        {"form": form, "evidence": evidence, "corroborating": corroborating},
+    )
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
