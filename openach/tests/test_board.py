@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.urls import reverse
@@ -20,6 +21,9 @@ from openach.tests import factories
 from openach.tests.common import PrimaryUserTestCase, create_board, remove
 
 SLUG_MAX_LENGTH = getattr(settings, "SLUG_MAX_LENGTH")
+
+
+User = get_user_model()
 
 
 class BoardFormTests(PrimaryUserTestCase):
@@ -530,7 +534,8 @@ class BoardListingTests(PrimaryUserTestCase):
         self.assertNotContains(response, board.board_title, status_code=200)
 
     def test_team_collaborator_can_see_board(self):
-        team = factories.TeamFactory(owner=self.user, members=[self.other])
+        team_member = factories.UserFactory()
+        team = factories.TeamFactory(owner=self.user, members=[self.other, team_member])
         board = factories.BoardFactory(
             creator=self.user, permissions=AuthLevels.collaborators, teams=[team]
         )
@@ -540,7 +545,7 @@ class BoardListingTests(PrimaryUserTestCase):
 
         self.login_other()
         response = self.client.get(reverse("openach:boards"))
-        self.assertContains(response, board.board_title)
+        self.assertContains(response, board.board_title, count=1)
 
 
 class BoardEditPermissionsTests(PrimaryUserTestCase):

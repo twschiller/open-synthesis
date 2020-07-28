@@ -1,6 +1,6 @@
 import datetime
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.utils import timezone
 from field_history.tracker import FieldHistoryTracker
@@ -14,6 +14,8 @@ USERNAME_OTHER = "paul"
 HTTP_OK = 200
 HTTP_FORBIDDEN = 403
 HTTP_REDIRECT = 302
+
+User = get_user_model()
 
 
 def create_board(board_title, days=0, public=True):

@@ -15,9 +15,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import factory
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from openach import models
+
+User = get_user_model()
 
 
 class BoardFactory(factory.DjangoModelFactory):
@@ -57,3 +60,10 @@ class TeamFactory(factory.DjangoModelFactory):
             return
         if extracted:
             obj.members.set([obj.owner, *extracted], clear=True)
+
+
+class UserFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = models.User
+
+    username = factory.Sequence(lambda x: f"username{x}")

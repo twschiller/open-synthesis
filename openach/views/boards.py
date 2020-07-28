@@ -55,17 +55,22 @@ def board_listing(request):
     desc = _("List of intelligence boards on {name} and summary information").format(
         name=get_current_site(request).name
     )  # nopep8
-    context = {
-        "boards": make_paginator(request, board_list),
-        "contributors": cache.get_or_set(
-            "contributor_count", generate_contributor_count(), metric_timeout_seconds
-        ),
-        "evaluators": cache.get_or_set(
-            "evaluator_count", generate_evaluator_count(), metric_timeout_seconds
-        ),
-        "meta_description": desc,
-    }
-    return render(request, "boards/boards.html", context)
+    return render(
+        request,
+        "boards/boards.html",
+        {
+            "boards": make_paginator(request, board_list),
+            "contributors": cache.get_or_set(
+                "contributor_count",
+                generate_contributor_count(),
+                metric_timeout_seconds,
+            ),
+            "evaluators": cache.get_or_set(
+                "evaluator_count", generate_evaluator_count(), metric_timeout_seconds
+            ),
+            "meta_description": desc,
+        },
+    )
 
 
 @require_safe
@@ -101,19 +106,24 @@ def user_board_listing(request, account_id):
     desc = _("List of intelligence boards user {username} has {verb}").format(
         username=user.username, verb=verb
     )
-    context = {
-        "user": user,
-        "boards": make_paginator(request, board_list),
-        "contributors": cache.get_or_set(
-            "contributor_count", generate_contributor_count(), metric_timeout_seconds
-        ),
-        "evaluators": cache.get_or_set(
-            "evaluator_count", generate_evaluator_count(), metric_timeout_seconds
-        ),
-        "meta_description": desc,
-        "verb": verb,
-    }
-    return render(request, "boards/user_boards.html", context)
+    return render(
+        request,
+        "boards/user_boards.html",
+        {
+            "user": user,
+            "boards": make_paginator(request, board_list),
+            "contributors": cache.get_or_set(
+                "contributor_count",
+                generate_contributor_count(),
+                metric_timeout_seconds,
+            ),
+            "evaluators": cache.get_or_set(
+                "evaluator_count", generate_evaluator_count(), metric_timeout_seconds
+            ),
+            "meta_description": desc,
+            "verb": verb,
+        },
+    )
 
 
 @require_safe
@@ -185,21 +195,24 @@ def detail(request, board_id, dummy_board_slug=None):
         evidence, hypotheses, evidence_sort_key, key=lambda e, h: (e.id, h.id)
     )
 
-    context = {
-        "board": board,
-        "permissions": permissions,
-        "evidences": sorted(evidence_diagnosticity, key=lambda e: e[1]),
-        "hypotheses": sorted(hypothesis_consistency, key=lambda h: h[1]),
-        "view_type": view_type,
-        "vote_type": vote_type,
-        "votes": aggregate,
-        "user_votes": user_votes,
-        "disagreement": disagreement,
-        "meta_description": board.board_desc,
-        "allow_share": not getattr(settings, "ACCOUNT_REQUIRED", False),
-        "debug_stats": DEBUG,
-    }
-    return render(request, "boards/detail.html", context)
+    return render(
+        request,
+        "boards/detail.html",
+        {
+            "board": board,
+            "permissions": permissions,
+            "evidences": sorted(evidence_diagnosticity, key=lambda e: e[1]),
+            "hypotheses": sorted(hypothesis_consistency, key=lambda h: h[1]),
+            "view_type": view_type,
+            "vote_type": vote_type,
+            "votes": aggregate,
+            "user_votes": user_votes,
+            "disagreement": disagreement,
+            "meta_description": board.board_desc,
+            "allow_share": not getattr(settings, "ACCOUNT_REQUIRED", False),
+            "debug_stats": DEBUG,
+        },
+    )
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
@@ -276,16 +289,19 @@ def evaluate(request, board_id, evidence_id):
         old_hypotheses = [h for h in hypotheses if h[1] is not None]
         random.shuffle(old_hypotheses)
         random.shuffle(new_hypotheses)
-        context = {
-            "board": board,
-            "evidence": evidence,
-            "hypotheses": new_hypotheses + old_hypotheses,
-            "options": Evaluation.EVALUATION_OPTIONS,
-            "default_eval": default_eval,
-            "keep_eval": keep_eval,
-            "remove_eval": remove_eval,
-        }
-        return render(request, "boards/evaluate.html", context)
+        return render(
+            request,
+            "boards/evaluate.html",
+            {
+                "board": board,
+                "evidence": evidence,
+                "hypotheses": new_hypotheses + old_hypotheses,
+                "options": Evaluation.EVALUATION_OPTIONS,
+                "default_eval": default_eval,
+                "keep_eval": keep_eval,
+                "remove_eval": remove_eval,
+            },
+        )
 
 
 @require_safe
@@ -381,9 +397,11 @@ def edit_board(request, board_id):
     else:
         form = BoardForm(instance=board)
 
-    context = {"form": form, "board": board, "allow_remove": allow_remove}
-
-    return render(request, "boards/edit_board.html", context)
+    return render(
+        request,
+        "boards/edit_board.html",
+        {"form": form, "board": board, "allow_remove": allow_remove},
+    )
 
 
 @require_http_methods(["HEAD", "GET", "POST"])
@@ -405,11 +423,9 @@ def edit_permissions(request, board_id):
     else:
         form = BoardPermissionForm(instance=board.permissions, user=request.user)
 
-    context = {
-        "board": board,
-        "form": form,
-    }
-    return render(request, "boards/edit_permissions.html", context)
+    return render(
+        request, "boards/edit_permissions.html", {"board": board, "form": form,}
+    )
 
 
 @require_safe

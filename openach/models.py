@@ -87,7 +87,7 @@ class BoardModelManager(
             )
             return base.filter(
                 public | registered | created | user_collab | team_collab
-            )
+            ).distinct()
 
     def public(self):
         """Queryset for boards that the public can see."""
@@ -229,6 +229,7 @@ class TeamModelManager(models.Manager):  # pylint: disable=too-few-public-method
                 super()
                 .get_queryset()
                 .filter(Q(public=True) | Q(id__in=user_teams) | Q(id__in=invited))
+                .distinct()
             )
 
 
