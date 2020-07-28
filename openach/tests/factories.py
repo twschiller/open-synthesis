@@ -31,18 +31,18 @@ class BoardFactory(factory.DjangoModelFactory):
     board_desc = "Description"
 
     @factory.post_generation
-    def teams(self, create, extracted, **kwargs):
+    def teams(obj, create, extracted, **kwargs):
         if not create:
             return
         if extracted:
-            self.permissions.teams.set(extracted, clear=True)
+            obj.permissions.teams.set(extracted, clear=True)
 
     @factory.post_generation
-    def permissions(self, create, extracted, **kwargs):
+    def permissions(obj, create, extracted, **kwargs):
         if not create:
             return
         if extracted:
-            self.permissions.update_all(extracted)
+            obj.permissions.update_all(extracted)
 
 
 class TeamFactory(factory.DjangoModelFactory):
@@ -52,8 +52,8 @@ class TeamFactory(factory.DjangoModelFactory):
     name = factory.Sequence(lambda x: f"Team {x}")
 
     @factory.post_generation
-    def members(self, create, extracted, **kwargs):
+    def members(obj, create, extracted, **kwargs):
         if not create:
             return
         if extracted:
-            self.members.set([self.owner, *extracted], clear=True)
+            obj.members.set([obj.owner, *extracted], clear=True)
