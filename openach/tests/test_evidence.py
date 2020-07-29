@@ -326,15 +326,21 @@ class EvidenceAssessmentTests(PrimaryUserTestCase):
     def test_evidence_assessment_form_submit(self):
         """Test that the evidence assessment form can handle a submit"""
         self.login()
+
+        # an extra hypotheses, e.g., that was created while the person had the form open but before they
+        # submitted the form
+        Hypothesis.objects.create(
+            board=self.board, hypothesis_text="Hypothesis #3", creator=self.user,
+        )
+
         response = self.client.post(
             reverse("openach:evaluate", args=(self.board.id, self.evidence.id)),
             data={
-                "hypothesis-{}".format(self.hypotheses[0].id): "0",
-                "hypothesis-{}".format(self.hypotheses[1].id): "1",
+                f"hypothesis-{self.hypotheses[0].id}": "0",
+                f"hypothesis-{self.hypotheses[1].id}": "1",
             },
         )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            Evaluation.objects.count(), 2, msg="Expecting 2 evaluation objects"
-        )
-        self.assertTrue(self.board.has_follower(self.user))
+
+        assert response.status_code == 302
+        assert Evaluation.objects.count() == 2, "Expecting 2 evaluation objects"
+        assert self.board.has_follower(self.user)

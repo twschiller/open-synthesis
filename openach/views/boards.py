@@ -254,25 +254,25 @@ def evaluate(request, board_id, evidence_id):
     if request.method == "POST":
         with transaction.atomic():
             for hypothesis, dummy_evaluation in hypotheses:
-                select = request.POST["hypothesis-{}".format(hypothesis.id)]
-                if select == remove_eval:
-                    Evaluation.objects.filter(
-                        board=board_id,
-                        evidence=evidence,
-                        user=request.user,
-                        hypothesis_id=hypothesis.id,
-                    ).delete()
-                elif select in evaluation_set:
+                selected = request.POST.get(f"hypothesis-{hypothesis.id}", None)
+
+                evaluation_kwargs = dict(
+                    board=board,
+                    evidence=evidence,
+                    user=request.user,
+                    hypothesis=hypothesis,
+                )
+
+                if selected == remove_eval:
+                    Evaluation.objects.filter(**evaluation_kwargs).delete()
+                elif selected in evaluation_set:
                     Evaluation.objects.update_or_create(
-                        board=board,
-                        evidence=evidence,
-                        hypothesis=hypothesis,
-                        user=request.user,
-                        defaults={"value": select},
+                        **evaluation_kwargs, defaults={"value": selected},
                     )
                 else:
                     # don't add/update the evaluation
                     pass
+
             BoardFollower.objects.update_or_create(
                 board=board, user=request.user, defaults={"is_evaluator": True,}
             )
