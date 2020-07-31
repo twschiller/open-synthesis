@@ -53,7 +53,7 @@ pytest-cov==2.10.0
 
 # indirect dependencies
 
-amqp==2.6.0
+amqp==2.6.1
 billiard==3.6.3.0
 blinker==1.4
 certifi==2020.6.20
