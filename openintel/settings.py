@@ -398,6 +398,10 @@ def _get_cache():
                 "default": {
                     "BACKEND": "django.core.cache.backends.memcached.PyLibMCCache",
                     "LOCATION": env("MEMCACHIER_SERVERS"),
+                    # TIMEOUT is not the connection timeout! It's the default expiration
+                    # timeout that should be applied to keys! Setting it to `None`
+                    # disables expiration.
+                    "TIMEOUT": 500,
                     "OPTIONS": {
                         "binary": True,
                         "username": env("MEMCACHIER_USERNAME"),
