@@ -17,13 +17,14 @@
 import factory
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from factory.django import DjangoModelFactory
 
 from openach import models
 
 User = get_user_model()
 
 
-class BoardFactory(factory.DjangoModelFactory):
+class BoardFactory(DjangoModelFactory):
     class Meta:
         model = models.Board
 
@@ -48,7 +49,7 @@ class BoardFactory(factory.DjangoModelFactory):
             obj.permissions.update_all(extracted)
 
 
-class TeamFactory(factory.DjangoModelFactory):
+class TeamFactory(DjangoModelFactory):
     class Meta:
         model = models.Team
 
@@ -62,7 +63,7 @@ class TeamFactory(factory.DjangoModelFactory):
             obj.members.set([obj.owner, *extracted], clear=True)
 
 
-class UserFactory(factory.DjangoModelFactory):
+class UserFactory(DjangoModelFactory):
     class Meta:
         model = models.User
 

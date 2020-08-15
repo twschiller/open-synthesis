@@ -29,7 +29,7 @@ def _detect_command(cmd):
     return len(sys.argv) > 1 and sys.argv[1] == cmd
 
 
-TESTING = _detect_command("test")
+TESTING = _detect_command("test") or "pytest" in sys.modules
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -146,7 +146,7 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
-if DEBUG:
+if DEBUG and not TESTING:
     INSTALLED_APPS += ["debug_toolbar"]
     MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
