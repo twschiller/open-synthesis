@@ -20,7 +20,6 @@ django-recaptcha==2.0.6
 
 # external services
 
-django-pylibmc==0.6.1
 django-sendgrid-v5==0.8.1
 psycopg2-binary==2.8.5
 pylibmc==1.6.1

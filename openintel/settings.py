@@ -393,19 +393,17 @@ def _get_cache():
     if env("ENABLE_CACHE") and not TESTING:
         # https://devcenter.heroku.com/articles/django-memcache#configure-django-with-memcachier
         try:
-            # NOTE: if 'MEMCACHIER_SERVERS' isn't defined, the exception will get caught as expected
-            os.environ["MEMCACHE_SERVERS"] = env("MEMCACHIER_SERVERS").replace(
-                ",", ";"
-            )  # pylint: disable=no-member
-            os.environ["MEMCACHE_USERNAME"] = env("MEMCACHIER_USERNAME")
-            os.environ["MEMCACHE_PASSWORD"] = env("MEMCACHIER_PASSWORD")
             logger.info("Using MEMCACHIER servers: %s", env("MEMCACHIER_SERVERS"))
             return {
                 "default": {
-                    "BACKEND": "django_pylibmc.memcached.PyLibMCCache",
-                    "TIMEOUT": 500,
-                    "BINARY": True,
-                    "OPTIONS": {"tcp_nodelay": True},
+                    "BACKEND": "django.core.cache.backends.memcached.PyLibMCCache",
+                    "LOCATION": env("MEMCACHIER_SERVERS"),
+                    "OPTIONS": {
+                        "binary": True,
+                        "username": env("MEMCACHIER_USERNAME"),
+                        "password": env("MEMCACHIER_PASSWORD"),
+                        "behaviors": {"no_block": True, "tcp_nodelay": True},
+                    },
                 }
             }
         except:  # pylint: disable=bare-except
