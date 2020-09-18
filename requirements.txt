@@ -24,7 +24,7 @@ django-sendgrid-v5==0.9.0
 psycopg2-binary==2.8.6
 pylibmc==1.6.1
 redis==3.5.3
-rollbar==0.15.0
+rollbar==0.15.1
 
 # web server
 
