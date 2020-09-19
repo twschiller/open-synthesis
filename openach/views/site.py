@@ -115,7 +115,7 @@ def bitcoin_qrcode(request):
         # https://github.com/praekelt/django-recaptcha/issues/101
         # https://developers.google.com/recaptcha/docs/faq#im-using-content-security-policy-csp-on-my-website.-how-can-i-configure-it-to-work-with-recaptcha
         SCRIPT_SRC="'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
-        FRAME_SRC="'self' https://www.google.com/recaptcha/*",
+        FRAME_SRC="'self' https://www.google.com/recaptcha/",
     ),
     name="dispatch",
 )
