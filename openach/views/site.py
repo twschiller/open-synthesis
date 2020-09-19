@@ -113,8 +113,8 @@ def bitcoin_qrcode(request):
 @method_decorator(
     csp_update(
         # https://github.com/praekelt/django-recaptcha/issues/101
-        SCRIPT_SRC_ELEM="'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
-        FRAME_SRC="'self' https://www.google.com/recaptcha/",
+        SCRIPT_SRC_ELEM="'self' 'unsafe-inline' https://www.google.com/recaptcha/* https://www.gstatic.com/recaptcha/*",
+        FRAME_SRC="'self' https://www.google.com/recaptcha/*",
     ),
     name="dispatch",
 )

@@ -24,7 +24,7 @@ django-sendgrid-v5==0.9.0
 psycopg2-binary==2.8.6
 pylibmc==1.6.1
 redis==3.5.3
-rollbar==0.15.0
+rollbar==0.15.1
 
 # web server
 
@@ -45,7 +45,7 @@ django-debug-toolbar==2.2
 django-coverage-plugin==1.8.0
 factory-boy==3.0.1
 pytest==6.0.2
-coverage==5.2.1
+coverage==5.3
 pytest-django==3.10.0
 pytest-cov==2.10.1
 
