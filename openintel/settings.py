@@ -384,6 +384,7 @@ ROLLBAR = {
 # http://www.html5rocks.com/en/tutorials/security/content-security-policy/
 
 CSP_DEFAULT_SRC = ["'self'"]
+CSP_OBJECT_SRC = ["'none'"]
 
 # SEO Configuration
 SLUG_MAX_LENGTH = env("SLUG_MAX_LENGTH")
