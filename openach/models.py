@@ -111,7 +111,7 @@ class Board(models.Model):
 
         ordering = ("-pub_date",)
 
-    validate_special = RegexValidator(r'^[0-9a-zA-Z ,.?()\-\/]*$', 'No special characters allowed.') # Allows commas, full-stops, question marks, parentheses, hyphens and forward slashes
+    validate_special = RegexValidator(r'^[0-9a-zA-Z ,.?()\-\/]*$', 'No special characters allowed.')
 
     board_title = models.CharField(
         max_length=BOARD_TITLE_MAX_LENGTH,
