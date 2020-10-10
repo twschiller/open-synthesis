@@ -4,7 +4,8 @@ language: python
 python:
   - "3.7"
   - "3.8"
-  - "3.9"
+  # Support for 3.9 not available yet https://travis-ci.community/t/python-3-9-dev-support/6703/5
+  # - "3.9"
 
 install:
   - pip install -r requirements.txt
