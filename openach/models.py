@@ -111,7 +111,8 @@ class Board(models.Model):
 
         ordering = ("-pub_date",)
 
-    validate_special = RegexValidator(r'^[0-9a-zA-Z ,.?()\-\/]*$', 'No special characters allowed.')
+    validate_special = RegexValidator(r'^((?![!@#^*~`|<>{}+=\[\]]).)*$', 'No special characters allowed.')
+    # When user clicks 'Create Board', validator stops any instance of these characters: !@#^*~`|<>{}+=[]
 
     board_title = models.CharField(
         max_length=BOARD_TITLE_MAX_LENGTH,
