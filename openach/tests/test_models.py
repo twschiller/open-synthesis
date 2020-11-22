@@ -2,10 +2,11 @@ import datetime
 
 from django.test import TestCase
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from openach.models import Board
 
-from .common import remove
+from openach.tests.common import PrimaryUserTestCase, remove
 
 
 class RemovableModelManagerTests(TestCase):
@@ -47,3 +48,31 @@ class BoardMethodTests(TestCase):
         """Test to make sure we can grab the URL of a board that has a slug."""
         slug = "test-slug"
         self.assertTrue(slug in Board(id=1, board_slug=slug).get_absolute_url())
+
+class BoardTitleTests(PrimaryUserTestCase):
+    def test_board_title_special_characters(self):
+        """Test to make sure certain characters are allowed/disallowed in titles."""
+        board = Board(
+            board_desc="Test Board Description",
+            creator=self.user,
+            pub_date=timezone.now(),
+        )
+        fail_titles = [
+            "Test Board Title!",
+            "Test Board @ Title",
+            "Test #Board Title",
+            "Test Board Title++++",
+        ]
+        for title in fail_titles:
+            board.board_title = title
+            self.assertRaises(ValidationError, board.full_clean)
+
+        pass_titles = [
+            "Test Böard Titlé",
+            "Test (Board) Title?",
+            "Test Board & Title",
+            "Test Board/Title",
+        ]
+        for title in pass_titles:
+            board.board_title = title
+            board.full_clean()

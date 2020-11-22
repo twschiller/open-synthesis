@@ -15,6 +15,7 @@ from django.db.models import Q
 from django.urls import NoReverseMatch, reverse  # pylint: disable=no-name-in-module
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import RegexValidator
 from field_history.tracker import FieldHistoryTracker
 from slugify import slugify
 
@@ -110,6 +111,9 @@ class Board(models.Model):
 
         ordering = ("-pub_date",)
 
+    validate_special = RegexValidator(r'^((?![!@#^*~`|<>{}+=\[\]]).)*$', 'No special characters allowed.')
+    # When user clicks 'Create Board', validator stops any instance of these characters: !@#^*~`|<>{}+=[]
+
     board_title = models.CharField(
         max_length=BOARD_TITLE_MAX_LENGTH,
         db_index=True,
@@ -117,6 +121,7 @@ class Board(models.Model):
             "The board title. Typically phrased as a question asking about what happened in the past, "
             "what is happening currently, or what will happen in the future"
         ),
+        validators=[validate_special],
     )
 
     board_slug = models.SlugField(
