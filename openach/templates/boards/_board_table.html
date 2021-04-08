@@ -1,5 +1,15 @@
 {% load i18n %}
-<table class="table table-hover">
+
+<select class="btn btn-info" name="" id="status">
+    <option value="start" id="">Sort By</option>
+    <option value="byDate" id="byDate">Older Boards</option>
+    <option value="byContributer" id="byContributer">Top Contributed Boards</option>
+</select>
+
+
+
+
+<table class="table table-hover" id="myTable">
     <thead>
     <tr>
         <th>{% trans "Title" %}</th>
