@@ -32,7 +32,7 @@ def remove_and_redirect(request, removable, message_detail):
 def make_paginator(request, object_list, per_page=10, orphans=3):
     """Return a paginator for object_list from request."""
     paginator = Paginator(object_list, per_page=per_page, orphans=orphans)
-    page = request.GET.get("page")
+    page = request.GET.get('page')
     try:
         objects = paginator.page(page)
     except PageNotAnInteger:

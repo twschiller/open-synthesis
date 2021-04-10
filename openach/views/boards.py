@@ -1,5 +1,5 @@
-import itertools
 import json
+import itertools
 import logging
 import random
 from collections import defaultdict
@@ -37,6 +37,7 @@ from openach.metrics import (
 from openach.models import Board, BoardFollower, Eval, Evaluation, Evidence, Hypothesis
 
 from .util import make_paginator
+from .filter import BoardFilter
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -50,11 +51,16 @@ DEBUG = getattr(settings, "DEBUG", False)
 @account_required
 def board_listing(request):
     """Return a paginated board listing view showing all boards and their popularity."""
-    board_list = Board.objects.user_readable(request.user).order_by("-pub_date")
+    # board_list = Board.objects.user_readable(request.user).order_by("-pub_date")
+    board_list = Board.objects.all().order_by("-pub_date")
+    print(type(board_list))
     metric_timeout_seconds = 60 * 2
     desc = _("List of intelligence boards on {name} and summary information").format(
         name=get_current_site(request).name
     )  # nopep8
+
+    myFilter = BoardFilter(request.GET, queryset=board_list)
+    board_list = myFilter.qs
     return render(
         request,
         "boards/boards.html",
@@ -69,6 +75,7 @@ def board_listing(request):
                 "evaluator_count", generate_evaluator_count(), metric_timeout_seconds
             ),
             "meta_description": desc,
+            'myFilter' : myFilter,
         },
     )
 

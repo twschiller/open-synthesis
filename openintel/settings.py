@@ -39,7 +39,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Defaults should be "safe" from a security perspective
 # NOTE: 'env' follows naming convention from the environ documentation
 env = environ.Env(  # pylint: disable=invalid-name
-    DEBUG=(bool, False),
+    DEBUG=(bool, False),     
     ENABLE_CACHE=(bool, True),
     ENVIRONMENT_NAME=(str, None),
     DJANGO_LOG_LEVEL=(str, "ERROR"),
@@ -116,6 +116,8 @@ INSTALLED_APPS = [
     "notifications",
     # invitations must appear after allauth: https://github.com/bee-keeper/django-invitations#allauth-integration
     "invitations",
+        # django-filters for filtering
+    "django_filters",
 ]
 
 

@@ -1,11 +1,15 @@
 {% load i18n %}
 
-<select class="btn btn-info" name="" id="status">
+<!-- <select class="btn btn-info" name="" id="status">
     <option value="start" id="">Sort By</option>
     <option value="byDate" id="byDate">Older Boards</option>
     <option value="byContributer" id="byContributer">Top Contributed Boards</option>
-</select>
+</select> -->
 
+<form method="get">
+    {{myFilter.form}}
+<button class="btn btn-primary" type="submit">Search</button>
+</form>
 
 
 
