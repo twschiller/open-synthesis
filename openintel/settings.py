@@ -118,6 +118,8 @@ INSTALLED_APPS = [
     "invitations",
         # django-filters for filtering
     "django_filters",
+    "bootstrap4",
+    "widget_tweaks",
 ]
 
 
