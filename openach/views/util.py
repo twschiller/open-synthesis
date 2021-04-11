@@ -5,6 +5,8 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from openach.models import Board
+
 
 
 def remove_and_redirect(request, removable, message_detail):
@@ -42,3 +44,10 @@ def make_paginator(request, object_list, per_page=10, orphans=3):
         # if page is out of range (e.g. 9999), deliver last page of results.
         objects = paginator.page(paginator.num_pages)
     return objects
+
+
+def custom_sort(request, object_list):
+    if not request.GET.get('sort', ):
+        return object_list
+    name = request.GET.get('sort')
+    return object_list.order_by(f"{name}")

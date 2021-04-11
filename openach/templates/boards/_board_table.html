@@ -1,23 +1,32 @@
 {% load i18n %}
 {% load widget_tweaks %}
+{% load templatehelpers %}
 
 
-<!-- <select class="btn btn-info" name="" id="status">
-    <option value="start" id="">Sort By</option>
-    <option value="byDate" id="byDate">Older Boards</option>
-    <option value="byContributer" id="byContributer">Top Contributed Boards</option>
-</select> -->
 
-<div>
-    <form method="get">
-        <div class="row" class="justify-content-between"></div>
-            <div class="form-group col-sm-4 col-md-3">
-              {% render_field myFilter.form.board_title class="form-control", placeholder="Board Title" %}
-            </div>
-        <button class="btn btn-primary" type="submit">Search</button>
-    </form>
+<div class="row justify-content-between">
+    {% with params=request.GET.urlencode %}
+      <div class="dropdown col-sm-4 col-md-6">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Sort By
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          <div><a class="dropdown-item " href="{% relative_url '-pub_date' 'sort' params %}">Recent Boards</a></div>
+          <div><a class="dropdown-item " href="{% relative_url 'pub_date' 'sort' params %}">Older Boards</a></div>
+          <div><a class="dropdown-item " href="{% relative_url 'board_title_lower' 'sort' params %}">Board Title (A-Z)</a></div>
+          <div><a class="dropdown-item " href="{% relative_url '-board_title_lower' 'sort' params %}">Board Title (Z-A)</a></div>
+        </div>
+      </div>
+    {% endwith %}
+      <div class="col-sm-4 col-md-6">  
+          <form method="get">
+                  <div class="form-group col-md-8">
+                    {% render_field myFilter.form.board_title class="form-control", placeholder="Board Title" %}
+                  </div>
+              <button class="btn btn-primary col-md-2" type="submit">Search</button>
+          </form>
+      </div>
 </div>
-
 
 
 
@@ -26,7 +35,7 @@
 <table class="table table-hover" id="myTable">
     <thead>
     <tr>
-        <th><a href="?sort=board_title&">{% trans "Title" %}</a></th>
+        <th>{% trans "Title" %}</th>
         <th>{% trans "Posted" %}</th>
         <th>{% trans "Description" %}</th>
         <th>{% trans "# Contributors" %}</th>

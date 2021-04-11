@@ -36,8 +36,9 @@ from openach.metrics import (
 )
 from openach.models import Board, BoardFollower, Eval, Evaluation, Evidence, Hypothesis
 
-from .util import make_paginator
+from .util import make_paginator, custom_sort
 from .filter import BoardFilter
+from django.db.models.functions import Lower
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -51,13 +52,13 @@ DEBUG = getattr(settings, "DEBUG", False)
 @account_required
 def board_listing(request):
     """Return a paginated board listing view showing all boards and their popularity."""
-    # board_list = Board.objects.user_readable(request.user).order_by("-pub_date")
-    board_list = Board.objects.all().order_by("-pub_date")
-    print(type(board_list))
+    board_obj = Board.objects.user_readable(request.user).annotate(board_title_lower=Lower('board_title'))
+    board_list = custom_sort(request, board_obj)
     metric_timeout_seconds = 60 * 2
     desc = _("List of intelligence boards on {name} and summary information").format(
         name=get_current_site(request).name
     )  # nopep8
+    name = request.GET.get('sort')
 
     myFilter = BoardFilter(request.GET, queryset=board_list)
     board_list = myFilter.qs
@@ -76,6 +77,7 @@ def board_listing(request):
             ),
             "meta_description": desc,
             'myFilter' : myFilter,
+            "sort" : name
         },
     )
 

@@ -9,11 +9,11 @@
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head prefix="og: http://ogp.me/ns# profile: http://ogp.me/ns/profile# website: http://ogp.me/ns/website# ">
-    {% load static %}
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    {% load static %}
     <title>{% block title %}{% endblock %}</title>
     {% include 'boards/_meta.html' %}
 
@@ -97,8 +97,6 @@
 </div> <!-- /container -->
 
 {% render_bundle 'main' 'js' %}
-<!-- Temporary solution - will serve this through webpack -->
-<script language="JavaScript" type="text/javascript" src="{% static '/js/jquery-3.6.0.min.js' %}"></script>
-<script src="{% static '/js/filter.js' %}"></script>
+
 </body>
 </html>

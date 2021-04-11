@@ -1,5 +1,6 @@
 {% load board_extras %}
 {% load i18n %}
+{% load templatehelpers %}
 
 <nav aria-label="{% trans "Page navigation" %}">
     <ul class="pagination">
@@ -21,7 +22,7 @@
                 </li>
             {% else %}
                 <li>
-                    <a href="?page={{ page }}">{{ page }}</a>
+                    <a href="{% relative_url page 'page' request.GET.urlencode %}">{{ page }}</a>
                 </li>
             {% endif %}
         {% endfor %}
