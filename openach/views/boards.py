@@ -1,5 +1,5 @@
-import json
 import itertools
+import json
 import logging
 import random
 from collections import defaultdict
@@ -13,6 +13,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -36,9 +37,8 @@ from openach.metrics import (
 )
 from openach.models import Board, BoardFollower, Eval, Evaluation, Evidence, Hypothesis
 
-from .util import make_paginator, custom_sort
 from .filter import BoardFilter
-from django.db.models.functions import Lower
+from .util import custom_sort, make_paginator
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -52,13 +52,15 @@ DEBUG = getattr(settings, "DEBUG", False)
 @account_required
 def board_listing(request):
     """Return a paginated board listing view showing all boards and their popularity."""
-    board_obj = Board.objects.user_readable(request.user).annotate(board_title_lower=Lower('board_title'))
+    board_obj = Board.objects.user_readable(request.user).annotate(
+        board_title_lower=Lower("board_title")
+    )
     board_list = custom_sort(request, board_obj)
     metric_timeout_seconds = 60 * 2
     desc = _("List of intelligence boards on {name} and summary information").format(
         name=get_current_site(request).name
     )  # nopep8
-    name = request.GET.get('sort')
+    name = request.GET.get("sort")
 
     myFilter = BoardFilter(request.GET, queryset=board_list)
     board_list = myFilter.qs
@@ -76,8 +78,8 @@ def board_listing(request):
                 "evaluator_count", generate_evaluator_count(), metric_timeout_seconds
             ),
             "meta_description": desc,
-            'myFilter' : myFilter,
-            "sort" : name
+            "myFilter": myFilter,
+            "sort": name,
         },
     )
 

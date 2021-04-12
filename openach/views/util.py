@@ -5,8 +5,8 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.translation import gettext as _
-from openach.models import Board
 
+from openach.models import Board
 
 
 def remove_and_redirect(request, removable, message_detail):
@@ -34,7 +34,7 @@ def remove_and_redirect(request, removable, message_detail):
 def make_paginator(request, object_list, per_page=10, orphans=3):
     """Return a paginator for object_list from request."""
     paginator = Paginator(object_list, per_page=per_page, orphans=orphans)
-    page = request.GET.get('page')
+    page = request.GET.get("page")
     try:
         objects = paginator.page(page)
     except PageNotAnInteger:
@@ -47,7 +47,7 @@ def make_paginator(request, object_list, per_page=10, orphans=3):
 
 
 def custom_sort(request, object_list):
-    if not request.GET.get('sort', ):
+    if not request.GET.get("sort",):
         return object_list
-    name = request.GET.get('sort')
+    name = request.GET.get("sort")
     return object_list.order_by(f"{name}")

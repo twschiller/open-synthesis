@@ -10,12 +10,12 @@ from enum import Enum, unique
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from django.urls import NoReverseMatch, reverse  # pylint: disable=no-name-in-module
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import RegexValidator
 from field_history.tracker import FieldHistoryTracker
 from slugify import slugify
 
@@ -111,7 +111,9 @@ class Board(models.Model):
 
         ordering = ("-pub_date",)
 
-    validate_special = RegexValidator(r'^((?![!@#^*~`|<>{}+=\[\]]).)*$', 'No special characters allowed.')
+    validate_special = RegexValidator(
+        r"^((?![!@#^*~`|<>{}+=\[\]]).)*$", "No special characters allowed."
+    )
     # When user clicks 'Create Board', validator stops any instance of these characters: !@#^*~`|<>{}+=[]
 
     board_title = models.CharField(
