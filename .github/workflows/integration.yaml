@@ -1,0 +1,45 @@
+name: Continuous Integration
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+        python-version: [3.9]
+
+    env:
+      CI: true
+      SECRET_KEY: "DONOTUSEINPRODUCTION"
+      DEBUG: true
+      ENVIRONMENT_NAME: local
+      APP_LOG_LEVEL: DEBUG
+      ALLOWED_HOSTS: 127.0.0.1
+      ENVIRONMENT: development
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - uses: actions/setup-python@v2
+        with:
+          # https://github.com/actions/setup-python
+          python-version: ${{ matrix.python-version }}
+      - name: Install Python Dependencies
+        run: |
+            pip install -r requirements.txt
+            pip install -r requirements-test.txt
+      - name: Build Front-end
+        run: |
+          npm install
+          npm run build
+          python manage.py collectstatic --noinput
+      - name: Run Tests
+        run: pytest --cov='.'
+      - name: Upload Coverage
+        run: coveralls
