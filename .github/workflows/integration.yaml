@@ -23,6 +23,7 @@ jobs:
       APP_LOG_LEVEL: DEBUG
       ALLOWED_HOSTS: 127.0.0.1
       ENVIRONMENT: development
+      ADMIN_EMAIL_ADDRESS: "test-runner@opensynthesis.org"
       CELERY_ALWAYS_EAGER: true
 
     steps:
@@ -55,7 +56,7 @@ jobs:
         run: npm ci
       - name: Build Front-end
         run: |
-          npm install
+          npm ci
           npm run build
           python manage.py collectstatic --noinput
       - name: Run Tests
