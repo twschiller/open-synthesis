@@ -13,7 +13,7 @@ jobs:
 
     env:
       CI: true
-      SECRET_KEY: "DONOTUSEINPRODUCTION"
+      DJANGO_SECRET_KEY: "DONOTUSEINPRODUCTION"
       DEBUG: true
       ENVIRONMENT_NAME: local
       APP_LOG_LEVEL: DEBUG
