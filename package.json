@@ -44,6 +44,6 @@
     "webpack": "^4.43.0",
     "webpack-bundle-tracker": "^0.4.3",
     "webpack-cli": "^3.3.12",
-    "webpack-merge": "^5.0.9"
+    "webpack-merge": "^5.8.0"
   }
 }
