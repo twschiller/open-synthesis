@@ -15,6 +15,7 @@ class OpenACHConfig(AppConfig):
 
     name = "openach"
     verbose_name = "Open ACH"
+    default_auto_field = "django.db.models.AutoField"
 
     def ready(self):
         # hook up the signals
