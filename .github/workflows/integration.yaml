@@ -1,0 +1,74 @@
+name: Continuous Integration
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+        # This python-version should be kept in sync with `runtime.txt` which controls the Python version on Heroku
+        # https://github.com/actions/setup-python
+        python-version: [3.9.6]
+
+    env:
+      CI: true
+      DEBUG: true
+      SITE_NAME: Open Synthesis (CI)
+      SITE_DOMAIN: localhost
+      DJANGO_SECRET_KEY: DONOTUSEINPRODUCTION
+      ROLLBAR_ENABLED: false
+      APP_LOG_LEVEL: DEBUG
+      ALLOWED_HOSTS: 127.0.0.1
+      ENVIRONMENT: development
+      SECURE_SSL_REDIRECT: false
+      SESSION_COOKIE_SECURE: false
+      CSRF_COOKIE_SECURE: false
+      CSRF_COOKIE_HTTPONLY: true
+      ENABLE_CACHE: false
+      ACCOUNT_REQUIRED: false
+      ADMIN_EMAIL_ADDRESS: "admin@localhost"
+      CELERY_ALWAYS_EAGER: true
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache pip
+        # https://docs.github.com/en/actions/guides/building-and-testing-python#caching-dependencies
+        uses: actions/cache@v2
+        with:
+          # This path is specific to Ubuntu
+          path: ~/.cache/pip
+          # Look to see if there is a cache hit for the corresponding requirements file
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }} }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+      - name: Install development headers
+        run: |
+          sudo apt-get install libmemcached-dev
+      - name: Install Python Dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Build Front-end
+        # `npm ci` also runs `npm run build` because it's in the `post-install` action in package.json
+        run: |
+          npm ci
+          python manage.py collectstatic --noinput
+      - name: Run Tests
+        run: pytest --cov='.'
+      - name: Upload Coverage
+        # https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
+        run: |
+            pip3 install --upgrade coveralls
+            coveralls --service=github
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
