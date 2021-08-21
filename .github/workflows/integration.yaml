@@ -66,6 +66,9 @@ jobs:
       - name: Run Tests
         run: pytest --cov='.'
       - name: Upload Coverage
+        # https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
         run: |
-          pip install coveralls
-          coveralls
+            pip3 install --upgrade coveralls
+            coveralls --service=github
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
