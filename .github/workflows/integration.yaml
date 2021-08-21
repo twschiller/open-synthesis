@@ -15,15 +15,21 @@ jobs:
 
     env:
       CI: true
+      DEBUG: true
       SITE_NAME: Open Synthesis (CI)
       SITE_DOMAIN: localhost
       DJANGO_SECRET_KEY: DONOTUSEINPRODUCTION
-      DEBUG: true
       ROLLBAR_ENABLED: false
       APP_LOG_LEVEL: DEBUG
       ALLOWED_HOSTS: 127.0.0.1
       ENVIRONMENT: development
-      ADMIN_EMAIL_ADDRESS: "test-runner@opensynthesis.org"
+      SECURE_SSL_REDIRECT: false
+      SESSION_COOKIE_SECURE: false
+      CSRF_COOKIE_SECURE: false
+      CSRF_COOKIE_HTTPONLY: true
+      ENABLE_CACHE: false
+      ACCOUNT_REQUIRED: false
+      ADMIN_EMAIL_ADDRESS: "admin@localhost"
       CELERY_ALWAYS_EAGER: true
 
     steps:
@@ -56,7 +62,6 @@ jobs:
         run: npm ci
       - name: Build Front-end
         run: |
-          npm ci
           npm run build
           python manage.py collectstatic --noinput
       - name: Run Tests
