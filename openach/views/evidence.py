@@ -101,7 +101,11 @@ def add_evidence(request, board_id):
                     fetch_source_metadata.delay(source.id)
 
                 BoardFollower.objects.update_or_create(
-                    board=board, user=request.user, defaults={"is_contributor": True,}
+                    board=board,
+                    user=request.user,
+                    defaults={
+                        "is_contributor": True,
+                    },
                 )
             notify_add(board, actor=request.user, action_object=evidence)
             return HttpResponseRedirect(reverse("openach:detail", args=(board.id,)))
@@ -114,7 +118,11 @@ def add_evidence(request, board_id):
     return render(
         request,
         "boards/add_evidence.html",
-        {"board": board, "evidence_form": evidence_form, "source_form": source_form,},
+        {
+            "board": board,
+            "evidence_form": evidence_form,
+            "source_form": source_form,
+        },
     )
 
 

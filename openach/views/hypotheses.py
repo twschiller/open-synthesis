@@ -38,7 +38,11 @@ def add_hypothesis(request, board_id):
             hypothesis.creator = request.user
             hypothesis.save()
             BoardFollower.objects.update_or_create(
-                board=board, user=request.user, defaults={"is_contributor": True,}
+                board=board,
+                user=request.user,
+                defaults={
+                    "is_contributor": True,
+                },
             )
             notify_add(board, actor=request.user, action_object=hypothesis)
             return HttpResponseRedirect(reverse("openach:detail", args=(board.id,)))

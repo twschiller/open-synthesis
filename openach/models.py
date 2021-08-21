@@ -10,12 +10,12 @@ from enum import Enum, unique
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from django.urls import NoReverseMatch, reverse  # pylint: disable=no-name-in-module
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import RegexValidator
 from field_history.tracker import FieldHistoryTracker
 from slugify import slugify
 
@@ -111,7 +111,9 @@ class Board(models.Model):
 
         ordering = ("-pub_date",)
 
-    validate_special = RegexValidator(r'^((?![!@#^*~`|<>{}+=\[\]]).)*$', 'No special characters allowed.')
+    validate_special = RegexValidator(
+        r"^((?![!@#^*~`|<>{}+=\[\]]).)*$", "No special characters allowed."
+    )
     # When user clicks 'Create Board', validator stops any instance of these characters: !@#^*~`|<>{}+=[]
 
     board_title = models.CharField(
@@ -168,7 +170,13 @@ class Board(models.Model):
         """Return the absolute URL for viewing the board details, including the slug."""
         if self.board_slug:
             try:
-                return reverse("openach:detail_slug", args=(self.id, self.board_slug,))
+                return reverse(
+                    "openach:detail_slug",
+                    args=(
+                        self.id,
+                        self.board_slug,
+                    ),
+                )
             except NoReverseMatch:
                 logger.warning(
                     "Malformed SLUG for reverse URL match: %s", self.board_slug
@@ -248,7 +256,10 @@ class Team(models.Model):
     )
 
     owner = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name="+",
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
     )
 
     name = models.CharField(max_length=64, unique=True)
@@ -291,7 +302,11 @@ class TeamRequest(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
 
     inviter = models.ForeignKey(
-        User, null=True, blank=True, related_name="+", on_delete=models.CASCADE,
+        User,
+        null=True,
+        blank=True,
+        related_name="+",
+        on_delete=models.CASCADE,
     )
 
     invitee = models.ForeignKey(
@@ -340,12 +355,20 @@ class BoardPermissions(models.Model):
     ]
 
     board = models.OneToOneField(
-        Board, related_name="permissions", on_delete=models.CASCADE,
+        Board,
+        related_name="permissions",
+        on_delete=models.CASCADE,
     )
 
-    collaborators = models.ManyToManyField(User, blank=True,)
+    collaborators = models.ManyToManyField(
+        User,
+        blank=True,
+    )
 
-    teams = models.ManyToManyField(Team, blank=True,)
+    teams = models.ManyToManyField(
+        Team,
+        blank=True,
+    )
 
     read_board = models.PositiveSmallIntegerField(
         choices=AUTH_CHOICES,
@@ -491,15 +514,30 @@ class BoardFollower(models.Model):
 class Hypothesis(models.Model):
     """An ACH matrix hypothesis."""
 
-    board = models.ForeignKey(Board, on_delete=models.CASCADE,)
+    board = models.ForeignKey(
+        Board,
+        on_delete=models.CASCADE,
+    )
 
-    hypothesis_text = models.CharField("hypothesis", max_length=HYPOTHESIS_MAX_LENGTH,)
+    hypothesis_text = models.CharField(
+        "hypothesis",
+        max_length=HYPOTHESIS_MAX_LENGTH,
+    )
 
-    creator = models.ForeignKey(User, null=True, on_delete=models.SET_NULL,)
+    creator = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
-    submit_date = models.DateTimeField("date added", auto_now_add=True,)
+    submit_date = models.DateTimeField(
+        "date added",
+        auto_now_add=True,
+    )
 
-    removed = models.BooleanField(default=False,)
+    removed = models.BooleanField(
+        default=False,
+    )
 
     field_history = FieldHistoryTracker(["hypothesis_text", "removed"])
 
@@ -526,7 +564,11 @@ class Evidence(models.Model):
 
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
 
-    creator = models.ForeignKey(User, null=True, on_delete=models.SET_NULL,)
+    creator = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
     evidence_desc = models.CharField(
         "evidence description",
@@ -576,7 +618,10 @@ class Evidence(models.Model):
 class EvidenceSource(models.Model):
     """A source for a piece of evidence in the ACH matrix."""
 
-    evidence = models.ForeignKey(Evidence, on_delete=models.CASCADE,)
+    evidence = models.ForeignKey(
+        Evidence,
+        on_delete=models.CASCADE,
+    )
 
     source_url = models.URLField(
         "source website",
@@ -587,11 +632,15 @@ class EvidenceSource(models.Model):
     )
 
     source_title = models.CharField(
-        "source title", max_length=SOURCE_TITLE_MAX_LENGTH, default="",
+        "source title",
+        max_length=SOURCE_TITLE_MAX_LENGTH,
+        default="",
     )
 
     source_description = models.CharField(
-        "source description", max_length=SOURCE_DESCRIPTION_MAX_LENGTH, default="",
+        "source description",
+        max_length=SOURCE_DESCRIPTION_MAX_LENGTH,
+        default="",
     )
 
     source_date = models.DateField(
@@ -602,9 +651,16 @@ class EvidenceSource(models.Model):
         ),
     )
 
-    uploader = models.ForeignKey(User, null=True, on_delete=models.SET_NULL,)
+    uploader = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
-    submit_date = models.DateTimeField("date added", auto_now_add=True,)
+    submit_date = models.DateTimeField(
+        "date added",
+        auto_now_add=True,
+    )
 
     corroborating = models.BooleanField()
 
@@ -680,7 +736,11 @@ class ProjectNews(models.Model):
 
     pub_date = models.DateTimeField("date published")
 
-    author = models.ForeignKey(User, null=True, on_delete=models.SET_NULL,)
+    author = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
 
 @unique
@@ -711,7 +771,9 @@ class UserSettings(models.Model):
     )
 
     user = models.OneToOneField(
-        User, related_name="settings", on_delete=models.CASCADE,
+        User,
+        related_name="settings",
+        on_delete=models.CASCADE,
     )
 
     digest_frequency = models.PositiveSmallIntegerField(
@@ -727,8 +789,17 @@ class UserSettings(models.Model):
 class DigestStatus(models.Model):
     """Email digest status."""
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE,)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+    )
 
-    last_success = models.DateTimeField(null=True, default=None,)
+    last_success = models.DateTimeField(
+        null=True,
+        default=None,
+    )
 
-    last_attempt = models.DateTimeField(null=True, default=None,)
+    last_attempt = models.DateTimeField(
+        null=True,
+        default=None,
+    )

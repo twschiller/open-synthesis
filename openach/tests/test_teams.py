@@ -81,7 +81,11 @@ class TeamTests(PrimaryUserTestCase):
         desc = "New team description"
         response = self.client.post(
             reverse("openach:edit_team", args=(self.team.id,)),
-            data={"name": "Team", "description": desc, "public": False,},
+            data={
+                "name": "Team",
+                "description": desc,
+                "public": False,
+            },
         )
         self.assertEqual(response.status_code, HTTP_REDIRECT)  # succeeded
 
@@ -95,7 +99,11 @@ class TeamTests(PrimaryUserTestCase):
         team_description = "A test team"
         response = self.client.post(
             reverse("openach:create_team"),
-            data={"name": team_name, "description": team_description, "public": True,},
+            data={
+                "name": team_name,
+                "description": team_description,
+                "public": True,
+            },
         )
         self.assertEqual(response.status_code, HTTP_REDIRECT)  # succeeded
 
@@ -217,7 +225,9 @@ class TeamMembership(PrimaryUserTestCase):
 
         response = self.client.post(
             reverse("openach:decide_invitation", args=(membership_request.id,)),
-            data={"accept": True,},
+            data={
+                "accept": True,
+            },
         )
         self.assertStatus(response, HTTP_REDIRECT)
 
@@ -241,7 +251,9 @@ class TeamMembership(PrimaryUserTestCase):
 
         response = self.client.post(
             reverse("openach:decide_invitation", args=(membership_request.id,)),
-            data={"reject": True,},
+            data={
+                "reject": True,
+            },
         )
         self.assertStatus(response, HTTP_REDIRECT)
 
@@ -266,7 +278,9 @@ class TeamMembership(PrimaryUserTestCase):
 
         response = self.client.post(
             reverse("openach:invite_members", args=(self.team.id,)),
-            data={"members": [self.other.id],},
+            data={
+                "members": [self.other.id],
+            },
         )
         self.assertStatus(response, HTTP_REDIRECT)
         self.assertEqual(

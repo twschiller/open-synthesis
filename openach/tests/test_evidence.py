@@ -95,7 +95,10 @@ class AddEvidenceTests(PrimaryUserTestCase):
     def test_evidence_edit_form(self):
         """Test that form validation passes for reasonable input."""
         form = EvidenceForm(
-            {"evidence_desc": "Evidence Description", "event_date": "1/1/2016",}
+            {
+                "evidence_desc": "Evidence Description",
+                "event_date": "1/1/2016",
+            }
         )
         self.assertTrue(form.is_valid())
 
@@ -298,17 +301,27 @@ class EvidenceAssessmentTests(PrimaryUserTestCase):
         )
         self.hypotheses = [
             Hypothesis.objects.create(
-                board=self.board, hypothesis_text="Hypothesis #1", creator=self.user,
+                board=self.board,
+                hypothesis_text="Hypothesis #1",
+                creator=self.user,
             ),
             Hypothesis.objects.create(
-                board=self.board, hypothesis_text="Hypothesis #2", creator=self.user,
+                board=self.board,
+                hypothesis_text="Hypothesis #2",
+                creator=self.user,
             ),
         ]
 
     def test_require_login_for_assessment(self):
         """Test that a user must be logged in in to access the evidence evaluation screen."""
         response = self.client.get(
-            reverse("openach:evaluate", args=(self.board.id, self.evidence.id,))
+            reverse(
+                "openach:evaluate",
+                args=(
+                    self.board.id,
+                    self.evidence.id,
+                ),
+            )
         )
         self.assertEqual(response.status_code, 302)
 
@@ -316,7 +329,13 @@ class EvidenceAssessmentTests(PrimaryUserTestCase):
         """Test that the evidence assessment form renders in a reasonable way."""
         self.login()
         response = self.client.get(
-            reverse("openach:evaluate", args=(self.board.id, self.evidence.id,))
+            reverse(
+                "openach:evaluate",
+                args=(
+                    self.board.id,
+                    self.evidence.id,
+                ),
+            )
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "boards/evaluate.html")
@@ -330,7 +349,9 @@ class EvidenceAssessmentTests(PrimaryUserTestCase):
         # an extra hypotheses, e.g., that was created while the person had the form open but before they
         # submitted the form
         Hypothesis.objects.create(
-            board=self.board, hypothesis_text="Hypothesis #3", creator=self.user,
+            board=self.board,
+            hypothesis_text="Hypothesis #3",
+            creator=self.user,
         )
 
         response = self.client.post(

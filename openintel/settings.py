@@ -154,7 +154,8 @@ if DEBUG and not TESTING:
 if DEBUG or TESTING:
     INSTALLED_APPS.insert(0, "nplusone.ext.django")
     MIDDLEWARE.insert(
-        0, "nplusone.ext.django.NPlusOneMiddleware",
+        0,
+        "nplusone.ext.django.NPlusOneMiddleware",
     )
 
 NPLUSONE_RAISE = TESTING
@@ -209,9 +210,15 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 # https://docs.djangoproject.com/en/1.10/topics/security/#ssl-https
@@ -297,12 +304,21 @@ LOGGING = {
         "simple": {"format": "%(levelname)s %(message)s"},
     },
     "handlers": {
-        "null": {"level": "DEBUG", "class": "logging.NullHandler",},
+        "null": {
+            "level": "DEBUG",
+            "class": "logging.NullHandler",
+        },
         "console": {"class": "logging.StreamHandler", "formatter": "verbose"},
     },
     "loggers": {
-        "django": {"handlers": ["console"], "level": env("DJANGO_LOG_LEVEL"),},
-        "openach": {"handlers": ["console"], "level": env("APP_LOG_LEVEL"),},
+        "django": {
+            "handlers": ["console"],
+            "level": env("DJANGO_LOG_LEVEL"),
+        },
+        "openach": {
+            "handlers": ["console"],
+            "level": env("APP_LOG_LEVEL"),
+        },
     },
 }
 
@@ -436,7 +452,11 @@ def _get_cache():
     else:
         # https://docs.djangoproject.com/en/1.10/topics/cache/#dummy-caching-for-development
         logger.info("ENABLE_CACHE not set; using DummyCache")
-        return {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache",}}
+        return {
+            "default": {
+                "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            }
+        }
 
 
 # https://docs.djangoproject.com/en/1.10/topics/cache/

@@ -13,7 +13,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="projectnews", options={"verbose_name_plural": "project news"},
+            name="projectnews",
+            options={"verbose_name_plural": "project news"},
         ),
         migrations.AddField(
             model_name="team",

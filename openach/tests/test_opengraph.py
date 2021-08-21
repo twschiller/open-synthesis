@@ -59,7 +59,8 @@ class SourceMetadataTestCase(PrimaryUserTestCase):
         """Test that ``fetch_source_metadata updates the source metadata"""
         board = create_board("Example Board", days=-1)
         evidence = Evidence.objects.create(
-            board=board, evidence_desc="Example Evidence",
+            board=board,
+            evidence_desc="Example Evidence",
         )
         source = EvidenceSource.objects.create(
             evidence=evidence,

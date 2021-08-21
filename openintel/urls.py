@@ -57,7 +57,9 @@ urlpatterns = [  # pylint: disable=invalid-name
 if settings.DEBUG:
     import debug_toolbar
 
-    urlpatterns = [path("__debug__/", include(debug_toolbar.urls)),] + urlpatterns
+    urlpatterns = [
+        path("__debug__/", include(debug_toolbar.urls)),
+    ] + urlpatterns
 
 
 if not ACCOUNT_REQUIRED:  # pylint: disable=invalid-name

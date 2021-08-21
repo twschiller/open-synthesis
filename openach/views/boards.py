@@ -267,14 +267,19 @@ def evaluate(request, board_id, evidence_id):
                     Evaluation.objects.filter(**evaluation_kwargs).delete()
                 elif selected in evaluation_set:
                     Evaluation.objects.update_or_create(
-                        **evaluation_kwargs, defaults={"value": selected},
+                        **evaluation_kwargs,
+                        defaults={"value": selected},
                     )
                 else:
                     # don't add/update the evaluation
                     pass
 
             BoardFollower.objects.update_or_create(
-                board=board, user=request.user, defaults={"is_evaluator": True,}
+                board=board,
+                user=request.user,
+                defaults={
+                    "is_evaluator": True,
+                },
             )
 
         messages.success(
@@ -355,7 +360,11 @@ def create_board(request):
                         creator=request.user,
                     )
                 BoardFollower.objects.update_or_create(
-                    board=board, user=request.user, defaults={"is_creator": True,}
+                    board=board,
+                    user=request.user,
+                    defaults={
+                        "is_creator": True,
+                    },
                 )
 
             return HttpResponseRedirect(reverse("openach:detail", args=(board.id,)))
@@ -424,7 +433,12 @@ def edit_permissions(request, board_id):
         form = BoardPermissionForm(instance=board.permissions, user=request.user)
 
     return render(
-        request, "boards/edit_permissions.html", {"board": board, "form": form,}
+        request,
+        "boards/edit_permissions.html",
+        {
+            "board": board,
+            "form": form,
+        },
     )
 
 

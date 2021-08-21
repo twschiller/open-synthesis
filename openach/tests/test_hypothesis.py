@@ -12,10 +12,14 @@ class AddEditHypothesisTests(PrimaryUserTestCase):
         self.board = create_board("Test Board", days=5)
         self.hypotheses = [
             Hypothesis.objects.create(
-                board=self.board, hypothesis_text="Hypothesis #1", creator=self.user,
+                board=self.board,
+                hypothesis_text="Hypothesis #1",
+                creator=self.user,
             ),
             Hypothesis.objects.create(
-                board=self.board, hypothesis_text="Hypothesis #2", creator=self.user,
+                board=self.board,
+                hypothesis_text="Hypothesis #2",
+                creator=self.user,
             ),
         ]
         self.follower = add_follower(self.board)
@@ -50,7 +54,9 @@ class AddEditHypothesisTests(PrimaryUserTestCase):
         text = "Test Hypothesis 3"
         response = self.client.post(
             reverse("openach:add_hypothesis", args=(self.board.id,)),
-            data={"hypothesis_text": text,},
+            data={
+                "hypothesis_text": text,
+            },
         )
         self.assertEqual(response.status_code, 302)
         self.assertGreater(len(Hypothesis.objects.filter(hypothesis_text=text)), 0)
@@ -59,7 +65,11 @@ class AddEditHypothesisTests(PrimaryUserTestCase):
 
     def test_hypothesis_edit_form(self):
         """Test that the form validation passes for valid input."""
-        form = HypothesisForm({"hypothesis_text": "My Hypothesis",})
+        form = HypothesisForm(
+            {
+                "hypothesis_text": "My Hypothesis",
+            }
+        )
         self.assertTrue(form.is_valid())
 
     def test_can_show_edit_form(self):
@@ -76,7 +86,9 @@ class AddEditHypothesisTests(PrimaryUserTestCase):
         self.login()
         response = self.client.post(
             reverse("openach:edit_hypothesis", args=(self.hypotheses[0].id,)),
-            data={"hypothesis_text": "Updated Hypothesis",},
+            data={
+                "hypothesis_text": "Updated Hypothesis",
+            },
         )
         self.assertEqual(response.status_code, 302)
         self.assertGreaterEqual(
@@ -90,7 +102,9 @@ class AddEditHypothesisTests(PrimaryUserTestCase):
         self.login()
         response = self.client.post(
             reverse("openach:edit_hypothesis", args=(self.hypotheses[0].id,)),
-            data={"remove": "remove",},
+            data={
+                "remove": "remove",
+            },
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(len(Hypothesis.objects.all()), 1)

@@ -207,7 +207,10 @@ class SignupForm(forms.Form):
 
             self.fields["captcha"] = ReCaptchaField(
                 widget=ReCaptchaV2Checkbox(
-                    attrs={"data-theme": "light", "data-size": "normal",},
+                    attrs={
+                        "data-theme": "light",
+                        "data-size": "normal",
+                    },
                 ),
             )
 

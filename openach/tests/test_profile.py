@@ -185,7 +185,9 @@ class ProfileTests(PrimaryUserTestCase):
         self.login()
         response = self.client.post(
             "/accounts/profile/",
-            data={"digest_frequency": str(DigestFrequency.weekly.key),},
+            data={
+                "digest_frequency": str(DigestFrequency.weekly.key),
+            },
         )
         self.assertEqual(response.status_code, 200)
         self.user.settings.refresh_from_db()

@@ -14,7 +14,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="board", options={"ordering": ("-pub_date",)},
+            name="board",
+            options={"ordering": ("-pub_date",)},
         ),
         migrations.AddField(
             model_name="boardpermissions",

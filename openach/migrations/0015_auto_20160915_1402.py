@@ -13,10 +13,12 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="evidence", options={"verbose_name_plural": "evidence"},
+            name="evidence",
+            options={"verbose_name_plural": "evidence"},
         ),
         migrations.AlterModelOptions(
-            name="hypothesis", options={"verbose_name_plural": "hypotheses"},
+            name="hypothesis",
+            options={"verbose_name_plural": "hypotheses"},
         ),
         migrations.AddField(
             model_name="board",

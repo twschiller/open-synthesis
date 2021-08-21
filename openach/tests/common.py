@@ -42,7 +42,8 @@ def add_follower(board):
     """Create a user and have the user follow the given board."""
     follower = User.objects.create_user("bob", "bob@thebeatles.com", "bobpassword")
     BoardFollower.objects.create(
-        user=follower, board=board,
+        user=follower,
+        board=board,
     )
     return follower
 

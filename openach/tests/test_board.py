@@ -78,7 +78,10 @@ class BoardFormTests(PrimaryUserTestCase):
     def test_board_edit_form(self):
         """Test that the board editing form validates for reasonable input."""
         form = BoardForm(
-            {"board_title": "New board title", "board_desc": "New board description",}
+            {
+                "board_title": "New board title",
+                "board_desc": "New board description",
+            }
         )
         self.assertTrue(form.is_valid())
 
@@ -224,10 +227,14 @@ class BoardDetailTests(PrimaryUserTestCase):
         self.board = create_board("Test Board", days=5)
         self.hypotheses = [
             Hypothesis.objects.create(
-                board=self.board, hypothesis_text="Hypothesis #1", creator=self.user,
+                board=self.board,
+                hypothesis_text="Hypothesis #1",
+                creator=self.user,
             ),
             Hypothesis.objects.create(
-                board=self.board, hypothesis_text="Hypothesis #2", creator=self.user,
+                board=self.board,
+                hypothesis_text="Hypothesis #2",
+                creator=self.user,
             ),
         ]
 
