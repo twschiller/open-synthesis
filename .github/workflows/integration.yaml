@@ -58,13 +58,14 @@ jobs:
       - name: Install Python Dependencies
         run: |
           pip install -r requirements.txt
-      - name: Install Node Dependencies
-        run: npm ci
       - name: Build Front-end
+        # `npm ci` also runs `npm run build` because it's in the `post-install` action in package.json
         run: |
-          npm run build
+          npm ci
           python manage.py collectstatic --noinput
       - name: Run Tests
         run: pytest --cov='.'
       - name: Upload Coverage
-        run: coveralls
+        run: |
+          pip install coveralls
+          coveralls
