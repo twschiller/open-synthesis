@@ -42,6 +42,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
             ${{ runner.os }}-
+      - name: Install development headers
+        run: |
+          sudo apt-get install libmemcached-dev
       - name: Install Python Dependencies
         run: |
           pip install -r requirements.txt
