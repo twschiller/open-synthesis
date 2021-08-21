@@ -69,7 +69,8 @@ class DigestTests(PrimaryUserTestCase):
         for x in [1, 2]:
             board = create_board(board_title="Board #{}".format(x), days=0)
             BoardFollower.objects.create(
-                board=board, user=self.daily,
+                board=board,
+                user=self.daily,
             )
             hypothesis = Hypothesis.objects.create(
                 board=board,

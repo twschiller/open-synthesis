@@ -13,9 +13,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveField(
-            model_name="evidencesource", name="source_url_description",
+            model_name="evidencesource",
+            name="source_url_description",
         ),
-        migrations.RemoveField(model_name="evidencesource", name="source_url_title",),
+        migrations.RemoveField(
+            model_name="evidencesource",
+            name="source_url_title",
+        ),
         migrations.AddField(
             model_name="evidencesource",
             name="source_description",

@@ -1,11 +1,10 @@
 import datetime
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
-from django.core.exceptions import ValidationError
 
 from openach.models import Board
-
 from openach.tests.common import PrimaryUserTestCase, remove
 
 
@@ -48,6 +47,7 @@ class BoardMethodTests(TestCase):
         """Test to make sure we can grab the URL of a board that has a slug."""
         slug = "test-slug"
         self.assertTrue(slug in Board(id=1, board_slug=slug).get_absolute_url())
+
 
 class BoardTitleTests(PrimaryUserTestCase):
     def test_board_title_special_characters(self):

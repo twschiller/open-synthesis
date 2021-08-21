@@ -31,7 +31,10 @@ class Migration(migrations.Migration):
                 ("submit_date", models.DateTimeField(verbose_name="date added")),
             ],
         ),
-        migrations.RemoveField(model_name="evidence", name="evidence_url",),
+        migrations.RemoveField(
+            model_name="evidence",
+            name="evidence_url",
+        ),
         migrations.AddField(
             model_name="evidencesource",
             name="evidence",

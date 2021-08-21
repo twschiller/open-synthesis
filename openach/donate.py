@@ -23,7 +23,10 @@ def make_qr_code(
     # https://pypi.python.org/pypi/qrcode/5.3
     # qrcode.constants.ERROR_CORRECT_M means about 15% or less errors can be corrected.
     code = qrcode.QRCode(
-        version=1, error_correction=error_correction, box_size=box_size, border=border,
+        version=1,
+        error_correction=error_correction,
+        box_size=box_size,
+        border=border,
     )
     code.add_data(message)
     code.make(fit=True)

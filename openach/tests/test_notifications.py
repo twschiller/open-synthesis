@@ -20,7 +20,8 @@ class NotificationTests(PrimaryUserTestCase):
             pub_date=timezone.now(),
         )
         BoardFollower.objects.create(
-            board=self.board, user=self.user,
+            board=self.board,
+            user=self.user,
         )
 
     def test_public_cannot_get_notifications(self):
@@ -50,7 +51,8 @@ class NotificationTests(PrimaryUserTestCase):
     def test_board_hypothesis_notifications(self):
         """Test the add/edit hypothesis notifications work render reasonably."""
         hypothesis = Hypothesis.objects.create(
-            board=self.board, hypothesis_text="Hypothesis",
+            board=self.board,
+            hypothesis_text="Hypothesis",
         )
         notify_add(self.board, self.other, hypothesis)
         notify_edit(self.board, self.other, hypothesis)
@@ -63,7 +65,10 @@ class NotificationTests(PrimaryUserTestCase):
 
     def test_board_evidence_notifications(self):
         """Test the add/edit evidence notifications work render reasonably."""
-        evidence = Evidence.objects.create(board=self.board, evidence_desc="Evidence",)
+        evidence = Evidence.objects.create(
+            board=self.board,
+            evidence_desc="Evidence",
+        )
         notify_add(self.board, self.other, evidence)
         notify_edit(self.board, self.other, evidence)
         self.login()
@@ -84,7 +89,10 @@ class NotificationTests(PrimaryUserTestCase):
         self.assertGreater(self.user.notifications.unread().count(), 0)
         self.login()
         response = self.client.post(
-            reverse("openach:clear_notifications"), data={"clear": "clear",}
+            reverse("openach:clear_notifications"),
+            data={
+                "clear": "clear",
+            },
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.user.notifications.unread().count(), 0)

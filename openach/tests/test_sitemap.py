@@ -19,7 +19,9 @@ class SitemapTests(PrimaryUserTestCase):
         )
         self.hypotheses = [
             Hypothesis.objects.create(
-                board=self.board, hypothesis_text="Hypothesis #1", creator=self.user,
+                board=self.board,
+                hypothesis_text="Hypothesis #1",
+                creator=self.user,
             )
         ]
 
@@ -37,7 +39,9 @@ class SitemapTests(PrimaryUserTestCase):
     def test_can_get_last_update(self):
         """Test that sitemap uses the latest change."""
         latest = Hypothesis.objects.create(
-            board=self.board, hypothesis_text="Hypothesis #2", creator=self.user,
+            board=self.board,
+            hypothesis_text="Hypothesis #2",
+            creator=self.user,
         )
         sitemap = BoardSitemap()
         board = sitemap.items()[0]
