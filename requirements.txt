@@ -58,7 +58,7 @@ certifi==2020.6.20
 chardet==3.0.4
 defusedxml==0.6.0
 django-model-utils==4.1.1
-idna==2.10
+idna==3.2
 jsonfield==3.1.0
 kombu==4.6.11
 oauthlib==3.1.1
