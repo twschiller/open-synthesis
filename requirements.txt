@@ -1,7 +1,7 @@
 # core dependencies
 
 beautifulsoup4==4.9.3
-celery==4.4.7
+celery==5.1.2
 dj-database-url==0.5.0
 django-allauth==0.45.0
 django-bootstrap-form==3.4
