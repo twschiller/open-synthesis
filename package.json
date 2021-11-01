@@ -27,7 +27,7 @@
   "homepage": "https://github.com/twschiller/open-synthesis#readme",
   "dependencies": {},
   "devDependencies": {
-    "@babel/core": "^7.10.4",
+    "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.15.0",
     "babel-loader": "^8.2.2",
     "bootstrap": "^3.4.1",
