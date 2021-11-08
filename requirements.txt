@@ -60,7 +60,7 @@ defusedxml==0.6.0
 django-model-utils==4.1.1
 idna==3.2
 jsonfield==3.1.0
-kombu==4.6.11
+kombu==5.2.1
 oauthlib==3.1.1
 python-http-client==3.3.1
 python3-openid==3.2.0
