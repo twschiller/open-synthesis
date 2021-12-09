@@ -14,7 +14,7 @@ django-notifications-hq==1.6.0
 Django==3.2.6
 python-slugify==4.0.1
 qrcode==6.1
-tldextract==2.2.3
+tldextract==3.1.2
 django-recaptcha==2.0.6
 
 
@@ -52,7 +52,7 @@ pytest-cov==2.12.1
 # indirect dependencies
 
 amqp==2.6.1
-billiard==3.6.3.0
+billiard==3.6.4.0
 blinker==1.4
 certifi==2021.5.30
 chardet==3.0.4
