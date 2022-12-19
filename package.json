@@ -30,7 +30,7 @@
     "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.20.2",
     "babel-loader": "^8.3.0",
-    "bootstrap": "^3.4.1",
+    "bootstrap": "^4.6.2",
     "bootstrap-datepicker": "^1.9.0",
     "css-loader": "^5.2.7",
     "eslint": "^8.29.0",
