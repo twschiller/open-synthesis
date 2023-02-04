@@ -21,15 +21,15 @@ django-recaptcha==2.0.6
 # external services
 
 django-sendgrid-v5==1.1.0
-psycopg2-binary==2.9.1
+psycopg2-binary==2.9.5
 pylibmc==1.6.3
 redis==3.5.3
-rollbar==0.15.1
+rollbar==0.16.3
 
 # web server
 
 gunicorn==20.1.0
-whitenoise==5.3.0
+whitenoise==6.3.0
 
 # dev dependencies
 
