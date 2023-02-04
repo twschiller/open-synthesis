@@ -17,11 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const path = require("path");
 const { mergeWithCustomize, customizeArray } = require("webpack-merge");
 const common = require("./webpack.config.base.js");
-const TerserJSPlugin = require("terser-webpack-plugin");
-const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = mergeWithCustomize({
@@ -31,17 +29,20 @@ module.exports = mergeWithCustomize({
 })(common, {
   mode: "production",
   optimization: {
-    minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],
+    usedExports: true,
+    minimizer: [
+      "...", // Preserve the native JS minifier
+      new CssMinimizerPlugin(),
+    ],
   },
   output: {
-    filename: "[name]-[hash].js",
-    chunkFilename: "[name]-[hash].bundle.js",
+    filename: "[name]-[contenthash].min.js",
+    chunkFilename: "[name]-[contenthash].bundle.min.js",
   },
   plugins: [
     new MiniCssExtractPlugin({
-      path: path.resolve("./interview-frontend/bundles/css/"),
-      filename: "css/[name].[hash].css",
-      chunkFilename: "css/[id].[hash].css",
+      filename: "css/[name]-[contenthash].min.css",
+      chunkFilename: "css/[id]-[contenthash].min.css",
       ignoreOrder: false, // Enable to remove warnings about conflicting order
     }),
   ],
