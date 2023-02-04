@@ -158,6 +158,10 @@ if DEBUG or TESTING:
         "nplusone.ext.django.NPlusOneMiddleware",
     )
 
+if TESTING:
+    # http://whitenoise.evans.io/en/latest/django.html#whitenoise-makes-my-tests-run-slow
+    WHITENOISE_AUTOREFRESH = True
+
 NPLUSONE_RAISE = TESTING
 
 ROOT_URLCONF = "openintel.urls"
