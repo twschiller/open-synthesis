@@ -18,15 +18,15 @@
  */
 import "bootstrap";
 import "bootstrap-datepicker";
-import "selectize";
+import "@selectize/selectize";
 
 import "src/board_search";
 import "src/notify";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css";
-import "selectize/dist/css/selectize.css";
-import "selectize/dist/css/selectize.bootstrap3.css";
+import "@selectize/selectize/dist/css/selectize.css";
+import "@selectize/selectize/dist/css/selectize.bootstrap3.css";
 import "css/sharing.css";
 import "css/boards.css";
 
