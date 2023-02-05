@@ -22,7 +22,7 @@ django-recaptcha==2.0.6
 
 django-sendgrid-v5==1.1.0
 psycopg2-binary==2.9.5
-pylibmc==1.6.3
+pylibmc==1.6.1
 redis==4.4.2
 rollbar==0.16.3
 
