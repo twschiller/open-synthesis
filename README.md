@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/twschiller/open-synthesis/badge.svg?branch=master)](https://coveralls.io/github/twschiller/open-synthesis?branch=master)
 [![Code Climate Status](https://codeclimate.com/github/twschiller/open-synthesis/badges/gpa.svg)](https://codeclimate.com/github/twschiller/open-synthesis)
 [![Requirements Status](https://requires.io/github/twschiller/open-synthesis/requirements.svg?branch=master)](https://requires.io/github/twschiller/open-synthesis/requirements/?branch=master)
-[![License Status](https://img.shields.io/badge/license-GPL-brightgreen.svg)](LICENSE.md)
+[![License Status](https://img.shields.io/badge/license-AGPL-brightgreen.svg)](LICENSE.md)
 
 The purpose of the Open Synthesis project is to empower the public to synthesize vast amounts of information into actionable conclusions.
 
@@ -51,7 +51,7 @@ Detailed instructions for deploying your own instance can be found on the
 
 ## Copyright
 
-Copyright (C) 2016-2020 Open Synthesis Contributors. See CONTRIBUTING.md file at the top-level directory of this
+Copyright (C) 2016-2023 Open Synthesis Contributors. See CONTRIBUTING.md file at the top-level directory of this
 distribution.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public

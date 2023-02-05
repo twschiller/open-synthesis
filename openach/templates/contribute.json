@@ -3,7 +3,7 @@
   "description": "Open platform for intelligence analysis",
   "repository": {
     "url": "https://github.com/twschiller/open-synthesis",
-    "license": "GPL3",
+    "license": "AGPL-3.0",
     "tests": "https://travis-ci.org/twschiller/open-synthesis"
   },
   "keywords": [

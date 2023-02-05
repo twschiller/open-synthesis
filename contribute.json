@@ -4,7 +4,7 @@
   "repository": {
     "url": "https://github.com/twschiller/open-synthesis",
     "type": "git",
-    "license": "GPL3",
+    "license": "AGPL-3.0",
     "tests": "https://travis-ci.org/twschiller/open-synthesis",
     "clone": "https://github.com/twschiller/open-synthesis.git"
   },
