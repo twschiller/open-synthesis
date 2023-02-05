@@ -35,7 +35,7 @@
             {% endif %}
             {% if team.url %}
                 {% blocktrans with team_url=team.url%}
-                    <a href="{{ team_url }}" target="_blank">Team Homepage</a>
+                    <a href="{{ team_url }}" target="_blank" rel="noopener noreferrer">Team Homepage</a>
                 {% endblocktrans %}
             {% endif %}
         </li>
