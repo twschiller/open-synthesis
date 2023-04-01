@@ -22,13 +22,13 @@ class EvidenceInline(admin.StackedInline):
     extra = 2
 
 
+@admin.register(Board)
 class BoardAdmin(admin.ModelAdmin):
     """Admin interface for editing ACH boards."""
 
     inlines = [HypothesisInline, EvidenceInline]
 
 
-admin.site.register(Board, BoardAdmin)
 admin.site.register(EvidenceSourceTag)
 admin.site.register(ProjectNews)
 admin.site.register(Team)

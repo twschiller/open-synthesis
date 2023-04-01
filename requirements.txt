@@ -3,14 +3,14 @@
 beautifulsoup4==4.9.3
 celery==5.2.7
 dj-database-url==1.2.0
-django-allauth==0.52.0
+django-allauth==0.54.0
 django-bootstrap-form==3.4
 django-contrib-comments==2.1.0
 django-csp==3.7
 django-environ==0.9.0
 django-field-history==0.8.0
-django-invitations==1.9.3
-django-notifications-hq==1.6.0
+django-invitations==2.0.0
+django-notifications-hq==1.7.0
 Django==4.1.7
 python-slugify==4.0.1
 qrcode==6.1
@@ -33,7 +33,7 @@ whitenoise==6.3.0
 
 # dev dependencies
 
-django-webpack-loader==1.8.0
+django-webpack-loader==1.8.1
 nplusone==1.0.0
 pre-commit==2.14.0
 django-debug-toolbar==3.2.2
