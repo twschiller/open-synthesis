@@ -5,7 +5,7 @@ celery==5.2.7
 dj-database-url==1.2.0
 django-allauth==0.54.0
 django-bootstrap-form==3.4
-django-contrib-comments==2.1.0
+django-contrib-comments==2.2.0
 django-csp==3.7
 django-environ==0.9.0
 django-field-history==0.8.0
