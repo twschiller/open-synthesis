@@ -43,11 +43,9 @@ class IndexViewTests(TestCase):
 
     def test_index_view_with_a_past_board(self):
         """Test that board with a pub_date in the past should be displayed on the index page."""
-        create_board(board_title="Past board.", days=-30)
+        board = create_board(board_title="Past board.", days=-30)
         response = self.client.get(reverse("openach:index"))
-        self.assertQuerysetEqual(
-            response.context["latest_board_list"], ["<Board: Past board.>"]
-        )
+        self.assertQuerysetEqual(response.context["latest_board_list"], [board])
 
 
 class BannerTests(TestCase):
@@ -56,7 +54,7 @@ class BannerTests(TestCase):
         msg = "Test banner message"
         setattr(settings, "BANNER_MESSAGE", msg)
         for page in ["index", "boards", "about"]:
-            response = self.client.get(reverse("openach:{}".format(page)))
+            response = self.client.get(reverse(f"openach:{page}"))
             self.assertContains(response, msg, status_code=200)
 
     def test_do_not_show_empty_banner(self):
@@ -69,7 +67,6 @@ class BannerTests(TestCase):
 
 
 class AboutViewTests(TestCase):
-
     address = "abc123"
 
     def test_can_render_about_page(self):
