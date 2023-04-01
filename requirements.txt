@@ -22,7 +22,8 @@ django-recaptcha==3.0.0
 
 django-sendgrid-v5==1.1.0
 psycopg2-binary==2.9.5
-pylibmc==1.6.3
+# https://github.com/lericson/pylibmc/issues/246#issuecomment-1144822138
+pylibmc==1.6.3 --no-binary=:all:
 redis==4.4.4
 rollbar==0.16.3
 
