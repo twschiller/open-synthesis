@@ -36,7 +36,7 @@
     "eslint": "^8.36.0",
     "file-loader": "^6.2.0",
     "jquery": "^3.6.3",
-    "mini-css-extract-plugin": "^2.7.2",
+    "mini-css-extract-plugin": "^2.7.5",
     "css-minimizer-webpack-plugin": "^4.2.2",
     "@selectize/selectize": "^0.15.2",
     "style-loader": "^3.3.2",
