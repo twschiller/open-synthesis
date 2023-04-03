@@ -11,7 +11,7 @@ django-environ==0.9.0
 django-field-history==0.8.0
 django-invitations==2.0.0
 django-notifications-hq==1.7.0
-Django==4.1.7
+Django==4.2
 python-slugify==4.0.1
 qrcode==6.1
 tldextract==3.4.0
