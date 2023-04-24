@@ -33,7 +33,7 @@
     "bootstrap": "^3.4.1",
     "bootstrap-datepicker": "^1.9.0",
     "css-loader": "^6.7.3",
-    "eslint": "^8.36.0",
+    "eslint": "^8.39.0",
     "file-loader": "^6.2.0",
     "jquery": "^3.6.3",
     "mini-css-extract-plugin": "^2.7.2",
