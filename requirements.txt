@@ -14,7 +14,7 @@ django-notifications-hq==1.7.0
 Django==4.1.10
 python-slugify==4.0.1
 qrcode==6.1
-tldextract==3.4.0
+tldextract==3.5.0
 django-recaptcha==3.0.0
 
 
