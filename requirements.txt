@@ -30,7 +30,7 @@ rollbar==0.16.3
 # web server
 
 gunicorn==20.1.0
-whitenoise==6.3.0
+whitenoise==6.5.0
 
 # dev dependencies
 
