@@ -34,7 +34,7 @@ whitenoise==6.5.0
 
 # dev dependencies
 
-django-webpack-loader==1.8.1
+django-webpack-loader==2.0.1
 nplusone==1.0.0
 pre-commit==2.14.0
 django-debug-toolbar==4.2.0
