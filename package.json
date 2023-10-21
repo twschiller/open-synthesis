@@ -43,7 +43,7 @@
     "webpack": "^5.89.0",
     "webpack-bundle-tracker": "^1.8.1",
     "webpack-cli": "^5.1.4",
-    "webpack-merge": "^5.8.0"
+    "webpack-merge": "^5.10.0"
   },
   "engine-strict": true,
   "engines": {
