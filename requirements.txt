@@ -21,7 +21,7 @@ django-recaptcha==3.0.0
 # external services
 
 django-sendgrid-v5==1.2.2
-psycopg2-binary==2.9.5
+psycopg2-binary==2.9.9
 # Having problems deploying to Heroku with 1.6.3
 pylibmc==1.6.3
 redis==5.0.1
