@@ -2,7 +2,7 @@
 
 beautifulsoup4==4.12.2
 celery==5.3.6
-dj-database-url==1.2.0
+dj-database-url==2.1.0
 django-allauth==0.54.0
 django-bootstrap-form==3.4
 django-contrib-comments==2.2.0
