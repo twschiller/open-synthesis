@@ -15,7 +15,7 @@ Django==4.2.8
 python-slugify==8.0.1
 qrcode==7.4.2
 tldextract==5.1.1
-django-recaptcha==3.0.0
+django-recaptcha==4.0.0
 
 
 # external services
