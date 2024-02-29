@@ -71,6 +71,23 @@
 
         <div class="col-md-5">
             <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">{% trans "Invitations" %}</h3>
+                </div>
+                <div class="panel-body">
+                    {% if request.user.invites_remaining > 0 %} 
+                        <form method="post" action="{% url 'issue_invite' %}">  
+                            {% csrf_token %}
+                            {{ invite_form|bootstrap }} 
+                            <input class="btn btn-primary" type="submit" value="{% trans "Send Invite" %}"/>
+                        </form>
+                    {% else %}
+                        <p>{% trans "You don't have any remaining invites." %}</p>
+                    {% endif %}  
+                </div>
+            </div>
+        
+            <div class="panel panel-default">
                 <div class="panel-heading clearfix">
                     <div class="btn-group pull-right">
                         {% if boards_created and boards_created|length > 3 %}
