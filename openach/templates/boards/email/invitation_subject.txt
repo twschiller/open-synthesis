@@ -1,0 +1,2 @@
+{% load i18n %}
+You're invited to join {{ site.name }}!

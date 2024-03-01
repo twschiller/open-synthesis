@@ -21,6 +21,7 @@ from .models import (
     TeamRequest,
     User,
     UserSettings,
+    Invitation,
 )
 
 
@@ -216,3 +217,25 @@ class SignupForm(forms.Form):
 
     def signup(self, request, user):
         pass
+
+
+class AdminInviteAllocationForm(forms.ModelForm):
+    class Meta:
+        model = UserSettings
+        fields = ['invites_remaining']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['invites_remaining'].label = "Available Invites"
+
+
+class IssueInviteForm(forms.ModelForm):
+    class Meta:
+        model = Invitation
+        fields = ['invitee_email']
+
+    def clean_invitee_email(self):
+        email = self.cleaned_data['invitee_email']
+        if Invitation.objects.filter(inviter=self.request.user, invitee_email=email, accepted=False).exists():
+            raise forms.ValidationError("An active invitation for this email already exists.")
+        return email

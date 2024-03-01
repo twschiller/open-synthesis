@@ -1,0 +1,17 @@
+{% load i18n %}
+
+<h1>{% blocktrans %}You're Invited to Join {{ site.name }}!{% endblocktrans %}</h1>
+
+<p>
+  {% blocktrans with invitation.inviter.username as inviter %}
+    Hello, <br><br> 
+    {{ inviter }} has invited you to join {{ site.name }}. Click below to sign up: 
+  {% endblocktrans %}
+</p>
+
+<a href="https://{{ site.domain }}{{ signup_url }}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
+    {% trans "Sign Up" %}
+</a>
+
+<p>{% blocktrans %}Not sure what {{ site.name }} is all about?{% endblocktrans %}</p>
+<p>Open platform for CIA-style intelligence analysis which empowers the public to synthesize vast amounts of information into actionable conclusions.</p>

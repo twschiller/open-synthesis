@@ -784,6 +784,7 @@ class UserSettings(models.Model):
             "How frequently to receive email updates containing new notifications"
         ),
     )
+    invites_remaining = models.IntegerField(default=0)
 
 
 class DigestStatus(models.Model):
@@ -803,3 +804,14 @@ class DigestStatus(models.Model):
         null=True,
         default=None,
     )
+
+
+class Invitation(models.Model):
+    inviter = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='invitations_sent'
+    )
+    invitee_email = models.EmailField()
+    accepted = models.BooleanField(default=False)
+    invites_remaining = models.IntegerField(default=0)  # For allocation

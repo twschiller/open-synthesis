@@ -1,0 +1,8 @@
+{% load i18n %}
+Hello!
+
+You've been invited to join {{ site.name }}. To create your account, please visit the following link:
+
+https://{{ site.domain }}{% url 'signup_url' %}
+
+We look forward to seeing you on {{ site.name }}!
