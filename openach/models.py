@@ -814,4 +814,9 @@ class Invitation(models.Model):
     )
     invitee_email = models.EmailField()
     accepted = models.BooleanField(default=False)
-    invites_remaining = models.IntegerField(default=0)  # For allocation
+    created_at = models.DateTimeField(auto_now_add=True)
+    user_settings = models.ForeignKey(
+        UserSettings,
+        on_delete=models.CASCADE,
+        related_name='invitations'
+    )

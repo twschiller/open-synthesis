@@ -239,3 +239,13 @@ class IssueInviteForm(forms.ModelForm):
         if Invitation.objects.filter(inviter=self.request.user, invitee_email=email, accepted=False).exists():
             raise forms.ValidationError("An active invitation for this email already exists.")
         return email
+
+
+class AllocateInviteForm(forms.Form):
+    num_invites = forms.IntegerField(min_value=1, label="Number of Invites")
+    invite_choices = [
+        (5, "5 Invites"),
+        (10, "10 Invites"),
+        (15, "15 Invites"),
+    ]
+    num_invites_dropdown = forms.ChoiceField(choices=invite_choices, required=False, label="")
