@@ -75,15 +75,25 @@
                     <h3 class="panel-title">{% trans "Invitations" %}</h3>
                 </div>
                 <div class="panel-body">
-                    {% if request.user.invites_remaining > 0 %} 
-                        <form method="post" action="{% url 'issue_invite' %}">  
-                            {% csrf_token %}
-                            {{ invite_form|bootstrap }} 
-                            <input class="btn btn-primary" type="submit" value="{% trans "Send Invite" %}"/>
-                        </form>
-                    {% else %}
-                        <p>{% trans "You don't have any remaining invites." %}</p>
-                    {% endif %}  
+{#                    {% if request.user.invites_remaining > 0 %} #}
+{#                        <form method="post" action="{% url 'issue_invite' %}">  #}
+{#                            {% csrf_token %}#}
+{#                            {{ invite_form|bootstrap }} #}
+{#                            <input class="btn btn-primary" type="submit" value="{% trans "Send Invite" %}"/>#}
+{#                        </form>#}
+{#                    {% else %}#}
+{#                        <p>{% trans "You don't have any remaining invites." %}</p>#}
+{#                    {% endif %}  #}
+                    <form method="post" action="{% url 'openach:issue_invite' %}">  
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                             <label for="id_invitee_email">{% trans "Recipient Email" %}</label>
+                                <input type="email" name="invitee_email" id="id_invitee_email" class="form-control"
+                                      required>
+                        </div>
+                        <input class="btn btn-primary" type="submit" value="{% trans "Send Invite" %}"/>
+                    </form>
                 </div>
             </div>
         

@@ -115,4 +115,5 @@ urlpatterns = [  # pylint: disable=invalid-name
     path("about/", views.site.about, name="about"),
     # JSON API
     path("api/boards/", views.boards.board_search, name="board_search"),
+    path("accounts/issue_invite/", views.profiles.issue_invite, name="issue_invite")
 ]
