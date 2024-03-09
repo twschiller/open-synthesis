@@ -3,8 +3,13 @@
 [![Build Status](https://travis-ci.org/twschiller/open-synthesis.svg?branch=master)](https://travis-ci.org/twschiller/open-synthesis)
 [![Coverage Status](https://coveralls.io/repos/github/twschiller/open-synthesis/badge.svg?branch=master)](https://coveralls.io/github/twschiller/open-synthesis?branch=master)
 [![Code Climate Status](https://codeclimate.com/github/twschiller/open-synthesis/badges/gpa.svg)](https://codeclimate.com/github/twschiller/open-synthesis)
-[![Requirements Status](https://requires.io/github/twschiller/open-synthesis/requirements.svg?branch=master)](https://requires.io/github/twschiller/open-synthesis/requirements/?branch=master)
 [![License Status](https://img.shields.io/badge/license-AGPL-brightgreen.svg)](LICENSE.md)
+
+## 2024-03-09: THIS REPOSITORY IS IN MAINTENANCE MODE
+
+This repository is in maintenance mode. I will be appplying security dependency updates, but am not accepting issues/PRs.
+
+## Goals
 
 The purpose of the Open Synthesis project is to empower the public to synthesize vast amounts of information into actionable conclusions.
 
