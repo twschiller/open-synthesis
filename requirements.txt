@@ -6,7 +6,7 @@ dj-database-url==2.1.0
 django-allauth==0.54.0
 django-bootstrap-form==3.4
 django-contrib-comments==2.2.0
-django-csp==3.7
+django-csp==3.8
 django-environ==0.11.2
 django-field-history==0.8.0
 django-invitations==2.1.0
