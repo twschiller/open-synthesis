@@ -36,7 +36,7 @@ whitenoise==6.6.0
 
 django-webpack-loader==3.0.1
 nplusone==1.0.0
-pre-commit==3.5.0
+pre-commit==3.6.2
 django-debug-toolbar==4.2.0
 
 
