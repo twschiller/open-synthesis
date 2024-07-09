@@ -37,7 +37,7 @@
     "file-loader": "^6.2.0",
     "jquery": "^3.7.1",
     "mini-css-extract-plugin": "^2.9.0",
-    "css-minimizer-webpack-plugin": "^6.0.0",
+    "css-minimizer-webpack-plugin": "^7.0.0",
     "@selectize/selectize": "^0.15.2",
     "style-loader": "^4.0.0",
     "webpack": "^5.92.1",
