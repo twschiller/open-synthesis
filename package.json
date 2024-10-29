@@ -28,7 +28,7 @@
   "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.26.0",
-    "@babel/preset-env": "^7.25.8",
+    "@babel/preset-env": "^7.26.0",
     "babel-loader": "^9.2.1",
     "bootstrap": "^3.4.1",
     "bootstrap-datepicker": "^1.10.0",
