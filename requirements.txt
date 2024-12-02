@@ -20,7 +20,7 @@ django-recaptcha==3.0.0
 
 # external services
 
-django-sendgrid-v5==1.2.3
+django-sendgrid-v5==1.2.4
 psycopg2-binary==2.9.10
 # Having problems deploying to Heroku with 1.6.3
 pylibmc==1.6.3
