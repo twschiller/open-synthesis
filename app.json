@@ -122,6 +122,9 @@
   },
   "buildpacks": [
     {
+      "url": "https://github.com/dropseed/heroku-buildpack-uv.git#5e4e0953a1db16940ac73fdc5edb6d4a58295413"
+    },
+    {
       "url": "heroku/nodejs"
     },
     {

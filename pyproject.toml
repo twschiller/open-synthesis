@@ -1,0 +1,65 @@
+[project]
+name = "open-synthesis"
+version = "0.0.3"
+description = "Open platform for CIA-style intelligence analysis"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "setuptools==78.1.0",
+    "beautifulsoup4==4.13.3",
+    "celery==5.4.0",
+    "dj-database-url==2.3.0",
+    "django-allauth==0.54.0",
+    "django-bootstrap-form==3.4",
+    "django-contrib-comments==2.2.0",
+    "django-csp==3.8",
+    "django-environ==0.12.0",
+    "django-field-history==0.8.0",
+    "django-invitations==2.1.0",
+    "django-notifications-hq==1.8.3",
+    "Django==4.2.20",
+    "python-slugify==8.0.4",
+    "qrcode==8.0",
+    "tldextract==5.1.3",
+    "django-recaptcha==3.0.0",
+    "django-sendgrid-v5==1.2.4",
+    "psycopg2-binary==2.9.10",
+    "pylibmc==1.6.3",
+    "redis==5.2.1",
+    "rollbar==1.3.0",
+    "gunicorn==23.0.0",
+    "whitenoise==6.9.0",
+    "django-webpack-loader==3.1.1",
+    "nplusone==1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==8.3.5",
+    "coverage==7.7.1",
+    "pytest-django==4.10.0",
+    "pytest-cov==6.0.0",
+    "pre-commit==4.2.0",
+    "django-debug-toolbar==5.1.0",
+    "django-coverage-plugin==3.1.0",
+    "factory-boy==3.3.3",
+]
+coverage = [
+    "coveralls==4.0.1"
+]
+
+[tool.pre-commit]
+version = "4.2.0"
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 88
+known_third_party = ["allauth", "bs4", "celery", "csp", "dj_database_url", "django", "django_comments", "environ", "factory", "field_history", "gunicorn", "invitations", "notifications", "qrcode", "requests", "slugify", "tldextract", "urllib3"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+DJANGO_SETTINGS_MODULE = "openintel.settings"
+python_files = "tests.py test_*.py *_tests.py"

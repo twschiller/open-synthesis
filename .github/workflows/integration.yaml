@@ -6,13 +6,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x]
-        # This python-version should be kept in sync with `.python-version` which controls the Python version on Heroku
-        # https://github.com/actions/setup-python
-        python-version: [3.13.0]
-
     env:
       CI: true
       DEBUG: true
@@ -34,45 +27,38 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      # https://docs.astral.sh/uv/guides/integration/github/#installation
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
           cache: npm
-      - uses: actions/setup-python@v5
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Cache pip
-        # https://docs.github.com/en/actions/guides/building-and-testing-python#caching-dependencies
-        uses: actions/cache@v4
-        with:
-          # This path is specific to Ubuntu
-          path: ~/.cache/pip
-          # Look to see if there is a cache hit for the corresponding requirements file
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }} }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
+          python-version-file: ".python-version"
       - name: Install development headers
         run: |
           sudo apt-get install libmemcached-dev
-      - name: Install Python Dependencies
-        run: |
-          pip install -r requirements.txt
+      - name: Install the project
+        run: uv sync --all-extras --dev --group=coverage
       - name: Build Front-end
         # `npm ci` also runs `npm run build` because it's in the `post-install` action in package.json
         run: |
           npm ci
-          python manage.py collectstatic --noinput
+          uv run manage.py collectstatic --noinput
       - name: Django system checks
         run: |
-          python manage.py check
-          python manage.py makemigrations --check --dry-run
+          uv run manage.py check
+          uv run manage.py makemigrations --check --dry-run
       - name: Run Tests
-        run: pytest --cov='.'
+        run: uv run pytest --cov='.'
       - name: Upload Coverage
         # https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
         run: |
-            pip3 install --upgrade coveralls
-            coveralls --service=github
+            uv run coveralls --service=github
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

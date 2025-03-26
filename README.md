@@ -7,7 +7,7 @@
 
 ## 2024-03-09: THIS REPOSITORY IS IN MAINTENANCE MODE
 
-This repository is in maintenance mode. I will be appplying security dependency updates, but am not accepting issues/PRs.
+This repository is in maintenance mode. I will be applying security dependency updates, but am not accepting issues/PRs.
 
 ## Goals
 
