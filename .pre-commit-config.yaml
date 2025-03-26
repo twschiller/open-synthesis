@@ -35,3 +35,7 @@ repos:
         exclude_types: [html]
         additional_dependencies:
           - prettier@3.5.3 # Required because pre-commit is poorly maintained
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
