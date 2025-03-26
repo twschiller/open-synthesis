@@ -3,13 +3,15 @@
 # Please see the documentation for all configuration options:
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
+enable-beta-ecosystems: true
 version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "pip"
+  # https://github.com/dependabot/dependabot-core/issues/10478#issuecomment-2691330949
+  - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "weekly"
