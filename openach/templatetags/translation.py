@@ -3,6 +3,7 @@
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/howto/custom-template-tags/
 """
+
 from django.template.defaulttags import register
 from django.utils.translation import get_language, to_locale
 

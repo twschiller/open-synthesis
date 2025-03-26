@@ -115,7 +115,7 @@ class ProfileTests(PrimaryUserTestCase):
         response = self.client.get(reverse("profile", args=(self.user.id,)))
         self.assertTemplateUsed(response, "boards/profile.html")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Welcome, {}".format(self.user.username))
+        self.assertContains(response, f"Welcome, {self.user.username}")
         self.assertNotContains(response, "View All")
         self.assertContains(response, "Create")
         self.assertContains(response, "You have not created any boards.")
@@ -166,7 +166,7 @@ class ProfileTests(PrimaryUserTestCase):
                 self.other,
                 recipient=self.user,
                 actor=self.other,
-                verb="said hello {}".format(x),
+                verb=f"said hello {x}",
             )
         self.login()
         response = self.client.get(reverse("profile", args=(self.user.id,)))

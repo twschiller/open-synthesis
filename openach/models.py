@@ -3,6 +3,7 @@
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/topics/db/models/
 """
+
 import datetime
 import logging
 from enum import Enum, unique
@@ -39,7 +40,7 @@ class RemovableModelManager(models.Manager):  # pylint: disable=too-few-public-m
 
     def get_queryset(self):
         """Return the queryset, excluding removed models."""
-        return super(RemovableModelManager, self).get_queryset().filter(removed=False)
+        return super().get_queryset().filter(removed=False)
 
 
 @unique
@@ -71,7 +72,7 @@ class BoardModelManager(
 
     def user_readable(self, user):
         """Queryset for boards that the user has read permissions for."""
-        base = super(BoardModelManager, self).get_queryset()
+        base = super().get_queryset()
         if user.is_staff:
             return base
         elif not user.is_authenticated:
@@ -93,9 +94,7 @@ class BoardModelManager(
     def public(self):
         """Queryset for boards that the public can see."""
         return (
-            super(BoardModelManager, self)
-            .get_queryset()
-            .filter(permissions__read_board=AuthLevels.anyone.key)
+            super().get_queryset().filter(permissions__read_board=AuthLevels.anyone.key)
         )
 
 
@@ -464,7 +463,7 @@ class BoardPermissions(models.Model):
         Check that the read permission is valid with respect to the relative to the global ACCOUNT_REQUIRED setting.
         Check that the other permissions are valid relative to
         """
-        super(BoardPermissions, self).clean()
+        super().clean()
 
         errors = {}
 
@@ -678,7 +677,7 @@ class EvidenceSourceTag(models.Model):
 
     def __str__(self):
         """Return a human-readable representation of the source tag."""
-        return "{}: {}".format(self.tag_name, self.tag_desc)
+        return f"{self.tag_name}: {self.tag_desc}"
 
 
 class AnalystSourceTag(models.Model):

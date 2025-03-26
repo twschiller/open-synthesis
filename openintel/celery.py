@@ -5,6 +5,7 @@ For more information, please see:
 - http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html
 - https://devcenter.heroku.com/articles/celery-heroku
 """
+
 import logging
 import os
 

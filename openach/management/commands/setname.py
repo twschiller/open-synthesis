@@ -3,6 +3,7 @@
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/ref/contrib/sites/
 """
+
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand, CommandError
@@ -38,7 +39,7 @@ class Command(BaseCommand):
         site.domain = site_domain
         site.save()
 
-        msg = 'Successfully configured site #%s; name: "%s"; domain: %s' % (
+        msg = 'Successfully configured site #{}; name: "{}"; domain: {}'.format(
             site_id,
             site_name,
             site_domain,

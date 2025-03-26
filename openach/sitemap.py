@@ -4,6 +4,7 @@ Sitemaps convey meta-information to web search engines/crawlers about the conten
 please see:
     https://docs.djangoproject.com/en/1.10/ref/contrib/sitemaps
 """
+
 from django.contrib.sitemaps import Sitemap
 
 from .models import Board, Evidence, Hypothesis
@@ -22,6 +23,7 @@ class BoardSitemap(Sitemap):
 
     def lastmod(self, obj):  # pylint: disable=no-self-use
         """Return the last time the board or its content was structurally modified."""
+
         # NOTE: self parameter is required to match the Sitemap interface
         def _last_obj(class_):
             return max(

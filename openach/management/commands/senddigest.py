@@ -1,4 +1,5 @@
 """Django admin command to send email digests."""
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
@@ -47,7 +48,7 @@ class Command(BaseCommand):
                     )  # pylint: disable=no-member
                 self.report(send_digest_emails(DigestFrequency.weekly))
             else:
-                msg = "Skipping weekly digest until day %s (current=%s)" % (
+                msg = "Skipping weekly digest until day {} (current={})".format(
                     digest_day,
                     current_day,
                 )

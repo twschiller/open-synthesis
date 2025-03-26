@@ -1,4 +1,5 @@
 """Analysis of Competing Hypotheses Authorization Functions."""
+
 from django.core.exceptions import PermissionDenied
 
 

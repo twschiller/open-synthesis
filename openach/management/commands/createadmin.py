@@ -1,4 +1,5 @@
 """Django admin command to create an admin account based on the project settings."""
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
@@ -29,5 +30,5 @@ class Command(BaseCommand):
         admin.is_staff = True
         admin.save()
 
-        msg = "Successfully configured admin %s (%s)" % (username, email)
+        msg = f"Successfully configured admin {username} ({email})"
         self.stdout.write(self.style.SUCCESS(msg))  # pylint: disable=no-member

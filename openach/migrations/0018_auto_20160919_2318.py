@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name="timestamp",
             field=models.DateTimeField(
                 default=datetime.datetime(
-                    2016, 9, 19, 23, 18, 19, 119681, tzinfo=datetime.timezone.utc
+                    2016, 9, 19, 23, 18, 19, 119681, tzinfo=datetime.UTC
                 ),
                 verbose_name="date evaluated",
             ),

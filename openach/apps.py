@@ -3,6 +3,7 @@
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/ref/applications/
 """
+
 from django.apps import AppConfig
 
 

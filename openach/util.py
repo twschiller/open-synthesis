@@ -1,4 +1,5 @@
 """Utility functions for working with iterators and collections."""
+
 import itertools
 
 

@@ -249,7 +249,7 @@ def evaluate(request, board_id, evidence_id):
         for h in Hypothesis.objects.filter(board=board_id)
     ]
 
-    evaluation_set = set([str(m.value) for m in Eval])
+    evaluation_set = {str(m.value) for m in Eval}
 
     if request.method == "POST":
         with transaction.atomic():
@@ -314,6 +314,7 @@ def evaluate(request, board_id, evidence_id):
 @cache_on_auth(PAGE_CACHE_TIMEOUT_SECONDS)
 def board_history(request, board_id):
     """Return a view with the modification history (board details, evidence, hypotheses) for the board."""
+
     # this approach to grabbing the history will likely be too slow for big boards
     def _get_history(models):
         changes = [

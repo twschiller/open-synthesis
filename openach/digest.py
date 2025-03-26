@@ -1,4 +1,5 @@
 """Methods for creating/sending notification digests."""
+
 import collections
 import logging
 
