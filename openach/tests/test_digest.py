@@ -46,7 +46,7 @@ class DigestTests(PrimaryUserTestCase):
         )
         self.assertTrue(
             "daily" in email.subject,
-            "No digest frequency in subject: {}".format(email.subject),
+            f"No digest frequency in subject: {email.subject}",
         )
         self.assertTrue("daily" in email.body)
 
@@ -67,19 +67,19 @@ class DigestTests(PrimaryUserTestCase):
     def test_can_email_hypothesis_evidence_digest(self):
         """Test that we can email a digest containing new hypotheses and evidence."""
         for x in [1, 2]:
-            board = create_board(board_title="Board #{}".format(x), days=0)
+            board = create_board(board_title=f"Board #{x}", days=0)
             BoardFollower.objects.create(
                 board=board,
                 user=self.daily,
             )
             hypothesis = Hypothesis.objects.create(
                 board=board,
-                hypothesis_text="Hypothesis #{}".format(x),
+                hypothesis_text=f"Hypothesis #{x}",
                 creator=self.weekly,
             )
             evidence = Evidence.objects.create(
                 board=board,
-                evidence_desc="Evidence #{}".format(x),
+                evidence_desc=f"Evidence #{x}",
                 creator=self.weekly,
             )
             notify_add(board, self.weekly, hypothesis)
@@ -92,9 +92,9 @@ class DigestTests(PrimaryUserTestCase):
         logger.info(txt_body)
 
         for x in [1, 2]:
-            self.assertTrue("Board #{}".format(x) in txt_body)
-            self.assertTrue("Hypothesis #{}".format(x) in txt_body)
-            self.assertTrue("Evidence #{}".format(x) in txt_body)
+            self.assertTrue(f"Board #{x}" in txt_body)
+            self.assertTrue(f"Hypothesis #{x}" in txt_body)
+            self.assertTrue(f"Evidence #{x}" in txt_body)
 
     def test_email_digest_command(self):
         """Test that admin can send digest from a manage command."""

@@ -4,6 +4,7 @@ See the Django documentation for more information:
 * https://docs.djangoproject.com/en/2.1/ref/urls/
 * https://docs.djangoproject.com/en/2.1/topics/http/urls/
 """
+
 import notifications.urls
 from django.conf import settings
 from django.contrib import admin

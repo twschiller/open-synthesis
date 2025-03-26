@@ -4,6 +4,7 @@ For more information, please see:
 - http://docs.celeryproject.org/en/latest/django/first-steps-with-django.html
 
 """
+
 import logging
 import re
 

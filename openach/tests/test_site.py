@@ -45,7 +45,7 @@ class IndexViewTests(TestCase):
         """Test that board with a pub_date in the past should be displayed on the index page."""
         board = create_board(board_title="Past board.", days=-30)
         response = self.client.get(reverse("openach:index"))
-        self.assertQuerysetEqual(response.context["latest_board_list"], [board])
+        self.assertQuerySetEqual(response.context["latest_board_list"], [board])
 
 
 class BannerTests(TestCase):

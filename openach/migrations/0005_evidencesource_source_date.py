@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name="source_date",
             field=models.DateField(
                 default=datetime.datetime(
-                    2016, 8, 26, 16, 56, 39, 255717, tzinfo=datetime.timezone.utc
+                    2016, 8, 26, 16, 56, 39, 255717, tzinfo=datetime.UTC
                 ),
                 verbose_name="source date",
             ),

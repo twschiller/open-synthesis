@@ -3,6 +3,7 @@
 For more information, please see:
     https://docs.djangoproject.com/en/1.10/ref/contrib/admin/
 """
+
 from django.contrib import admin
 
 from .models import Board, Evidence, EvidenceSourceTag, Hypothesis, ProjectNews, Team

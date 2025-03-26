@@ -1,4 +1,5 @@
 """Analysis of Competing Hypotheses donation utility methods."""
+
 from io import BytesIO
 
 import qrcode
@@ -9,7 +10,7 @@ from qrcode.image.svg import SvgPathImage
 def bitcoin_donation_url(site_name, address):
     """Return a Bitcoin donation URL for DONATE_BITCOIN_ADDRESS or None."""
     if address:
-        msg = "Donate to {}".format(site_name)
+        msg = f"Donate to {site_name}"
         url = "bitcoin:{}?{}".format(address, urlencode({"message": msg}))
         return url
     else:

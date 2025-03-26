@@ -1,4 +1,5 @@
 """Analysis of Competing Hypotheses View Decorators for managing caching and authorization."""
+
 from functools import wraps
 
 from django.conf import settings
@@ -31,6 +32,7 @@ def cache_on_auth(timeout):
 
     Do NOT use on views that include user-specific information, e.g., CSRF tokens.
     """
+
     # https://stackoverflow.com/questions/11661503/django-caching-for-authenticated-users-only
     def _decorator(view_func):
         @wraps(view_func)
@@ -47,6 +49,7 @@ def cache_on_auth(timeout):
 
 def cache_if_anon(timeout):
     """Cache the view if the user is not authenticated and there are no messages to display."""
+
     # https://stackoverflow.com/questions/11661503/django-caching-for-authenticated-users-only
     def _decorator(view_func):
         @wraps(view_func)

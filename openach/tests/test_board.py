@@ -516,7 +516,7 @@ class BoardListingTests(PrimaryUserTestCase):
         """Test that the correct boards show up on each page."""
         for x in range(1, 30):
             # views shows boards in order descending publishing data; set data so board n is published after board n+1
-            create_board("Test Board {}".format(x), days=100 - x)
+            create_board(f"Test Board {x}", days=100 - x)
         response = self.client.get(reverse("openach:boards") + "?page=1")
         self.assertContains(response, "Test Board 1", status_code=200)
         response = self.client.get(reverse("openach:boards") + "?page=2")
