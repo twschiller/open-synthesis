@@ -3,6 +3,7 @@ name = "open-synthesis"
 version = "0.0.3"
 description = "Open platform for CIA-style intelligence analysis"
 readme = "README.md"
+requires-python = ">=3.13"
 dependencies = [
     "setuptools==78.1.0",
     "beautifulsoup4==4.13.3",
@@ -30,14 +31,18 @@ dependencies = [
     "whitenoise==6.9.0",
     "django-webpack-loader==3.1.1",
     "nplusone==1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==8.3.5",
+    "coverage==7.7.1",
+    "pytest-django==4.10.0",
+    "pytest-cov==6.0.0",
     "pre-commit==4.2.0",
     "django-debug-toolbar==5.1.0",
     "django-coverage-plugin==3.1.0",
     "factory-boy==3.3.3",
-    "pytest==8.3.5",
-    "coverage==7.7.1",
-    "pytest-django==4.10.0",
-    "pytest-cov==6.0.0"
 ]
 
 [tool.pre-commit]
