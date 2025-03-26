@@ -9,9 +9,9 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        # This python-version should be kept in sync with `runtime.txt` which controls the Python version on Heroku
+        # This python-version should be kept in sync with `.python-version` which controls the Python version on Heroku
         # https://github.com/actions/setup-python
-        python-version: [3.10.9]
+        python-version: [3.13.0]
 
     env:
       CI: true
