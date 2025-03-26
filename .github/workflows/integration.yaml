@@ -44,7 +44,7 @@ jobs:
         run: |
           sudo apt-get install libmemcached-dev
       - name: Install the project
-        run: uv sync --all-extras --dev --coverage
+        run: uv sync --all-extras --dev --group=coverage
       - name: Build Front-end
         # `npm ci` also runs `npm run build` because it's in the `post-install` action in package.json
         run: |
