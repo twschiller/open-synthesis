@@ -1,5 +1,5 @@
 [report]
-omit = */migrations/*,conf.py,openach/apps.py,openintel/wsgi.py,openintel/settings.py,openintel/celery.py,**/tests.py,node_modules/**
+omit = */migrations/*,conf.py,openach/apps.py,openintel/wsgi.py,openintel/settings.py,openintel/celery.py,**/tests.py,node_modules/**,.venv/**
 
 [run]
 plugins = django_coverage_plugin

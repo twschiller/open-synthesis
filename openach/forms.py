@@ -203,8 +203,8 @@ class SignupForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if settings.RECAPTCHA_PUBLIC_KEY:
-            from captcha.fields import ReCaptchaField
-            from captcha.widgets import ReCaptchaV2Checkbox
+            from django_captcha.fields import ReCaptchaField
+            from django_captcha.widgets import ReCaptchaV2Checkbox
 
             self.fields["captcha"] = ReCaptchaField(
                 widget=ReCaptchaV2Checkbox(
