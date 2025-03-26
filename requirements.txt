@@ -26,7 +26,7 @@ psycopg2-binary==2.9.10
 # Having problems deploying to Heroku with 1.6.3
 pylibmc==1.6.3
 redis==5.2.1
-rollbar==1.2.0
+rollbar==1.3.0
 
 # web server
 
