@@ -44,6 +44,9 @@ dev = [
     "django-coverage-plugin==3.1.0",
     "factory-boy==3.3.3",
 ]
+coverage = [
+    "coveralls==4.0.1"
+]
 
 [tool.pre-commit]
 version = "4.2.0"

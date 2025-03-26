@@ -224,6 +224,20 @@ wheels = [
 ]
 
 [[package]]
+name = "coveralls"
+version = "4.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "coverage" },
+    { name = "docopt" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/61/75/a454fb443eb6a053833f61603a432ffbd7dd6ae53a11159bacfadb9d6219/coveralls-4.0.1.tar.gz", hash = "sha256:7b2a0a2bcef94f295e3cf28dcc55ca40b71c77d1c2446b538e85f0f7bc21aa69", size = 12419 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/63/e5/6708c75e2a4cfca929302d4d9b53b862c6dc65bd75e6933ea3d20016d41d/coveralls-4.0.1-py3-none-any.whl", hash = "sha256:7a6b1fa9848332c7b2221afb20f3df90272ac0167060f41b5fe90429b30b1809", size = 13599 },
+]
+
+[[package]]
 name = "cryptography"
 version = "44.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -465,6 +479,12 @@ wheels = [
 ]
 
 [[package]]
+name = "docopt"
+version = "0.6.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/55/8f8cab2afd404cf578136ef2cc5dfb50baa1761b68c9da1fb1e4eed343c9/docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491", size = 25901 }
+
+[[package]]
 name = "factory-boy"
 version = "3.3.3"
 source = { registry = "https://pypi.org/simple" }
@@ -600,15 +620,12 @@ source = { virtual = "." }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "celery" },
-    { name = "coverage" },
     { name = "dj-database-url" },
     { name = "django" },
     { name = "django-allauth" },
     { name = "django-bootstrap-form" },
     { name = "django-contrib-comments" },
-    { name = "django-coverage-plugin" },
     { name = "django-csp" },
-    { name = "django-debug-toolbar" },
     { name = "django-environ" },
     { name = "django-field-history" },
     { name = "django-invitations" },
@@ -616,15 +633,10 @@ dependencies = [
     { name = "django-recaptcha" },
     { name = "django-sendgrid-v5" },
     { name = "django-webpack-loader" },
-    { name = "factory-boy" },
     { name = "gunicorn" },
     { name = "nplusone" },
-    { name = "pre-commit" },
     { name = "psycopg2-binary" },
     { name = "pylibmc" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-django" },
     { name = "python-slugify" },
     { name = "qrcode" },
     { name = "redis" },
@@ -634,19 +646,31 @@ dependencies = [
     { name = "whitenoise" },
 ]
 
+[package.dev-dependencies]
+coverage = [
+    { name = "coveralls" },
+]
+dev = [
+    { name = "coverage" },
+    { name = "django-coverage-plugin" },
+    { name = "django-debug-toolbar" },
+    { name = "factory-boy" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-django" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4", specifier = "==4.13.3" },
     { name = "celery", specifier = "==5.4.0" },
-    { name = "coverage", specifier = "==7.7.1" },
     { name = "dj-database-url", specifier = "==2.3.0" },
     { name = "django", specifier = "==4.2.20" },
     { name = "django-allauth", specifier = "==0.54.0" },
     { name = "django-bootstrap-form", specifier = "==3.4" },
     { name = "django-contrib-comments", specifier = "==2.2.0" },
-    { name = "django-coverage-plugin", specifier = "==3.1.0" },
     { name = "django-csp", specifier = "==3.8" },
-    { name = "django-debug-toolbar", specifier = "==5.1.0" },
     { name = "django-environ", specifier = "==0.12.0" },
     { name = "django-field-history", specifier = "==0.8.0" },
     { name = "django-invitations", specifier = "==2.1.0" },
@@ -654,15 +678,10 @@ requires-dist = [
     { name = "django-recaptcha", specifier = "==3.0.0" },
     { name = "django-sendgrid-v5", specifier = "==1.2.4" },
     { name = "django-webpack-loader", specifier = "==3.1.1" },
-    { name = "factory-boy", specifier = "==3.3.3" },
     { name = "gunicorn", specifier = "==23.0.0" },
     { name = "nplusone", specifier = "==1.0.0" },
-    { name = "pre-commit", specifier = "==4.2.0" },
     { name = "psycopg2-binary", specifier = "==2.9.10" },
     { name = "pylibmc", specifier = "==1.6.3" },
-    { name = "pytest", specifier = "==8.3.5" },
-    { name = "pytest-cov", specifier = "==6.0.0" },
-    { name = "pytest-django", specifier = "==4.10.0" },
     { name = "python-slugify", specifier = "==8.0.4" },
     { name = "qrcode", specifier = "==8.0" },
     { name = "redis", specifier = "==5.2.1" },
@@ -670,6 +689,19 @@ requires-dist = [
     { name = "setuptools", specifier = "==78.1.0" },
     { name = "tldextract", specifier = "==5.1.3" },
     { name = "whitenoise", specifier = "==6.9.0" },
+]
+
+[package.metadata.requires-dev]
+coverage = [{ name = "coveralls", specifier = "==4.0.1" }]
+dev = [
+    { name = "coverage", specifier = "==7.7.1" },
+    { name = "django-coverage-plugin", specifier = "==3.1.0" },
+    { name = "django-debug-toolbar", specifier = "==5.1.0" },
+    { name = "factory-boy", specifier = "==3.3.3" },
+    { name = "pre-commit", specifier = "==4.2.0" },
+    { name = "pytest", specifier = "==8.3.5" },
+    { name = "pytest-cov", specifier = "==6.0.0" },
+    { name = "pytest-django", specifier = "==4.10.0" },
 ]
 
 [[package]]
