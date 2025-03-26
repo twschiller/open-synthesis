@@ -1,5 +1,6 @@
 # core dependencies
 
+setuptools==78.1.0
 beautifulsoup4==4.13.3
 celery==5.4.0
 dj-database-url==2.3.0
