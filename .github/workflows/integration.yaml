@@ -49,11 +49,11 @@ jobs:
         # `npm ci` also runs `npm run build` because it's in the `post-install` action in package.json
         run: |
           npm ci
-          python manage.py collectstatic --noinput
+          uv run collectstatic --noinput
       - name: Django system checks
         run: |
-          python manage.py check
-          python manage.py makemigrations --check --dry-run
+          uv run manage.py check
+          uv run manage.py makemigrations --check --dry-run
       - name: Run Tests
         run: uv run pytest --cov='.'
       - name: Upload Coverage
