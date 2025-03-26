@@ -445,14 +445,14 @@ sdist = { url = "https://files.pythonhosted.org/packages/36/18/1b42038963d8b0aee
 
 [[package]]
 name = "django-recaptcha"
-version = "3.0.0"
+version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/06/0e/b124478374ec4607c65936bec9da4705ca2b7116af399f6836e22a1d7248/django-recaptcha-3.0.0.tar.gz", hash = "sha256:253197051288923cae675d7eff91b619e3775311292a5dbaf27a8a55ffebc670", size = 22063 }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/6b/6edf89da076b2d1ea042e14f116de80be18d25b17af158038d5fc14c00bb/django-recaptcha-4.0.0.tar.gz", hash = "sha256:5316438f97700c431d65351470d1255047e3f2cd9af0f2f13592b637dad9213e", size = 22907 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/18/dd/b266aa9e695e4b0fc13a2bd06533cd671a71be46f72342c2222fa3d5b290/django_recaptcha-3.0.0-py3-none-any.whl", hash = "sha256:1aed69fd6ac8fd9e99e52665392ae6748f8b6339ace656fad779fe0c6c915a52", size = 22080 },
+    { url = "https://files.pythonhosted.org/packages/28/d7/09cefb2b4a7dc9ed8a6aabb176ea86eb904a8f73671358436e4b0aa81b93/django_recaptcha-4.0.0-py3-none-any.whl", hash = "sha256:0d912d5c7c009df4e47accd25029133d47a74342dbd2a8edc2877b6bffa971a3", size = 21915 },
 ]
 
 [[package]]
@@ -675,7 +675,7 @@ requires-dist = [
     { name = "django-field-history", specifier = "==0.8.0" },
     { name = "django-invitations", specifier = "==2.1.0" },
     { name = "django-notifications-hq", specifier = "==1.8.3" },
-    { name = "django-recaptcha", specifier = "==3.0.0" },
+    { name = "django-recaptcha", specifier = "==4.0.0" },
     { name = "django-sendgrid-v5", specifier = "==1.2.4" },
     { name = "django-webpack-loader", specifier = "==3.1.1" },
     { name = "gunicorn", specifier = "==23.0.0" },
