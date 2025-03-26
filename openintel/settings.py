@@ -487,6 +487,6 @@ RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY")
 
 if RECAPTCHA_PUBLIC_KEY:
     logger.info("ReCAPTCHA is enabled")
-    INSTALLED_APPS += ["captcha"]
+    INSTALLED_APPS += ["django_recaptcha"]
 else:
     logger.info("ReCAPTCHA NOT enabled")
