@@ -5,7 +5,7 @@ description = "Open platform for CIA-style intelligence analysis"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "setuptools==79.0.0",
+    "setuptools==80.0.0",
     "beautifulsoup4==4.13.4",
     "celery==5.5.2",
     "dj-database-url==2.3.0",
