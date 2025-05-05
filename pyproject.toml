@@ -19,7 +19,7 @@ dependencies = [
     "django-notifications-hq==1.8.3",
     "Django==4.2.20",
     "python-slugify==8.0.4",
-    "qrcode==8.1",
+    "qrcode==8.2",
     "tldextract==5.3.0",
     "django-recaptcha==4.1.0",
     "django-sendgrid-v5==1.2.4",
