@@ -17,7 +17,7 @@ dependencies = [
     "django-field-history==0.8.0",
     "django-invitations==2.1.0",
     "django-notifications-hq==1.8.3",
-    "Django==4.2.20",
+    "Django==4.2.21",
     "python-slugify==8.0.4",
     "qrcode==8.2",
     "tldextract==5.3.0",
