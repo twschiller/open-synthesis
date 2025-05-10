@@ -44,7 +44,7 @@ def parse_metadata(html):
     # adapted from https://github.com/erikriver/opengraph
     metadata = {}
     doc = BeautifulSoup(html, "html.parser")
-    tags = doc.html.head.findAll(property=re.compile(r"^og"))
+    tags = doc.html.head.find_all(property=re.compile(r"^og"))
     for tag in tags:
         if tag.has_attr("content"):
             metadata[tag["property"][len("og:") :]] = tag["content"].strip()
@@ -53,7 +53,7 @@ def parse_metadata(html):
         metadata["title"] = doc.title.text.strip()
 
     if "description" not in metadata:
-        description_tags = doc.html.head.findAll("meta", attrs={"name": "description"})
+        description_tags = doc.html.head.find_all("meta", attrs={"name": "description"})
         # there should be at most one description tag per document
         if len(description_tags) > 0:
             metadata["description"] = description_tags[0].get("content", "").strip()
