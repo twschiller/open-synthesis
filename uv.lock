@@ -470,11 +470,11 @@ wheels = [
 
 [[package]]
 name = "django-webpack-loader"
-version = "3.2.0"
+version = "3.2.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/35/75/a89b3818f6d75dd8d40722ca82251edad5a733018fe434c3406856a358d7/django_webpack_loader-3.2.0.tar.gz", hash = "sha256:af2b634ea11973d093ffb48a402b8838c6201d0e4e4ba9216f97b74e57791e76", size = 17840, upload-time = "2025-05-19T20:37:23.655Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/64/e3/7c824814222d8411e5b2a72f4650e0181893bafa8324c33a5f77dd41db42/django_webpack_loader-3.2.1.tar.gz", hash = "sha256:d4bfaca9a640f087e7feeeb2ca6afd3d0a644bce3925b3d430448989c1673774", size = 17855, upload-time = "2025-06-16T12:33:24.353Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f5/a0/32b2dd9e4b4648ce5d18b25f87120204f4f671bd186d600a0416b5023479/django_webpack_loader-3.2.0-py2.py3-none-any.whl", hash = "sha256:a626e2aa5cf2664d565539ac7523c934c92943d5442f692f98ae357d74371bf0", size = 20800, upload-time = "2025-05-19T20:37:22.322Z" },
+    { url = "https://files.pythonhosted.org/packages/79/dc/216df230d008495613b6fa3fe6f5f38c99c8516e81acda8cbe73a3c0f14c/django_webpack_loader-3.2.1-py2.py3-none-any.whl", hash = "sha256:b7e505bcdf7af8f75433f13d54010e0a95c61a8b80890a700a598602656e09bf", size = 20806, upload-time = "2025-06-16T12:33:22.672Z" },
 ]
 
 [[package]]
@@ -676,7 +676,7 @@ requires-dist = [
     { name = "django-notifications-hq", specifier = "==1.8.3" },
     { name = "django-recaptcha", specifier = "==4.1.0" },
     { name = "django-sendgrid-v5", specifier = "==1.3.0" },
-    { name = "django-webpack-loader", specifier = "==3.2.0" },
+    { name = "django-webpack-loader", specifier = "==3.2.1" },
     { name = "gunicorn", specifier = "==23.0.0" },
     { name = "nplusone", specifier = "==1.0.0" },
     { name = "psycopg2-binary", specifier = "==2.9.10" },
