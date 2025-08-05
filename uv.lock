@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.13"
 
 [[package]]
@@ -351,14 +351,14 @@ wheels = [
 
 [[package]]
 name = "django-coverage-plugin"
-version = "3.1.0"
+version = "3.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "coverage" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ba/d2/f37452482053e82c47c6ec2626370fe1a2cd81af31e510ad90bb2cb4a081/django_coverage_plugin-3.1.0.tar.gz", hash = "sha256:223d34bf92bebadcb8b7b89932480e41c7bd98b44a8156934488fbe7f4a71f99", size = 13799, upload-time = "2023-07-10T13:14:46.322Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/f0/b1a7391c2ba9cb9e82c5ee9a707c1805b35f4d6692b1f371d3d40a7a6c91/django_coverage_plugin-3.1.1.tar.gz", hash = "sha256:d30334c3cb00ab65449ce779ed7c4cd1263331becf4440e03f8b287203a81d41", size = 29475, upload-time = "2025-06-15T14:49:59.734Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c6/05/892bd4cbf2cd2735c1f179bc9bbcac1762f0d505957566f0d39bdcd98a64/django_coverage_plugin-3.1.0-py3-none-any.whl", hash = "sha256:eb0ea8ffdb0db11a02994fc99be6500550efb496c350d709f418ff3d8e553a67", size = 14054, upload-time = "2023-07-10T13:14:44.735Z" },
+    { url = "https://files.pythonhosted.org/packages/43/53/f650a07c51be8cffb63c472d6d2836a7b3aabc1fd7b94d4bafedfa68e353/django_coverage_plugin-3.1.1-py3-none-any.whl", hash = "sha256:5e6437f24aef66e36edb912f5992954cef9f8088b75227bcb73270128a7069fc", size = 14729, upload-time = "2025-06-15T14:49:58.686Z" },
 ]
 
 [[package]]
@@ -693,7 +693,7 @@ requires-dist = [
 coverage = [{ name = "coveralls", specifier = "==4.0.1" }]
 dev = [
     { name = "coverage", specifier = "==7.7.1" },
-    { name = "django-coverage-plugin", specifier = "==3.1.0" },
+    { name = "django-coverage-plugin", specifier = "==3.1.1" },
     { name = "django-debug-toolbar", specifier = "==5.1.0" },
     { name = "factory-boy", specifier = "==3.3.3" },
     { name = "pre-commit", specifier = "==4.2.0" },
