@@ -37,7 +37,7 @@ dependencies = [
 dev = [
     "pytest==8.3.5",
     "coverage==7.7.1",
-    "pytest-django==4.10.0",
+    "pytest-django==4.11.1",
     "pytest-cov==6.0.0",
     "pre-commit==4.2.0",
     "django-debug-toolbar==5.1.0",
