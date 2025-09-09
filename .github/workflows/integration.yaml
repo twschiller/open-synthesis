@@ -37,7 +37,7 @@ jobs:
         with:
           cache: npm
       - name: "Set up Python"
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version-file: ".python-version"
       - name: Install development headers
