@@ -31,7 +31,7 @@
     "@babel/preset-env": "^7.28.3",
     "babel-loader": "^10.0.0",
     "bootstrap": "^3.4.1",
-    "bootstrap-datepicker": "^1.10.0",
+    "bootstrap-datepicker": "^1.10.1",
     "css-loader": "^7.1.2",
     "eslint": "^9.35.0",
     "file-loader": "^6.2.0",
