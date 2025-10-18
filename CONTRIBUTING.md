@@ -15,7 +15,7 @@ We appreciate all pull requests. However, before working on an enhancement/featu
 ### Requirements
 
 To perform local development, you'll need:
-* Python 3.13+
+* Python 3.14+
 * [pip](https://pip.pypa.io/en/stable/installing/)
 * [virtualenv](https://virtualenv.pypa.io/en/stable/)
 * [node](https://nodejs.org/en/download/package-manager/)

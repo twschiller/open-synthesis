@@ -3,7 +3,7 @@ name = "open-synthesis"
 version = "0.0.3"
 description = "Open platform for CIA-style intelligence analysis"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "setuptools==80.9.0",
     "beautifulsoup4==4.14.2",
