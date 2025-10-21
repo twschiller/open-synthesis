@@ -33,7 +33,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           cache: npm
       - name: "Set up Python"
