@@ -40,7 +40,7 @@ dev = [
     "pytest-django==4.11.1",
     "pytest-cov==7.0.0",
     "pre-commit==4.3.0",
-    "django-debug-toolbar==6.0.0",
+    "django-debug-toolbar==6.1.0",
     "django-coverage-plugin==3.2.0",
     "factory-boy==3.3.3",
 ]
