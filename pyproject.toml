@@ -45,7 +45,7 @@ dev = [
     "factory-boy==3.3.3",
 ]
 coverage = [
-    "coveralls==4.0.1"
+    "coveralls==4.0.2"
 ]
 
 [tool.pre-commit]
