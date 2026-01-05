@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "setuptools==80.9.0",
-    "beautifulsoup4==4.14.2",
+    "beautifulsoup4==4.14.3",
     "celery==5.6.1",
     "dj-database-url==3.0.1",
     "django-allauth==0.54.0",
