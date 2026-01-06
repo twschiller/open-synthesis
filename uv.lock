@@ -324,14 +324,14 @@ wheels = [
 
 [[package]]
 name = "dj-database-url"
-version = "3.0.1"
+version = "3.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/75/05/2ec51009f4ce424877dbd8ad95868faec0c3494ed0ff1635f9ab53d9e0ee/dj_database_url-3.0.1.tar.gz", hash = "sha256:8994961efb888fc6bf8c41550870c91f6f7691ca751888ebaa71442b7f84eff8", size = 12556, upload-time = "2025-07-02T09:40:11.424Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/95/c6/88676a7333fb7c668e626b55f8bfc8527dd863973eb1c40412b95d27747d/dj_database_url-3.1.0.tar.gz", hash = "sha256:d80218426b83f9302c8d27d4fccf52de5cf0cab179f0645fb2839f37605d1353", size = 7924, upload-time = "2026-01-04T09:18:32.693Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/aa/5e/86a43c6fdaa41c12d58e4ff3ebbfd6b71a7cb0360a08614e3754ef2e9afb/dj_database_url-3.0.1-py3-none-any.whl", hash = "sha256:43950018e1eeea486bf11136384aec0fe55b29fe6fd8a44553231b85661d9383", size = 8808, upload-time = "2025-07-02T09:40:26.326Z" },
+    { url = "https://files.pythonhosted.org/packages/68/1b/e84f7472ab0bdacc3fd09556eb4dd40d88246941d465cc103b36a8dabcd8/dj_database_url-3.1.0-py3-none-any.whl", hash = "sha256:155a56fbbecbaaf1348ccd73bf29138b4c9988363ba08261a0f0145e392e638c", size = 8849, upload-time = "2026-01-04T09:18:43.77Z" },
 ]
 
 [[package]]
@@ -698,7 +698,7 @@ dev = [
 requires-dist = [
     { name = "beautifulsoup4", specifier = "==4.14.3" },
     { name = "celery", specifier = "==5.6.2" },
-    { name = "dj-database-url", specifier = "==3.0.1" },
+    { name = "dj-database-url", specifier = "==3.1.0" },
     { name = "django", specifier = "==4.2.27" },
     { name = "django-allauth", specifier = "==0.54.0" },
     { name = "django-bootstrap-form", specifier = "==3.4" },
