@@ -489,16 +489,16 @@ wheels = [
 
 [[package]]
 name = "django-sendgrid-v5"
-version = "1.3.0"
+version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "python-http-client" },
     { name = "sendgrid" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/10/78/4e72b2cfc098f01b87df7c0fb55071429263b70c3cb7a17758893519892b/django_sendgrid_v5-1.3.0.tar.gz", hash = "sha256:9e81fe4ff7c5ee28182b1298d633a61e37fef5638e9f5c023c93bd1d0832ca4d", size = 18612, upload-time = "2025-05-14T13:44:27.417Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/a8/544372be6be89ae9a650734e5c78b0e3128ec21dd3c9cd53641c71d2d781/django_sendgrid_v5-1.3.1.tar.gz", hash = "sha256:ed3dc4edc26c07dc09bee7ab50634716edf4e2de9430af4667320091b7255591", size = 19024, upload-time = "2026-01-05T21:05:33.923Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/ae/8623b12473027becfdd395b99f10c6c5f95f25a7ce920cf60f5ebf3e12b5/django_sendgrid_v5-1.3.0-py3-none-any.whl", hash = "sha256:72e205dcebf4c6fd034eb2a27dd5a2332486dfd4de9ff33995f01be559f6b6cd", size = 13445, upload-time = "2025-05-14T13:44:26.505Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/c8/be0e6866b9f5e623b15c4492b78ad8a4f380d761169f6ab15696b3c94713/django_sendgrid_v5-1.3.1-py3-none-any.whl", hash = "sha256:29c308b8fe92fcae31aa4cae6a04efcd1e62613226e90d199d950fadd44c4189", size = 13606, upload-time = "2026-01-05T21:05:33.029Z" },
 ]
 
 [[package]]
@@ -709,7 +709,7 @@ requires-dist = [
     { name = "django-invitations", specifier = "==2.1.0" },
     { name = "django-notifications-hq", specifier = "==1.8.3" },
     { name = "django-recaptcha", specifier = "==4.1.0" },
-    { name = "django-sendgrid-v5", specifier = "==1.3.0" },
+    { name = "django-sendgrid-v5", specifier = "==1.3.1" },
     { name = "django-webpack-loader", specifier = "==3.2.3" },
     { name = "gunicorn", specifier = "==23.0.0" },
     { name = "nplusone", specifier = "==1.0.0" },
