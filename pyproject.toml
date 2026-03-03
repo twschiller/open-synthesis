@@ -13,7 +13,7 @@ dependencies = [
     "django-bootstrap-form==3.4",
     "django-contrib-comments==2.2.0",
     "django-csp==3.8",
-    "django-environ==0.12.0",
+    "django-environ==0.13.0",
     "django-field-history==0.8.0",
     "django-invitations==2.1.0",
     "django-notifications-hq==1.8.3",
