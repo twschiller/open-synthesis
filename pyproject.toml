@@ -28,7 +28,7 @@ dependencies = [
     "redis==7.3.0",
     "rollbar==1.3.0",
     "gunicorn==25.1.0",
-    "whitenoise==6.11.0",
+    "whitenoise==6.12.0",
     "django-webpack-loader==3.2.3",
     "nplusone==1.0.0",
 ]
