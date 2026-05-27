@@ -1,6 +1,7 @@
 """Custom account adapters."""
 
 from allauth.account.adapter import DefaultAccountAdapter
+from django.conf import settings
 from invitations.app_settings import app_settings
 
 from .models import UserSettings
@@ -16,7 +17,9 @@ class InvitationsAdapter(DefaultAccountAdapter):
 
     def is_open_for_signup(self, request):
         """Return True if site is not invitation only, or if the user accessed the signup from an invitation."""
-        if hasattr(request, "session") and request.session.get(
+        if getattr(settings, "SIGNUP_DISABLED", False):
+            return False
+        elif hasattr(request, "session") and request.session.get(
             "account_verified_email"
         ):
             return True
