@@ -35,6 +35,7 @@ jobs:
           cache-dependency-glob: "uv.lock"
       - uses: actions/setup-node@v6
         with:
+          node-version-file: package.json
           cache: npm
       - name: "Set up Python"
         uses: actions/setup-python@v6
