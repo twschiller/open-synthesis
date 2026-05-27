@@ -39,6 +39,18 @@ class AccountManagementTests(TestCase):
         response = self.client.get("/accounts/signup/")
         self.assertContains(response, "invitation")
 
+    @override_settings(SIGNUP_DISABLED=True)
+    def test_signup_disabled_get(self):
+        """Test that the sign-up page shows the closed template when SIGNUP_DISABLED is True."""
+        response = self.client.get("/accounts/signup/")
+        self.assertTemplateUsed(response, "account/signup_closed.html")
+
+    @override_settings(SIGNUP_DISABLED=True)
+    def test_signup_disabled_post(self):
+        """Test that a POST to sign up does not create an account when SIGNUP_DISABLED is True."""
+        self.client.post("/accounts/signup/", data=self.valid_data)
+        self.assertFalse(User.objects.filter(username=self.username).exists())
+
     @override_settings(ACCOUNT_EMAIL_REQUIRED=True)
     def test_email_address_required(self):
         """Test that signup without email is rejected."""

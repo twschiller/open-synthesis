@@ -65,6 +65,7 @@ env = environ.Env(  # pylint: disable=invalid-name
     EVIDENCE_REQUIRE_SOURCE=(bool, True),
     EDIT_REMOVE_ENABLED=(bool, True),
     INVITE_REQUIRED=(bool, False),
+    SIGNUP_DISABLED=(bool, False),
     SENDGRID_USERNAME=(str, None),
     SENDGRID_API_KEY=(str, None),
     SLUG_MAX_LENGTH=(int, 72),
@@ -361,6 +362,7 @@ if _detect_command("createadmin"):  # pragma: no cover
 ADMIN_EMAIL_ADDRESS = env("ADMIN_EMAIL_ADDRESS")
 PRIVACY_URL = env("PRIVACY_URL")
 INVITE_REQUIRED = env("INVITE_REQUIRED")
+SIGNUP_DISABLED = env("SIGNUP_DISABLED")
 INVITE_REQUEST_URL = env("INVITE_REQUEST_URL")
 EVIDENCE_REQUIRE_SOURCE = env("EVIDENCE_REQUIRE_SOURCE")
 EDIT_REMOVE_ENABLED = env("EDIT_REMOVE_ENABLED")

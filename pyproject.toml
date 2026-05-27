@@ -57,7 +57,7 @@ include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
 line_length = 88
-known_third_party = ["allauth", "bs4", "celery", "csp", "dj_database_url", "django", "django_comments", "environ", "factory", "field_history", "gunicorn", "invitations", "notifications", "qrcode", "requests", "slugify", "tldextract", "urllib3"]
+known_third_party = ["allauth", "bs4", "celery", "csp", "dj_database_url", "django", "django_comments", "environ", "factory", "field_history", "gunicorn", "invitations", "qrcode", "requests", "slugify", "tldextract", "urllib3"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
