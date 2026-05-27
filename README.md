@@ -5,9 +5,9 @@
 [![Code Climate Status](https://codeclimate.com/github/twschiller/open-synthesis/badges/gpa.svg)](https://codeclimate.com/github/twschiller/open-synthesis)
 [![License Status](https://img.shields.io/badge/license-AGPL-brightgreen.svg)](LICENSE.md)
 
-## 2024-03-09: THIS REPOSITORY IS IN MAINTENANCE MODE
+## 2026-05-27: THIS REPOSITORY IS ARCHIVED
 
-This repository is in maintenance mode. 
+- 2024-03-09: THIS REPOSITORY IS IN MAINTENANCE MODE
 
 ## Goals
 
